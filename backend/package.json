@@ -1,0 +1,24 @@
+{
+  "name": "nextworth-backend",
+  "version": "1.0.0",
+  "description": "Backend de NextWorth - Plataforma de gestión de portafolios con IA",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "express": "^4.19.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0",
+    "yahoo-finance2": "^3.10.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

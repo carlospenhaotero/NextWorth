@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0f172a;
+  /* Slate 900 */
+  --foreground: #f8fafc;
+  /* Slate 50 */
+
+  --primary: #00C2FF;
+  /* Brand Cyan */
+  --secondary: #3b82f6;
+  /* Blue 500 */
+  --accent: #00C2FF;
+  /* Brand Cyan */
+
+  --surface: rgba(30, 41, 59, 0.7);
+  /* Slate 800 with opacity */
+  --surface-light: rgba(51, 65, 85, 0.7);
+  /* Slate 700 with opacity */
+}
+
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Glassmorphism utilities */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  @apply rounded-2xl p-6 transition-all duration-300;
+}
+
+.glass-card:hover {
+  background: var(--surface-light);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Legacy/Shared Styles for Forms and Buttons */
+.btn {
+  @apply inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300;
+}
+
+.btn-primary {
+  @apply bg-[#00C2FF] text-slate-900 font-bold shadow-lg shadow-cyan-500/20 hover:bg-[#33d1ff] hover:shadow-cyan-500/40 hover:-translate-y-0.5;
+}
+
+.btn-secondary {
+  @apply bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 hover:text-white;
+}
+
+.form-group {
+  @apply mb-5;
+}
+
+.form-label {
+  @apply block mb-2 text-sm font-medium text-slate-400;
+}
+
+.form-input,
+.form-select {
+  @apply w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-slate-200 text-sm transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500;
+}
+
+.error-message {
+  @apply text-red-400 text-sm mt-1;
+}
+
+.success-message {
+  @apply text-green-400 text-sm mt-1;
+}
