@@ -5,6 +5,7 @@ import {
   upsertPosition,
   getPortfolio,
   deletePosition,
+  updateTae,
 } from "../controllers/portfolioController.js";
 
 const router = Router();
@@ -20,5 +21,9 @@ router.get("/portfolio", authRequired, getPortfolio);
 // Eliminar una posición del portfolio
 // DELETE /api/portfolio/:id
 router.delete("/portfolio/:id", authRequired, deletePosition);
+
+// Actualizar solo el TAE de una posición (bond/savings)
+// PATCH /api/portfolio/:id/tae
+router.patch("/portfolio/:id/tae", authRequired, updateTae);
 
 export default router;

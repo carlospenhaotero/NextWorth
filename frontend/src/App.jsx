@@ -6,6 +6,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import DashboardBento from './pages/DashboardBento';
 import AssetList from './pages/AssetList';
+import AssetDetail from './pages/AssetDetail';
 import AddAsset from './pages/AddAsset';
 import Settings from './pages/Settings';
 import Layout from './components/Layout';
@@ -33,6 +34,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <AssetList />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/assets/:symbol"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <AssetDetail />
                 </Layout>
               </ProtectedRoute>
             }

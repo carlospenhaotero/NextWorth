@@ -3,6 +3,7 @@
 import { Router } from "express";
 import { authRequired } from "../middleware/auth.js";
 import { getQuote } from "../services/marketDataService.js";
+import { getAssetHistory } from "../controllers/marketController.js";
 
 const router = Router();
 
@@ -40,5 +41,7 @@ router.get("/fx/:from/:to", authRequired, async (req, res) => {
   }
 });
 
+// GET /api/market/history/AAPL?range=24m&interval=1mo
+router.get("/history/:symbol", authRequired, getAssetHistory);
 
 export default router;

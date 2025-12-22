@@ -16,4 +16,10 @@ export const portfolioService = {
     const response = await api.delete(`/portfolio/${positionId}`);
     return response.data;
   },
+
+  async updateTae(positionId, tae) {
+    // Actualizar el TAE (rentabilidad anual) de un asset bond/savings
+    const response = await api.patch(`/portfolio/${positionId}/tae`, { tae });
+    return response.data;
+  },
 };

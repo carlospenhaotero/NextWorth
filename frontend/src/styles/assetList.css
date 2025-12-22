@@ -286,6 +286,17 @@
     box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.4);
 }
 
+.asset-card:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.6);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), 0 15px 30px -10px rgba(0, 0, 0, 0.4);
+}
+
+.asset-card:focus-visible {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
 .asset-card:hover::before {
     opacity: 1;
 }
@@ -587,6 +598,16 @@
     background: rgba(102, 126, 234, 0.05);
 }
 
+.assets-table tbody tr:focus {
+    outline: none;
+    background: rgba(102, 126, 234, 0.08);
+}
+
+.assets-table tbody tr:focus-visible {
+    outline: 2px solid #667eea;
+    outline-offset: -2px;
+}
+
 .assets-table td {
     padding: 0.75rem 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
@@ -881,4 +902,36 @@
         height: 32px;
         font-size: 1rem;
     }
+}
+
+/* ============================================
+   DISABLED STATE - Cash/Savings Assets
+   ============================================ */
+
+/* Disabled state for cash/savings assets */
+.asset-card.cursor-not-allowed,
+.assets-table tbody tr.cursor-not-allowed {
+    cursor: not-allowed !important;
+}
+
+/* Prevent hover effects on disabled cards */
+.asset-card.cursor-not-allowed:hover {
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.asset-card.cursor-not-allowed:hover::before {
+    opacity: 0;
+}
+
+/* Prevent hover effects on disabled table rows */
+.assets-table tbody tr.cursor-not-allowed:hover {
+    background-color: transparent;
+}
+
+/* Reduce opacity for non-interactive assets */
+.asset-card.opacity-75,
+.assets-table tbody tr.opacity-75 {
+    opacity: 0.75;
 }

@@ -332,3 +332,46 @@ export const deletePosition = async (req, res) => {
     });
   }
 };
+
+/**
+ * Actualizar solo el TAE de una posición existente (bond/savings)
+ * PATCH /api/portfolio/:id/tae
+ */
+export const updateTae = async (req, res) => {
+  const userId = req.user.userId;
+  const positionId = req.params.id;
+  const { tae } = req.body;
+
+  // Validación
+  if (tae === undefined || tae === null) {
+    return res.status(400).json({ error: 'TAE is required' });
+  }
+
+  const numTae = parseFloat(tae);
+  if (isNaN(numTae) || numTae < 0 || numTae > 100) {
+    return res.status(400).json({ error: 'TAE must be between 0 and 100' });
+  }
+
+  try {
+    // Update solo el campo TAE
+    const result = await pool.query(
+      `UPDATE user_portfolio
+       SET tae = $1, updated_at = NOW()
+       WHERE id = $2 AND user_id = $3
+       RETURNING *`,
+      [numTae, positionId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Position not found' });
+    }
+
+    res.json({
+      message: 'TAE updated successfully',
+      position: result.rows[0]
+    });
+  } catch (err) {
+    console.error('Error updating TAE:', err);
+    res.status(500).json({ error: 'Failed to update TAE' });
+  }
+};

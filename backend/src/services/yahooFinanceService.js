@@ -50,7 +50,49 @@ export async function validateSymbol(symbol) {
     }
 }
 
+/**
+ * Fetches historical price data from Yahoo Finance
+ * @param {string} symbol - Yahoo Finance symbol (e.g., AAPL, BTC-USD)
+ * @param {Date} startDate - Start date for historical data
+ * @param {Date} endDate - End date for historical data
+ * @param {string} interval - Data interval: '1d', '1wk', '1mo'
+ * @returns {Promise<Array>} Historical data points with OHLCV data
+ */
+export async function getHistoricalData(symbol, startDate, endDate, interval) {
+    const yahooSymbol = symbol.toUpperCase();
+
+    console.log(`📈 Fetching historical data for ${yahooSymbol} (${interval})`);
+
+    try {
+        const result = await yahooFinance.historical(yahooSymbol, {
+            period1: startDate,
+            period2: endDate,
+            interval: interval
+        });
+
+        if (!result || result.length === 0) {
+            throw new Error(`No historical data available for ${yahooSymbol}`);
+        }
+
+        // Transform to standardized format
+        return result.map(item => ({
+            date: item.date.toISOString().split('T')[0], // YYYY-MM-DD
+            open: item.open,
+            high: item.high,
+            low: item.low,
+            close: item.close,
+            volume: item.volume || 0,
+            currency: 'USD' // Yahoo doesn't always provide currency, default to USD
+        }));
+
+    } catch (error) {
+        console.error(`❌ Yahoo Finance historical fetch failed for ${yahooSymbol}:`, error.message);
+        throw error;
+    }
+}
+
 export default {
     getQuote: getYahooQuote,
     validateSymbol,
+    getHistoricalData,
 };

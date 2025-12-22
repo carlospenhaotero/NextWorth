@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { portfolioService } from '../services/portfolioService';
 import '../styles/assetList.css';
@@ -14,6 +14,32 @@ const AssetList = () => {
     useEffect(() => {
         loadPortfolio();
     }, []);
+
+    /**
+     * Navigate to asset detail page on double click.
+     * Passes asset metadata via React Router state for immediate display.
+     * Cash and savings assets are excluded (no price history).
+     */
+    const handleAssetDoubleClick = useCallback((position) => {
+        // Prevenir navegación para cash/savings
+        if (!canShowPriceHistory(position.assetType)) {
+            return; // Silent fail - no action
+        }
+
+        // URL-encode the symbol to handle special characters (e.g., BTC-USD, GC=F)
+        const encodedSymbol = encodeURIComponent(position.symbol);
+        navigate(`/assets/${encodedSymbol}`, {
+            state: {
+                asset: {
+                    id: position.id,
+                    symbol: position.symbol,
+                    name: position.name,
+                    assetType: position.assetType,
+                    currency: position.assetCurrency
+                }
+            }
+        });
+    }, [navigate]);
 
     const loadPortfolio = async () => {
         try {
@@ -64,6 +90,12 @@ const AssetList = () => {
             savings: '🏦',
         };
         return icons[type] || '📄';
+    };
+
+    // Determinar si un asset puede mostrar historial de precios
+    const canShowPriceHistory = (assetType) => {
+        const typesWithoutPriceHistory = ['cash', 'savings', 'bond'];
+        return !typesWithoutPriceHistory.includes(assetType);
     };
 
     // Contar activos por tipo
@@ -258,10 +290,29 @@ const AssetList = () => {
                 /* Card View */
                 <div className="assets-grid">
                     {filteredPositions.map((pos) => (
-                        <div key={pos.id} className="asset-card">
+                        <div
+                            key={pos.id}
+                            className={`asset-card ${!canShowPriceHistory(pos.assetType) ? 'cursor-not-allowed opacity-75' : ''}`}
+                            onDoubleClick={() => canShowPriceHistory(pos.assetType) && handleAssetDoubleClick(pos)}
+                            role="button"
+                            tabIndex={canShowPriceHistory(pos.assetType) ? 0 : -1}
+                            onKeyDown={(e) => {
+                                if ((e.key === 'Enter' || e.key === ' ') && canShowPriceHistory(pos.assetType)) {
+                                    e.preventDefault();
+                                    handleAssetDoubleClick(pos);
+                                }
+                            }}
+                            title={canShowPriceHistory(pos.assetType)
+                                ? `Double-click to view ${pos.symbol} price history`
+                                : 'Price history not available for cash/savings'}
+                            style={{ cursor: canShowPriceHistory(pos.assetType) ? 'pointer' : 'not-allowed' }}
+                        >
                             <button
                                 className="asset-delete-btn"
-                                onClick={() => handleDelete(pos.id, pos.symbol)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(pos.id, pos.symbol);
+                                }}
                                 title="Delete asset"
                             >
                                 🗑️
@@ -277,7 +328,12 @@ const AssetList = () => {
                                         <div className="asset-symbol">{pos.symbol}</div>
                                     </div>
                                 </div>
-                                <span className="asset-type-badge">{pos.assetType}</span>
+                                <span className="asset-type-badge">
+                                    {pos.assetType}
+                                    {!canShowPriceHistory(pos.assetType) && (
+                                        <span className="ml-1 text-xs opacity-60" title="No price history">📊🚫</span>
+                                    )}
+                                </span>
                             </div>
 
                             <div className="asset-card-body">
@@ -336,7 +392,24 @@ const AssetList = () => {
                         </thead>
                         <tbody>
                             {filteredPositions.map((pos) => (
-                                <tr key={pos.id}>
+                                <tr
+                                    key={pos.id}
+                                    className={!canShowPriceHistory(pos.assetType) ? 'cursor-not-allowed opacity-75' : ''}
+                                    onDoubleClick={() => canShowPriceHistory(pos.assetType) && handleAssetDoubleClick(pos)}
+                                    tabIndex={canShowPriceHistory(pos.assetType) ? 0 : -1}
+                                    onKeyDown={(e) => {
+                                        if ((e.key === 'Enter' || e.key === ' ') && canShowPriceHistory(pos.assetType)) {
+                                            e.preventDefault();
+                                            handleAssetDoubleClick(pos);
+                                        }
+                                    }}
+                                    title={canShowPriceHistory(pos.assetType)
+                                        ? `Double-click to view ${pos.symbol} price history`
+                                        : 'Price history not available for cash/savings'}
+                                    style={{ cursor: canShowPriceHistory(pos.assetType) ? 'pointer' : 'not-allowed' }}
+                                    role="button"
+                                    aria-label={`${pos.name || pos.symbol}${canShowPriceHistory(pos.assetType) ? ', double-click to view price history' : ', price history not available'}`}
+                                >
                                     <td>
                                         <div className="table-asset-info">
                                             <div className={`table-asset-icon ${pos.assetType}`}>
@@ -366,7 +439,10 @@ const AssetList = () => {
                                     <td className="text-center">
                                         <button
                                             className="table-delete-btn"
-                                            onClick={() => handleDelete(pos.id, pos.symbol)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(pos.id, pos.symbol);
+                                            }}
                                             title="Delete asset"
                                         >
                                             🗑️

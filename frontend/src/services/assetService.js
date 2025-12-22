@@ -1,5 +1,7 @@
-// Servicio para obtener listas de activos populares
+// Servicio para obtener listas de activos populares y datos de mercado
 // Todos los símbolos están en formato compatible con Yahoo Finance
+
+import api from './api';
 
 // Lista de 100 acciones más comunes (S&P 500 y otras grandes empresas)
 const POPULAR_STOCKS = [
@@ -237,6 +239,28 @@ export const assetService = {
                 return [];
         }
     },
+};
+
+/**
+ * Fetches historical price data for an asset from the backend.
+ * Requires JWT authentication.
+ *
+ * @param {string} symbol - The asset symbol in Yahoo Finance format (e.g., "AAPL", "BTC-USD")
+ * @param {Object} options - Query options
+ * @param {string} [options.range='24m'] - Time range: '6m', '12m', '24m', '60m'
+ * @param {string} [options.interval='1mo'] - Data interval: '1d', '1wk', '1mo'
+ * @returns {Promise<Object>} Historical data with series array
+ *
+ * @example
+ * const history = await getAssetHistory('AAPL', { range: '24m', interval: '1mo' });
+ * // Returns: { symbol, range, interval, currency, source, cachedAt, ttl, series: [...] }
+ */
+export const getAssetHistory = async (symbol, options = {}) => {
+    const { range = '24m', interval = '1mo' } = options;
+    const response = await api.get(`/market/history/${encodeURIComponent(symbol)}`, {
+        params: { range, interval }
+    });
+    return response.data;
 };
 
 // Mantener compatibilidad con el nombre antiguo

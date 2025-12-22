@@ -53,6 +53,47 @@ const createUserPortfolioTableQuery = `
   );
 `;
 
+// Tabla asset_price_history (histórico de precios mensuales)
+const createAssetPriceHistoryTableQuery = `
+  CREATE TABLE IF NOT EXISTS asset_price_history (
+    id SERIAL PRIMARY KEY,
+    asset_id INTEGER NOT NULL REFERENCES assets(id) ON DELETE CASCADE,
+    month DATE NOT NULL,
+    open NUMERIC(20, 8) NOT NULL,
+    high NUMERIC(20, 8) NOT NULL,
+    low NUMERIC(20, 8) NOT NULL,
+    close NUMERIC(20, 8) NOT NULL,
+    volume BIGINT NOT NULL DEFAULT 0,
+    currency TEXT NOT NULL,
+    fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT asset_price_history_asset_month_uq UNIQUE (asset_id, month),
+    CONSTRAINT asset_price_history_open_chk CHECK (open >= 0),
+    CONSTRAINT asset_price_history_high_chk CHECK (high >= 0),
+    CONSTRAINT asset_price_history_low_chk CHECK (low >= 0),
+    CONSTRAINT asset_price_history_close_chk CHECK (close >= 0),
+    CONSTRAINT asset_price_history_volume_chk CHECK (volume >= 0),
+    CONSTRAINT asset_price_history_currency_chk CHECK (currency IN ('USD', 'EUR')),
+    CONSTRAINT asset_price_history_ohlc_chk CHECK (
+      low <= high AND
+      open >= low AND open <= high AND
+      close >= low AND close <= high
+    )
+  );
+`;
+
+// Índices para asset_price_history
+const createAssetPriceHistoryIndexesQuery = `
+  CREATE INDEX IF NOT EXISTS idx_asset_price_history_asset_month
+    ON asset_price_history(asset_id, month DESC);
+
+  CREATE INDEX IF NOT EXISTS idx_asset_price_history_fetched
+    ON asset_price_history(fetched_at);
+
+  CREATE INDEX IF NOT EXISTS idx_asset_price_history_asset_fetched
+    ON asset_price_history(asset_id, fetched_at);
+`;
+
 (async () => {
   try {
     const client = await pool.connect();
@@ -66,6 +107,12 @@ const createUserPortfolioTableQuery = `
 
     await client.query(createUserPortfolioTableQuery);
     console.log("✅ Tabla 'user_portfolio' lista (creada o ya existente)");
+
+    await client.query(createAssetPriceHistoryTableQuery);
+    console.log("✅ Tabla 'asset_price_history' lista (creada o ya existente)");
+
+    await client.query(createAssetPriceHistoryIndexesQuery);
+    console.log("✅ Índices para 'asset_price_history' listos");
 
     client.release();
   } catch (err) {
