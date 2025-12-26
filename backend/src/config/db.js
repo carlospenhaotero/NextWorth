@@ -94,6 +94,36 @@ const createAssetPriceHistoryIndexesQuery = `
     ON asset_price_history(asset_id, fetched_at);
 `;
 
+// Tabla asset_predictions (predicciones de precios con IA)
+const createAssetPredictionsTableQuery = `
+  CREATE TABLE IF NOT EXISTS asset_predictions (
+    id SERIAL PRIMARY KEY,
+    asset_id INTEGER NOT NULL REFERENCES assets(id) ON DELETE CASCADE,
+    prediction_horizon TEXT NOT NULL,
+    prediction_date DATE NOT NULL,
+    predicted_close NUMERIC(20, 8) NOT NULL,
+    confidence_low NUMERIC(20, 8),
+    confidence_high NUMERIC(20, 8),
+    model_version TEXT NOT NULL DEFAULT 'chronos-t5-small',
+    fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT asset_predictions_uq UNIQUE (asset_id, prediction_horizon, prediction_date),
+    CONSTRAINT asset_predictions_close_chk CHECK (predicted_close >= 0),
+    CONSTRAINT asset_predictions_horizon_chk CHECK (
+      prediction_horizon IN ('3m', '6m', '1y', '2y', '5y')
+    )
+  );
+`;
+
+// Índices para asset_predictions
+const createAssetPredictionsIndexesQuery = `
+  CREATE INDEX IF NOT EXISTS idx_asset_predictions_lookup
+    ON asset_predictions(asset_id, prediction_horizon, fetched_at DESC);
+
+  CREATE INDEX IF NOT EXISTS idx_asset_predictions_ttl
+    ON asset_predictions(fetched_at);
+`;
+
 (async () => {
   try {
     const client = await pool.connect();
@@ -113,6 +143,12 @@ const createAssetPriceHistoryIndexesQuery = `
 
     await client.query(createAssetPriceHistoryIndexesQuery);
     console.log("✅ Índices para 'asset_price_history' listos");
+
+    await client.query(createAssetPredictionsTableQuery);
+    console.log("✅ Tabla 'asset_predictions' lista (creada o ya existente)");
+
+    await client.query(createAssetPredictionsIndexesQuery);
+    console.log("✅ Índices para 'asset_predictions' listos");
 
     client.release();
   } catch (err) {

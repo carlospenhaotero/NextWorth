@@ -8,6 +8,7 @@ import DashboardBento from './pages/DashboardBento';
 import AssetList from './pages/AssetList';
 import AssetDetail from './pages/AssetDetail';
 import AddAsset from './pages/AddAsset';
+import SearchAssets from './pages/SearchAssets';
 import Settings from './pages/Settings';
 import Layout from './components/Layout';
 
@@ -52,11 +53,21 @@ function App() {
             path="/add-asset"
             element={
               <ProtectedRoute>
-                {/* AddAsset already includes Layout internally, but we might want to unify this. 
+                {/* AddAsset already includes Layout internally, but we might want to unify this.
                      For now, let's keep it as is or wrap it if AddAsset removes its internal Layout.
                      Looking at AddAsset code, it uses Layout. So we don't wrap it here to avoid double layout.
                  */}
                 <AddAsset />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/search-assets"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <SearchAssets />
+                </Layout>
               </ProtectedRoute>
             }
           />

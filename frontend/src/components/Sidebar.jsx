@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, PieChart, PlusCircle, User, LogOut, Settings } from 'lucide-react';
+import { LayoutDashboard, PieChart, PlusCircle, Search, User, LogOut, Settings } from 'lucide-react';
 
 const Sidebar = () => {
     const location = useLocation();
@@ -9,6 +9,7 @@ const Sidebar = () => {
         { icon: LayoutDashboard, label: 'Portfolio', path: '/dashboard' },
         { icon: PieChart, label: 'Assets', path: '/assets' },
         { icon: PlusCircle, label: 'Add Asset', path: '/add-asset' },
+        { icon: Search, label: 'Search Assets', path: '/search-assets' },
         { icon: Settings, label: 'Settings', path: '/settings' },
     ];
 

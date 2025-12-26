@@ -5,6 +5,7 @@ import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
 import marketRouter from "./routes/market.routes.js";
 import portfolioRouter from "./routes/portfolio.routes.js";
+import predictionRouter from "./routes/prediction.routes.js";
 
 
 
@@ -34,6 +35,7 @@ app.use("/api/auth", authRouter);
 app.use("/api", userRouter);
 app.use("/api", portfolioRouter);
 app.use("/api/market", marketRouter);
+app.use("/api/predictions", predictionRouter);
 
 export default app;
   

@@ -263,5 +263,29 @@ export const getAssetHistory = async (symbol, options = {}) => {
     return response.data;
 };
 
+/**
+ * Fetches price predictions for an asset from the ML service.
+ * Requires JWT authentication.
+ *
+ * @param {string} symbol - The asset symbol (e.g., "AAPL", "BTC-USD")
+ * @param {string} horizon - Prediction horizon: '3m', '6m', '1y', '2y', '5y'
+ * @returns {Promise<Object|null>} Prediction data or null on error
+ *
+ * @example
+ * const predictions = await getAssetPrediction('AAPL', '6m');
+ * // Returns: { symbol, horizon, predictions: [...], source, modelVersion, ... }
+ */
+export const getAssetPrediction = async (symbol, horizon = '6m') => {
+    try {
+        const response = await api.get(`/predictions/${encodeURIComponent(symbol)}`, {
+            params: { horizon }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching predictions:', error);
+        return null;
+    }
+};
+
 // Mantener compatibilidad con el nombre antiguo
 export const finnhubService = assetService;

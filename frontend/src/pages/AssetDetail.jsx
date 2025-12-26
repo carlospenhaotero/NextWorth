@@ -9,10 +9,11 @@ import {
     Tooltip,
     ResponsiveContainer,
     Area,
-    AreaChart
+    AreaChart,
+    ReferenceLine
 } from 'recharts';
-import { ArrowLeft, RefreshCw, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
-import { getAssetHistory } from '../services/assetService';
+import { ArrowLeft, RefreshCw, AlertTriangle, TrendingUp, TrendingDown, Sparkles } from 'lucide-react';
+import { getAssetHistory, getAssetPrediction } from '../services/assetService';
 import { portfolioService } from '../services/portfolioService';
 
 /**
@@ -41,6 +42,13 @@ const AssetDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedRange, setSelectedRange] = useState('24m');
+
+    // Prediction state
+    const [showPredictions, setShowPredictions] = useState(false);
+    const [predictionHorizon, setPredictionHorizon] = useState('6m');
+    const [predictionData, setPredictionData] = useState(null);
+    const [predictionLoading, setPredictionLoading] = useState(false);
+    const [predictionError, setPredictionError] = useState(null);
 
     // Range options for the chart
     const rangeOptions = [
@@ -87,6 +95,38 @@ const AssetDetail = () => {
     }, [fetchHistory, isNonPricedAsset]);
 
     /**
+     * Fetch predictions when enabled and horizon changes
+     */
+    useEffect(() => {
+        if (!showPredictions || isNonPricedAsset || !symbol) {
+            return;
+        }
+
+        const fetchPredictions = async () => {
+            setPredictionLoading(true);
+            setPredictionError(null);
+
+            try {
+                const decodedSymbol = decodeURIComponent(symbol);
+                const data = await getAssetPrediction(decodedSymbol, predictionHorizon);
+
+                if (data) {
+                    setPredictionData(data);
+                } else {
+                    setPredictionError('Failed to load predictions');
+                }
+            } catch (err) {
+                console.error('Error fetching predictions:', err);
+                setPredictionError('Failed to load predictions');
+            } finally {
+                setPredictionLoading(false);
+            }
+        };
+
+        fetchPredictions();
+    }, [symbol, predictionHorizon, showPredictions, isNonPricedAsset]);
+
+    /**
      * Transform series data for recharts with memoization
      */
     const chartData = useMemo(() => {
@@ -109,9 +149,45 @@ const AssetDetail = () => {
             high: point.high,
             low: point.low,
             volume: point.volume,
-            timestamp: point.timestamp
+            timestamp: point.timestamp,
+            type: 'historical'
         }));
     }, [historyData]);
+
+    /**
+     * Combine historical and prediction data for chart
+     */
+    const combinedChartData = useMemo(() => {
+        if (!showPredictions || !predictionData?.predictions) {
+            return chartData;
+        }
+
+        const predictions = predictionData.predictions.map(p => ({
+            date: new Date(p.date).toLocaleDateString('en-US', {
+                month: 'short',
+                year: '2-digit'
+            }),
+            fullDate: new Date(p.date).toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+            }),
+            close: null,
+            predicted: p.predicted_close,
+            type: 'prediction',
+            timestamp: new Date(p.date).getTime()
+        }));
+
+        return [...chartData, ...predictions];
+    }, [chartData, predictionData, showPredictions]);
+
+    /**
+     * Find "today" label for reference line
+     */
+    const todayLabel = useMemo(() => {
+        if (!showPredictions || chartData.length === 0) return null;
+        return chartData[chartData.length - 1]?.date;
+    }, [chartData, showPredictions]);
 
     /**
      * Calculate price statistics with memoization
@@ -203,34 +279,48 @@ const AssetDetail = () => {
         if (!active || !payload || payload.length === 0) return null;
 
         const data = payload[0].payload;
+        const isPrediction = data.type === 'prediction';
 
         return (
             <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 shadow-xl">
                 <p className="text-slate-300 text-sm font-medium mb-2">{data.fullDate}</p>
-                <div className="space-y-1 text-sm">
-                    <div className="flex justify-between gap-4">
-                        <span className="text-slate-400">Close:</span>
-                        <span className="text-white font-medium">{formatCurrency(data.close)}</span>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                        <span className="text-slate-400">Open:</span>
-                        <span className="text-slate-300">{formatCurrency(data.open)}</span>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                        <span className="text-slate-400">High:</span>
-                        <span className="text-green-400">{formatCurrency(data.high)}</span>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                        <span className="text-slate-400">Low:</span>
-                        <span className="text-red-400">{formatCurrency(data.low)}</span>
-                    </div>
-                    {data.volume != null && (
-                        <div className="flex justify-between gap-4 pt-1 border-t border-slate-700">
-                            <span className="text-slate-400">Volume:</span>
-                            <span className="text-slate-300">{formatVolume(data.volume)}</span>
+
+                {isPrediction ? (
+                    <>
+                        <div className="space-y-1 text-sm">
+                            <div className="flex justify-between gap-4">
+                                <span className="text-blue-400">Predicted:</span>
+                                <span className="text-white font-medium">{formatCurrency(data.predicted)}</span>
+                            </div>
                         </div>
-                    )}
-                </div>
+                        <p className="text-xs text-slate-500 mt-2 italic">AI forecast</p>
+                    </>
+                ) : (
+                    <div className="space-y-1 text-sm">
+                        <div className="flex justify-between gap-4">
+                            <span className="text-slate-400">Close:</span>
+                            <span className="text-white font-medium">{formatCurrency(data.close)}</span>
+                        </div>
+                        <div className="flex justify-between gap-4">
+                            <span className="text-slate-400">Open:</span>
+                            <span className="text-slate-300">{formatCurrency(data.open)}</span>
+                        </div>
+                        <div className="flex justify-between gap-4">
+                            <span className="text-slate-400">High:</span>
+                            <span className="text-green-400">{formatCurrency(data.high)}</span>
+                        </div>
+                        <div className="flex justify-between gap-4">
+                            <span className="text-slate-400">Low:</span>
+                            <span className="text-red-400">{formatCurrency(data.low)}</span>
+                        </div>
+                        {data.volume != null && (
+                            <div className="flex justify-between gap-4 pt-1 border-t border-slate-700">
+                                <span className="text-slate-400">Volume:</span>
+                                <span className="text-slate-300">{formatVolume(data.volume)}</span>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         );
     }, [formatCurrency, formatVolume]);
@@ -658,6 +748,94 @@ const AssetDetail = () => {
                 </button>
             </div>
 
+            {/* AI Predictions Controls */}
+            <div className={`
+                rounded-xl border transition-all duration-500
+                ${showPredictions
+                    ? 'bg-gradient-to-br from-slate-900/60 via-slate-800/50 to-blue-900/30 border-blue-700/50'
+                    : 'bg-slate-900/50 border-slate-700'
+                }
+            `}>
+                <div className="p-4">
+                    {/* Button Pill */}
+                    <button
+                        onClick={() => setShowPredictions(!showPredictions)}
+                        className={`
+                            flex items-center gap-2 px-4 py-2.5 rounded-full
+                            transition-all duration-300 ease-out
+                            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900
+                            ${showPredictions
+                                ? 'bg-gradient-to-r from-blue-500 via-blue-600 to-purple-600 border border-blue-400/50 text-white font-semibold shadow-lg shadow-blue-500/40 hover:shadow-xl hover:shadow-blue-500/60 focus:ring-blue-400 animate-pulse-glow'
+                                : 'bg-slate-800/60 border border-slate-700 text-slate-400 hover:bg-slate-700/60 hover:border-slate-600 hover:text-slate-300 focus:ring-blue-500/50'
+                            }
+                            hover:scale-105
+                        `}
+                        aria-pressed={showPredictions}
+                        aria-label="Toggle AI predictions"
+                    >
+                        <Sparkles
+                            size={18}
+                            className={`transition-all duration-300 ${
+                                showPredictions ? 'rotate-0' : 'rotate-12 opacity-70'
+                            }`}
+                        />
+                        <span className="text-sm">AI Predictions</span>
+                    </button>
+
+                    {/* Forecast Section - Animated */}
+                    <div className={`
+                        overflow-hidden transition-all duration-500 ease-out
+                        ${showPredictions
+                            ? 'max-h-96 opacity-100 mt-4'
+                            : 'max-h-0 opacity-0 mt-0'
+                        }
+                    `}>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <span className="text-sm text-slate-400">Forecast:</span>
+                            <div className="flex gap-2">
+                                {['3m', '6m', '1y', '2y', '5y'].map(h => (
+                                    <button
+                                        key={h}
+                                        onClick={() => setPredictionHorizon(h)}
+                                        className={`
+                                            px-3 py-1.5 text-sm rounded-lg
+                                            transition-all duration-200
+                                            ${predictionHorizon === h
+                                                ? 'bg-blue-500 text-white font-medium shadow-md shadow-blue-500/30'
+                                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+                                            }
+                                        `}
+                                    >
+                                        {h.toUpperCase()}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {predictionLoading && (
+                                <span className="text-xs text-slate-400 flex items-center gap-1 animate-pulse">
+                                    <RefreshCw size={12} className="animate-spin" />
+                                    Generating predictions...
+                                </span>
+                            )}
+
+                            {predictionData?.warning && (
+                                <div className="flex items-center gap-1 text-xs text-amber-400">
+                                    <AlertTriangle size={14} />
+                                    <span>{predictionData.warning}</span>
+                                </div>
+                            )}
+
+                            {predictionError && (
+                                <div className="flex items-center gap-1 text-xs text-red-400">
+                                    <AlertTriangle size={14} />
+                                    <span>{predictionError}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Chart Card */}
             <div
                 className="glass-card"
@@ -667,7 +845,7 @@ const AssetDetail = () => {
                 <div className="h-[350px] sm:h-[400px] md:h-[450px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart
-                            data={chartData}
+                            data={combinedChartData}
                             margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
                         >
                             <defs>
@@ -707,13 +885,16 @@ const AssetDetail = () => {
                                 domain={['auto', 'auto']}
                             />
                             <Tooltip content={<CustomTooltip />} />
+
+                            {/* Historical data - area chart */}
                             <Area
                                 type="monotone"
-                                dataKey="close"
+                                dataKey={(d) => d.type === 'historical' ? d.close : null}
                                 stroke={priceStats?.isPositive ? '#10b981' : '#ef4444'}
                                 strokeWidth={2}
                                 fill="url(#colorPrice)"
                                 dot={false}
+                                connectNulls={false}
                                 activeDot={{
                                     r: 6,
                                     fill: priceStats?.isPositive ? '#10b981' : '#ef4444',
@@ -721,6 +902,40 @@ const AssetDetail = () => {
                                     strokeWidth: 2
                                 }}
                             />
+
+                            {/* Prediction data - dotted line */}
+                            {showPredictions && (
+                                <Line
+                                    type="monotone"
+                                    dataKey={(d) => d.type === 'prediction' ? d.predicted : null}
+                                    stroke="#3b82f6"
+                                    strokeWidth={2}
+                                    strokeDasharray="5 5"
+                                    dot={false}
+                                    connectNulls={false}
+                                    activeDot={{
+                                        r: 6,
+                                        fill: '#3b82f6',
+                                        stroke: '#1e293b',
+                                        strokeWidth: 2
+                                    }}
+                                />
+                            )}
+
+                            {/* "Today" reference line */}
+                            {showPredictions && todayLabel && (
+                                <ReferenceLine
+                                    x={todayLabel}
+                                    stroke="#64748b"
+                                    strokeDasharray="3 3"
+                                    label={{
+                                        value: 'Today',
+                                        position: 'top',
+                                        fill: '#94a3b8',
+                                        fontSize: 12
+                                    }}
+                                />
+                            )}
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
