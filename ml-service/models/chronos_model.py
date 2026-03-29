@@ -67,7 +67,7 @@ class ChronosModel:
 
             # Generate predictions
             forecast = self.pipeline.predict(
-                context=context,
+                inputs=context,
                 prediction_length=horizon_months,
                 num_samples=num_samples,
             )

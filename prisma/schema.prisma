@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// Better Auth tables
+// ============================================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // NextWorth custom field
+  baseCurrency String @default("USD") @map("base_currency")
+
+  sessions  Session[]
+  accounts  Account[]
+  portfolio UserPortfolio[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verifications")
+}
+
+// ============================================================
+// Business domain tables
+// ============================================================
+
+model Asset {
+  id        Int    @id @default(autoincrement())
+  symbol    String
+  name      String
+  assetType String @map("asset_type")
+  currency  String @default("USD")
+  riskLevel Int?   @map("risk_level")
+
+  portfolio    UserPortfolio[]
+  priceHistory AssetPriceHistory[]
+  predictions  AssetPrediction[]
+
+  @@unique([symbol, assetType])
+  @@map("assets")
+}
+
+model UserPortfolio {
+  id          Int      @id @default(autoincrement())
+  userId      String   @map("user_id")
+  assetId     Int      @map("asset_id")
+  quantity    Decimal  @db.Decimal(20, 8)
+  avgBuyPrice Decimal  @map("avg_buy_price") @db.Decimal(20, 8)
+
+  // Bond/savings fields
+  tae             Decimal?  @db.Decimal(5, 2)
+  faceValue       Decimal?  @map("face_value") @db.Decimal(20, 2)
+  couponRate      Decimal?  @map("coupon_rate") @db.Decimal(5, 2)
+  couponFrequency Int?      @map("coupon_frequency")
+  maturityDate    DateTime? @map("maturity_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, assetId])
+  @@map("user_portfolio")
+}
+
+model AssetPriceHistory {
+  id       Int      @id @default(autoincrement())
+  assetId  Int      @map("asset_id")
+  month    DateTime @db.Date
+  open     Decimal  @db.Decimal(20, 8)
+  high     Decimal  @db.Decimal(20, 8)
+  low      Decimal  @db.Decimal(20, 8)
+  close    Decimal  @db.Decimal(20, 8)
+  volume   BigInt   @default(0)
+  currency String
+
+  fetchedAt DateTime @default(now()) @map("fetched_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId, month])
+  @@index([assetId, month(sort: Desc)])
+  @@index([fetchedAt])
+  @@index([assetId, fetchedAt])
+  @@map("asset_price_history")
+}
+
+model AssetPrediction {
+  id                Int      @id @default(autoincrement())
+  assetId           Int      @map("asset_id")
+  predictionHorizon String   @map("prediction_horizon")
+  predictionDate    DateTime @map("prediction_date") @db.Date
+  predictedClose    Decimal  @map("predicted_close") @db.Decimal(20, 8)
+  confidenceLow     Decimal? @map("confidence_low") @db.Decimal(20, 8)
+  confidenceHigh    Decimal? @map("confidence_high") @db.Decimal(20, 8)
+  modelVersion      String   @default("chronos-t5-small") @map("model_version")
+
+  fetchedAt DateTime @default(now()) @map("fetched_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId, predictionHorizon, predictionDate])
+  @@index([assetId, predictionHorizon, fetchedAt(sort: Desc)])
+  @@index([fetchedAt])
+  @@map("asset_predictions")
+}

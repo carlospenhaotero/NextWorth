@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: nextworth-db
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_USER: nextworth
+      POSTGRES_PASSWORD: nextworth
+      POSTGRES_DB: nextworth
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nextworth"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: nextworth-ml
+    ports:
+      - "5001:5000"
+    environment:
+      - PORT=5000
+      - MODEL_NAME=amazon/chronos-t5-small
+      - FLASK_ENV=production
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  pgdata:
