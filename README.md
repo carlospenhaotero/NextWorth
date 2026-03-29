@@ -2,6 +2,10 @@
 
 Full-stack portfolio management app with AI-powered price predictions using Amazon Chronos, a foundation model for time-series forecasting.
 
+**Try it live:** [next-worth-livid.vercel.app](https://next-worth-livid.vercel.app)
+
+> The app is currently in **beta**. Create an account, add assets to your portfolio, and explore AI predictions — no credit card required.
+
 ## What it does
 
 NextWorth lets you track a multi-asset portfolio (stocks, ETFs, crypto, commodities, bonds, cash, savings) with real-time prices, multi-currency conversion, and profit/loss calculations. The key differentiator is the integrated ML service that generates price forecasts directly in the app.
@@ -60,15 +64,36 @@ Concurrent requests for the same asset/horizon are deduplicated in memory. Fresh
 
 ```
 Browser
-  |
-  v
-Next.js App (port 3000)
-  ├── Server Components → Prisma → PostgreSQL
+  │
+  ▼
+Next.js App (Vercel)
+  ├── Server Components → Prisma → PostgreSQL (Neon)
   ├── Server Actions → Portfolio CRUD, Settings
   └── API Routes → Market data, Predictions
-                        |
-                        v
-                  ML Service (port 5001)
+                        │
+                        ▼
+                  ML Service (Railway)
+                  Flask + Amazon Chronos
+```
+
+**Production deployment:**
+
+| Service | Platform |
+|---------|----------|
+| Next.js app | Vercel |
+| PostgreSQL | Neon |
+| ML Service | Railway (Docker) |
+
+**Local development:**
+
+```
+Next.js App (port 3000)
+  ├── Server Components → Prisma → PostgreSQL (Docker, port 5436)
+  ├── Server Actions → Portfolio CRUD, Settings
+  └── API Routes → Market data, Predictions
+                        │
+                        ▼
+                  ML Service (Docker, port 5001)
                   Flask + Amazon Chronos
 ```
 

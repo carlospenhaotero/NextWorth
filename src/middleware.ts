@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const guestOnlyRoutes = ["/login", "/register"];
+const guestOnlyRoutes = ["/login", "/register", "/"];
 
 const protectedRoutes = [
   "/overview",
@@ -21,7 +21,11 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAuthenticated = hasSessionCookie(request);
 
-  if (guestOnlyRoutes.some((route) => pathname.startsWith(route))) {
+  if (
+    guestOnlyRoutes.some((route) =>
+      route === "/" ? pathname === "/" : pathname.startsWith(route),
+    )
+  ) {
     if (isAuthenticated) {
       return NextResponse.redirect(new URL("/overview", request.url));
     }
@@ -40,6 +44,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/login",
     "/register",
     "/overview/:path*",
