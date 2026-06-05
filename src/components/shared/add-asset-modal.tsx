@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { X } from "lucide-react";
+import { X } from "@phosphor-icons/react/dist/ssr";
 import { upsertPosition } from "@/actions/portfolio";
 import type { CatalogAsset } from "@/lib/assets-catalog";
 
@@ -65,7 +65,7 @@ export function AddAssetModal({
       <div className="relative glass-card w-full max-w-md mx-4">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white"
+          className="absolute top-4 right-4 text-neutral-400 hover:text-white"
         >
           <X size={20} />
         </button>
@@ -73,7 +73,7 @@ export function AddAssetModal({
         <h2 className="text-xl font-bold text-white mb-1">
           Add {asset.name}
         </h2>
-        <p className="text-sm text-slate-400 mb-6">
+        <p className="text-sm text-neutral-400 mb-6">
           {asset.displaySymbol || asset.symbol}
         </p>
 
@@ -90,7 +90,7 @@ export function AddAssetModal({
           )}
 
           <div>
-            <label className="block mb-1 text-xs font-medium text-slate-400">
+            <label className="block mb-1 text-xs font-medium text-neutral-400">
               Quantity
             </label>
             <input
@@ -101,12 +101,12 @@ export function AddAssetModal({
               required
               placeholder="0.00"
               autoFocus
-              className="w-full px-3 py-2 bg-slate-900/50 border border-slate-700 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-primary"
+              className="w-full px-3 py-2 bg-neutral-900/50 border border-neutral-700 rounded-xl text-neutral-200 text-sm focus:outline-none focus:border-primary"
             />
           </div>
 
           <div>
-            <label className="block mb-1 text-xs font-medium text-slate-400">
+            <label className="block mb-1 text-xs font-medium text-neutral-400">
               Avg Buy Price ({asset.currency || baseCurrency})
             </label>
             <input
@@ -116,7 +116,7 @@ export function AddAssetModal({
               onChange={(e) => setAvgBuyPrice(e.target.value)}
               required
               placeholder="0.00"
-              className="w-full px-3 py-2 bg-slate-900/50 border border-slate-700 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-primary"
+              className="w-full px-3 py-2 bg-neutral-900/50 border border-neutral-700 rounded-xl text-neutral-200 text-sm focus:outline-none focus:border-primary"
             />
           </div>
 
@@ -124,14 +124,14 @@ export function AddAssetModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 transition-colors text-sm"
+              className="flex-1 py-2.5 bg-neutral-800 text-neutral-300 rounded-xl hover:bg-neutral-700 transition-colors text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="flex-1 py-2.5 bg-primary text-slate-900 font-bold rounded-xl shadow-lg shadow-cyan-500/20 hover:bg-[#33d1ff] disabled:opacity-50 text-sm"
+              className="flex-1 py-2.5 bg-primary text-neutral-900 font-bold rounded-xl shadow-lg shadow-white/20 hover:bg-white disabled:opacity-50 text-sm"
             >
               {isPending ? "Adding..." : "Add to Portfolio"}
             </button>

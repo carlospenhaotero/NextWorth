@@ -38,7 +38,7 @@ export default function RegisterPage() {
         <h1 className="text-3xl font-bold text-white font-[family-name:var(--font-display)]">
           NextWorth
         </h1>
-        <p className="text-slate-400 mt-2">Create your account</p>
+        <p className="text-neutral-400 mt-2">Create your account</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -49,7 +49,7 @@ export default function RegisterPage() {
         )}
 
         <div>
-          <label className="block mb-2 text-sm font-medium text-slate-400">
+          <label className="block mb-2 text-sm font-medium text-neutral-400">
             Name
           </label>
           <input
@@ -57,13 +57,13 @@ export default function RegisterPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            className="w-full px-4 py-3 bg-neutral-900/50 border border-neutral-700 rounded-xl text-neutral-200 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
             placeholder="Your name"
           />
         </div>
 
         <div>
-          <label className="block mb-2 text-sm font-medium text-slate-400">
+          <label className="block mb-2 text-sm font-medium text-neutral-400">
             Email
           </label>
           <input
@@ -71,13 +71,13 @@ export default function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            className="w-full px-4 py-3 bg-neutral-900/50 border border-neutral-700 rounded-xl text-neutral-200 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
             placeholder="your@email.com"
           />
         </div>
 
         <div>
-          <label className="block mb-2 text-sm font-medium text-slate-400">
+          <label className="block mb-2 text-sm font-medium text-neutral-400">
             Password
           </label>
           <input
@@ -86,7 +86,7 @@ export default function RegisterPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={8}
-            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            className="w-full px-4 py-3 bg-neutral-900/50 border border-neutral-700 rounded-xl text-neutral-200 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
             placeholder="Min. 8 characters"
           />
         </div>
@@ -94,13 +94,13 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-primary text-slate-900 font-bold rounded-xl shadow-lg shadow-cyan-500/20 hover:bg-[#33d1ff] hover:shadow-cyan-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 bg-primary text-neutral-900 font-bold rounded-xl shadow-lg shadow-white/20 hover:bg-white hover:shadow-white/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Creating account..." : "Create Account"}
         </button>
       </form>
 
-      <p className="text-center text-slate-500 text-sm mt-6">
+      <p className="text-center text-neutral-500 text-sm mt-6">
         Already have an account?{" "}
         <Link href="/login" className="text-primary hover:underline">
           Sign In

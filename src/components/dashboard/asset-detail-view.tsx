@@ -13,7 +13,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
-import { ArrowLeft, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowsClockwise, Sparkle } from "@phosphor-icons/react/dist/ssr";
 import { formatCurrency } from "@/lib/utils";
 
 const RANGE_OPTIONS = [
@@ -153,7 +153,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="animate-spin text-slate-400" size={24} />
+        <ArrowsClockwise className="animate-spin text-neutral-400" size={24} />
       </div>
     );
   }
@@ -162,14 +162,14 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <button onClick={() => router.back()} className="text-slate-400 hover:text-white transition-colors">
+        <button onClick={() => router.back()} className="text-neutral-400 hover:text-white transition-colors">
           <ArrowLeft size={24} />
         </button>
         <div>
           <h1 className="text-3xl font-bold text-white">
             {historyData?.name || symbol}
           </h1>
-          <p className="text-slate-400">{symbol}</p>
+          <p className="text-neutral-400">{symbol}</p>
         </div>
       </div>
 
@@ -183,25 +183,25 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
       {priceStats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="glass-card !p-4">
-            <p className="text-xs text-slate-500">Current</p>
+            <p className="text-xs text-neutral-500">Current</p>
             <p className="text-lg font-bold text-white">
               {formatCurrency(priceStats.current, historyData?.currency || "USD")}
             </p>
           </div>
           <div className="glass-card !p-4">
-            <p className="text-xs text-slate-500">Change</p>
+            <p className="text-xs text-neutral-500">Change</p>
             <p className={`text-lg font-bold ${priceStats.change >= 0 ? "text-green-400" : "text-red-400"}`}>
               {priceStats.changePct >= 0 ? "+" : ""}{priceStats.changePct.toFixed(2)}%
             </p>
           </div>
           <div className="glass-card !p-4">
-            <p className="text-xs text-slate-500">High</p>
+            <p className="text-xs text-neutral-500">High</p>
             <p className="text-lg font-bold text-white">
               {formatCurrency(priceStats.high, historyData?.currency || "USD")}
             </p>
           </div>
           <div className="glass-card !p-4">
-            <p className="text-xs text-slate-500">Low</p>
+            <p className="text-xs text-neutral-500">Low</p>
             <p className="text-lg font-bold text-white">
               {formatCurrency(priceStats.low, historyData?.currency || "USD")}
             </p>
@@ -218,8 +218,8 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
               onClick={() => setSelectedRange(opt.value)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 selectedRange === opt.value
-                  ? "bg-primary text-slate-900"
-                  : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                  ? "bg-primary text-neutral-900"
+                  : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
               }`}
             >
               {opt.label}
@@ -232,11 +232,11 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
             onClick={() => setShowPredictions(!showPredictions)}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               showPredictions
-                ? "bg-purple-600 text-white"
-                : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                ? "bg-primary text-neutral-900"
+                : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
             }`}
           >
-            <Sparkles size={14} />
+            <Sparkle size={14} />
             AI Predictions
           </button>
 
@@ -248,8 +248,8 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                   onClick={() => setPredictionHorizon(opt.value)}
                   className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
                     predictionHorizon === opt.value
-                      ? "bg-purple-500/30 text-purple-300"
-                      : "bg-slate-800 text-slate-500 hover:bg-slate-700"
+                      ? "bg-neutral-700 text-white"
+                      : "bg-neutral-800 text-neutral-500 hover:bg-neutral-700"
                   }`}
                 >
                   {opt.label}
@@ -263,8 +263,8 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
       {/* Chart */}
       <div className="glass-card" style={{ height: 400 }}>
         {predictionLoading && showPredictions && (
-          <div className="flex items-center gap-2 text-purple-400 text-sm mb-2">
-            <RefreshCw className="animate-spin" size={14} />
+          <div className="flex items-center gap-2 text-neutral-300 text-sm mb-2">
+            <ArrowsClockwise className="animate-spin" size={14} />
             Loading predictions...
           </div>
         )}
@@ -273,37 +273,37 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
             <AreaChart data={combinedChartData}>
               <defs>
                 <linearGradient id="colorClose" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#a3a3a3" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#a3a3a3" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorPredicted" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#737373" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#737373" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
               <XAxis
                 dataKey="date"
-                stroke="#475569"
-                tick={{ fill: "#64748b", fontSize: 11 }}
+                stroke="#525252"
+                tick={{ fill: "#737373", fontSize: 11 }}
               />
               <YAxis
-                stroke="#475569"
-                tick={{ fill: "#64748b", fontSize: 11 }}
+                stroke="#525252"
+                tick={{ fill: "#737373", fontSize: 11 }}
                 domain={["auto", "auto"]}
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#1e293b",
-                  borderColor: "#334155",
-                  color: "#f8fafc",
+                  backgroundColor: "#262626",
+                  borderColor: "#404040",
+                  color: "#fafafa",
                   borderRadius: "0.75rem",
                 }}
               />
               <Area
                 type="monotone"
                 dataKey="close"
-                stroke="#3b82f6"
+                stroke="#fafafa"
                 fill="url(#colorClose)"
                 strokeWidth={2}
                 connectNulls={false}
@@ -313,7 +313,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                   <Area
                     type="monotone"
                     dataKey="predicted"
-                    stroke="#a855f7"
+                    stroke="#a3a3a3"
                     fill="url(#colorPredicted)"
                     strokeWidth={2}
                     strokeDasharray="5 5"
@@ -322,9 +322,9 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                   {todayLabel && (
                     <ReferenceLine
                       x={todayLabel}
-                      stroke="#64748b"
+                      stroke="#737373"
                       strokeDasharray="3 3"
-                      label={{ value: "Today", fill: "#94a3b8", fontSize: 11 }}
+                      label={{ value: "Today", fill: "#a3a3a3", fontSize: 11 }}
                     />
                   )}
                 </>
@@ -332,7 +332,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
             </AreaChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex items-center justify-center h-full text-slate-500">
+          <div className="flex items-center justify-center h-full text-neutral-500">
             No chart data available
           </div>
         )}
@@ -340,12 +340,12 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
 
       {/* Warning */}
       {historyData?.warning && (
-        <div className="text-sm text-yellow-500 bg-yellow-500/10 px-4 py-2 rounded-lg">
+        <div className="text-sm text-neutral-300 bg-neutral-700/40 border border-neutral-600 px-4 py-2 rounded-lg">
           {historyData.warning}
         </div>
       )}
       {predictionData?.warning && (
-        <div className="text-sm text-purple-400 bg-purple-500/10 px-4 py-2 rounded-lg">
+        <div className="text-sm text-neutral-400 bg-neutral-700/30 px-4 py-2 rounded-lg">
           {predictionData.warning}
         </div>
       )}

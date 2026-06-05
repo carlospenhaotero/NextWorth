@@ -24,23 +24,23 @@ export function TopMovers({ positions, baseCurrency }: TopMoversProps) {
 
   return (
     <div className="col-span-1 md:col-span-3 glass-card">
-      <h3 className="text-slate-400 font-medium mb-4">Top Movers</h3>
+      <h3 className="text-neutral-400 font-medium mb-4">Top Movers</h3>
       {sorted.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {sorted.map((pos) => (
             <div
               key={pos.id}
-              className="flex items-center justify-between p-3 bg-slate-800/30 hover:bg-slate-800/50 rounded-xl transition-colors border border-slate-800/50"
+              className="flex items-center justify-between p-3 bg-neutral-800/30 hover:bg-neutral-800/50 rounded-xl transition-colors border border-neutral-800/50"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-sm font-bold text-slate-300">
+                <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center text-sm font-bold text-neutral-300">
                   {(pos.name || pos.symbol).substring(0, 2)}
                 </div>
                 <div>
                   <p className="font-medium text-white truncate max-w-[120px]">
                     {pos.name || pos.symbol}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-neutral-500">
                     {formatCurrency(pos.currentPrice, baseCurrency)}
                   </p>
                 </div>
@@ -69,7 +69,7 @@ export function TopMovers({ positions, baseCurrency }: TopMoversProps) {
           ))}
         </div>
       ) : (
-        <p className="text-slate-500 text-sm">
+        <p className="text-neutral-500 text-sm">
           No positions yet. Add assets to see movers.
         </p>
       )}

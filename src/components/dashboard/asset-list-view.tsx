@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
+import { Trash } from "@phosphor-icons/react/dist/ssr";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 import { deletePosition } from "@/actions/portfolio";
 import type { PortfolioData } from "@/queries/portfolio";
@@ -89,23 +89,23 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
     <div className="space-y-6">
       <header>
         <h1 className="text-3xl font-bold text-white mb-2">My Assets</h1>
-        <p className="text-slate-400">Track and manage your portfolio holdings</p>
+        <p className="text-neutral-400">Track and manage your portfolio holdings</p>
       </header>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="glass-card !p-4">
-          <p className="text-xs text-slate-500">Total Assets</p>
+          <p className="text-xs text-neutral-500">Total Assets</p>
           <p className="text-lg font-bold text-white">{stats.total}</p>
         </div>
         <div className="glass-card !p-4">
-          <p className="text-xs text-slate-500">Portfolio Value</p>
+          <p className="text-xs text-neutral-500">Portfolio Value</p>
           <p className="text-lg font-bold text-white">
             {formatCurrency(stats.value, portfolio.baseCurrency)}
           </p>
         </div>
         <div className="glass-card !p-4">
-          <p className="text-xs text-slate-500">Total P/L</p>
+          <p className="text-xs text-neutral-500">Total P/L</p>
           <p className={`text-lg font-bold ${stats.pl >= 0 ? "text-green-400" : "text-red-400"}`}>
             {formatCurrency(stats.pl, portfolio.baseCurrency)}
           </p>
@@ -114,13 +114,13 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
           </p>
         </div>
         <div className="glass-card !p-4">
-          <p className="text-xs text-slate-500">Performance</p>
+          <p className="text-xs text-neutral-500">Performance</p>
           <p className="text-lg font-bold text-white">
             <span className="text-green-400">{stats.gainers}</span>
             {" / "}
             <span className="text-red-400">{stats.losers}</span>
           </p>
-          <p className="text-xs text-slate-500">gainers / losers</p>
+          <p className="text-xs text-neutral-500">gainers / losers</p>
         </div>
       </div>
 
@@ -131,7 +131,7 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
           placeholder="Search assets..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="px-4 py-2 bg-slate-900/50 border border-slate-700 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-primary w-full md:w-64"
+          className="px-4 py-2 bg-neutral-900/50 border border-neutral-700 rounded-xl text-neutral-200 text-sm focus:outline-none focus:border-primary w-full md:w-64"
         />
         <div className="flex flex-wrap gap-2">
           {visibleFilters.map((f) => (
@@ -140,8 +140,8 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
               onClick={() => setActiveFilter(f.value)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 activeFilter === f.value
-                  ? "bg-primary text-slate-900"
-                  : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                  ? "bg-primary text-neutral-900"
+                  : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
               }`}
             >
               {f.label}
@@ -156,13 +156,13 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
       {/* Asset Cards */}
       {filtered.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-slate-500 text-lg">
+          <p className="text-neutral-500 text-lg">
             {searchTerm || activeFilter !== "all" ? "No assets match your filters" : "No assets yet"}
           </p>
           {!searchTerm && activeFilter === "all" && (
             <button
               onClick={() => router.push("/add-asset")}
-              className="mt-4 px-6 py-2 bg-primary text-slate-900 font-bold rounded-xl"
+              className="mt-4 px-6 py-2 bg-primary text-neutral-900 font-bold rounded-xl"
             >
               + Add Asset
             </button>
@@ -186,46 +186,46 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                   handleDelete(pos.id, pos.symbol);
                 }}
                 disabled={isPending}
-                className="absolute top-3 right-3 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-3 right-3 text-neutral-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
               >
-                <Trash2 size={16} />
+                <Trash size={16} />
               </button>
 
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-sm font-bold text-slate-300">
+                <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center text-sm font-bold text-neutral-300">
                   {ASSET_ICONS[pos.assetType] || "?"}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-white truncate">{pos.name || pos.symbol}</p>
-                  <p className="text-xs text-slate-500">{pos.symbol}</p>
+                  <p className="text-xs text-neutral-500">{pos.symbol}</p>
                 </div>
-                <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+                <span className="text-xs px-2 py-0.5 rounded bg-neutral-800 text-neutral-400">
                   {pos.assetType}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                 <div>
-                  <p className="text-slate-500 text-xs">Quantity</p>
+                  <p className="text-neutral-500 text-xs">Quantity</p>
                   <p className="text-white">{pos.quantity.toLocaleString("en-US", { maximumFractionDigits: 4 })}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500 text-xs">Avg Price</p>
+                  <p className="text-neutral-500 text-xs">Avg Price</p>
                   <p className="text-white">{formatCurrency(pos.avgBuyPrice, portfolio.baseCurrency)}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500 text-xs">Current Price</p>
+                  <p className="text-neutral-500 text-xs">Current Price</p>
                   <p className="text-white">{formatCurrency(pos.currentPrice, portfolio.baseCurrency)}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500 text-xs">Currency</p>
+                  <p className="text-neutral-500 text-xs">Currency</p>
                   <p className="text-white">{pos.assetCurrency}</p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-slate-800/50">
+              <div className="flex items-center justify-between pt-3 border-t border-neutral-800/50">
                 <div>
-                  <p className="text-xs text-slate-500">Value</p>
+                  <p className="text-xs text-neutral-500">Value</p>
                   <p className="font-semibold text-white">
                     {formatCurrency(pos.currentValue, portfolio.baseCurrency)}
                   </p>

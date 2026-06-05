@@ -12,7 +12,7 @@ export default async function OverviewPage() {
     <div className="space-y-6">
       <header className="mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">Dashboard</h2>
-        <p className="text-slate-400">
+        <p className="text-neutral-400">
           Welcome back, here&apos;s your financial overview.
         </p>
       </header>

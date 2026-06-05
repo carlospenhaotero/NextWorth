@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Search, Plus } from "lucide-react";
+import { MagnifyingGlass, Plus } from "@phosphor-icons/react/dist/ssr";
 import { getAllAssets, type CatalogAsset } from "@/lib/assets-catalog";
 import { AddAssetModal } from "@/components/shared/add-asset-modal";
 
@@ -57,18 +57,18 @@ export function SearchAssetsView({ baseCurrency }: SearchAssetsViewProps) {
     <div className="space-y-6">
       <header>
         <h1 className="text-3xl font-bold text-white mb-2">Search Assets</h1>
-        <p className="text-slate-400">Browse and add stocks, crypto, ETFs, commodities, and bonds</p>
+        <p className="text-neutral-400">Browse and add stocks, crypto, ETFs, commodities, and bonds</p>
       </header>
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+        <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={20} />
         <input
           type="text"
           placeholder="Search by symbol or name..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-primary"
+          className="w-full pl-12 pr-4 py-3 bg-neutral-900/50 border border-neutral-700 rounded-xl text-neutral-200 text-sm focus:outline-none focus:border-primary"
         />
       </div>
 
@@ -80,8 +80,8 @@ export function SearchAssetsView({ baseCurrency }: SearchAssetsViewProps) {
             onClick={() => setSelectedCategory(cat.value)}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
               selectedCategory === cat.value
-                ? "bg-primary text-slate-900"
-                : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                ? "bg-primary text-neutral-900"
+                : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
             }`}
           >
             {cat.label}
@@ -90,7 +90,7 @@ export function SearchAssetsView({ baseCurrency }: SearchAssetsViewProps) {
       </div>
 
       {/* Results Info */}
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-neutral-500">
         Showing <span className="text-white font-medium">{filtered.length}</span>{" "}
         {filtered.length === 1 ? "asset" : "assets"}
         {debouncedSearch && ` matching "${debouncedSearch}"`}
@@ -106,18 +106,18 @@ export function SearchAssetsView({ baseCurrency }: SearchAssetsViewProps) {
                   <p className="font-medium text-white text-sm">
                     {asset.displaySymbol || asset.symbol}
                   </p>
-                  <p className="text-xs text-slate-400 truncate">{asset.name}</p>
+                  <p className="text-xs text-neutral-400 truncate">{asset.name}</p>
                 </div>
-                <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-500 ml-2 shrink-0">
+                <span className="text-xs px-2 py-0.5 rounded bg-neutral-800 text-neutral-500 ml-2 shrink-0">
                   {asset.assetType}
                 </span>
               </div>
               {asset.exchange && (
-                <p className="text-xs text-slate-600 mb-3">{asset.exchange}</p>
+                <p className="text-xs text-neutral-600 mb-3">{asset.exchange}</p>
               )}
               <button
                 onClick={() => handleAddClick(asset)}
-                className="mt-auto flex items-center justify-center gap-1 py-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 transition-colors text-xs font-medium"
+                className="mt-auto flex items-center justify-center gap-1 py-2 bg-neutral-800 text-neutral-300 rounded-lg hover:bg-neutral-700 transition-colors text-xs font-medium"
               >
                 <Plus size={14} />
                 Add to Portfolio
@@ -126,7 +126,7 @@ export function SearchAssetsView({ baseCurrency }: SearchAssetsViewProps) {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 text-slate-500">
+        <div className="text-center py-12 text-neutral-500">
           No assets found{debouncedSearch ? ` for "${debouncedSearch}"` : ""}
         </div>
       )}

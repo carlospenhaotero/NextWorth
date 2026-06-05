@@ -3,21 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard,
-  PieChart,
+  SquaresFour,
+  ChartPie,
   PlusCircle,
-  Search,
-  Settings,
-  LogOut,
-} from "lucide-react";
+  MagnifyingGlass,
+  Gear,
+  SignOut,
+} from "@phosphor-icons/react/dist/ssr";
 import { signOut } from "@/lib/auth-client";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Portfolio", path: "/overview" },
-  { icon: PieChart, label: "Assets", path: "/assets" },
+  { icon: SquaresFour, label: "Portfolio", path: "/overview" },
+  { icon: ChartPie, label: "Assets", path: "/assets" },
   { icon: PlusCircle, label: "Add Asset", path: "/add-asset" },
-  { icon: Search, label: "Search Assets", path: "/search-assets" },
-  { icon: Settings, label: "Settings", path: "/settings" },
+  { icon: MagnifyingGlass, label: "Search Assets", path: "/search-assets" },
+  { icon: Gear, label: "Settings", path: "/settings" },
 ];
 
 interface SidebarProps {
@@ -34,7 +34,7 @@ export function Sidebar({ userName, userEmail }: SidebarProps) {
   };
 
   return (
-    <div className="h-screen w-64 bg-slate-900 border-r border-slate-800 flex flex-col fixed left-0 top-0 z-50">
+    <div className="h-screen w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col fixed left-0 top-0 z-50">
       {/* Logo */}
       <div className="p-6 flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
@@ -59,16 +59,16 @@ export function Sidebar({ userName, userEmail }: SidebarProps) {
               href={item.path}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                 isActive
-                  ? "bg-primary text-slate-900 shadow-lg shadow-cyan-500/20"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                  ? "bg-primary text-neutral-900 shadow-lg shadow-white/20"
+                  : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
               }`}
             >
               <Icon
                 size={20}
                 className={
                   isActive
-                    ? "text-slate-900"
-                    : "text-slate-400 group-hover:text-white"
+                    ? "text-neutral-900"
+                    : "text-neutral-400 group-hover:text-white"
                 }
               />
               <span className="font-medium">{item.label}</span>
@@ -78,22 +78,22 @@ export function Sidebar({ userName, userEmail }: SidebarProps) {
       </nav>
 
       {/* Profile */}
-      <div className="p-4 border-t border-slate-800">
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+      <div className="p-4 border-t border-neutral-800">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-800/50">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-neutral-400 to-neutral-600 flex items-center justify-center text-white font-bold">
             {userName?.charAt(0)?.toUpperCase() || "U"}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white truncate">
               {userName}
             </p>
-            <p className="text-xs text-slate-400 truncate">{userEmail}</p>
+            <p className="text-xs text-neutral-400 truncate">{userEmail}</p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-slate-400 hover:text-red-400 transition-colors"
+            className="text-neutral-400 hover:text-red-400 transition-colors"
           >
-            <LogOut size={18} />
+            <SignOut size={18} />
           </button>
         </div>
       </div>

@@ -37,3 +37,6 @@ ml-service/temp_chronos/
 # IDE
 .vscode/
 .idea/
+
+# TypeScript build info
+*.tsbuildinfo

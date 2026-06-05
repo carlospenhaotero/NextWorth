@@ -1,11 +1,11 @@
 import {
-  DollarSign,
-  TrendingUp,
-  TrendingDown,
+  CurrencyDollar,
+  TrendUp,
+  TrendDown,
   Wallet,
   ArrowUpRight,
   ArrowDownRight,
-} from "lucide-react";
+} from "@phosphor-icons/react/dist/ssr";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 
 interface PortfolioSummaryProps {
@@ -33,8 +33,8 @@ export function PortfolioSummary({
           <Wallet size={120} />
         </div>
         <div className="relative z-10">
-          <h3 className="text-slate-400 font-medium mb-1 flex items-center gap-2">
-            <DollarSign size={18} /> Total Net Worth
+          <h3 className="text-neutral-400 font-medium mb-1 flex items-center gap-2">
+            <CurrencyDollar size={18} /> Total Net Worth
           </h3>
           <div className="text-5xl font-bold text-white mb-4 tracking-tight">
             {formatCurrency(totalValue, baseCurrency)}
@@ -48,34 +48,34 @@ export function PortfolioSummary({
               }`}
             >
               {isProfit ? (
-                <TrendingUp size={16} />
+                <TrendUp size={16} />
               ) : (
-                <TrendingDown size={16} />
+                <TrendDown size={16} />
               )}
               {formatCurrency(totalProfitLoss, baseCurrency)}
             </div>
-            <span className="text-slate-500 text-sm">Total Profit/Loss</span>
+            <span className="text-neutral-500 text-sm">Total Profit/Loss</span>
           </div>
         </div>
       </div>
 
       {/* Performance Card */}
       <div className="col-span-1 glass-card flex flex-col justify-center">
-        <h3 className="text-slate-400 font-medium mb-4">Performance</h3>
+        <h3 className="text-neutral-400 font-medium mb-4">Performance</h3>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-sm text-slate-500">Total Invested</p>
+            <p className="text-sm text-neutral-500">Total Invested</p>
             <p className="text-xl font-bold text-white">
               {formatCurrency(totalInvested, baseCurrency)}
             </p>
           </div>
-          <div className="h-10 w-10 rounded-full bg-slate-800 flex items-center justify-center">
-            <Wallet size={20} className="text-blue-400" />
+          <div className="h-10 w-10 rounded-full bg-neutral-800 flex items-center justify-center">
+            <Wallet size={20} className="text-neutral-300" />
           </div>
         </div>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-slate-500">Return</p>
+            <p className="text-sm text-neutral-500">Return</p>
             <p
               className={`text-xl font-bold ${isProfit ? "text-green-400" : "text-red-400"}`}
             >

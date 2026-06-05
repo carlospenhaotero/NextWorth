@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import { formatCurrency } from "@/lib/utils";
 
-const COLORS = ["#3b82f6", "#8b5cf6", "#06b6d4", "#10b981", "#f59e0b"];
+const COLORS = ["#fafafa", "#d4d4d4", "#a3a3a3", "#737373", "#525252"];
 
 interface Position {
   name: string;
@@ -42,7 +42,7 @@ export function AllocationChart({
 
   return (
     <div className="col-span-1 glass-card min-h-[300px] flex flex-col">
-      <h3 className="text-slate-400 font-medium mb-2">Allocation</h3>
+      <h3 className="text-neutral-400 font-medium mb-2">Allocation</h3>
       <div className="flex-1 w-full relative">
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
@@ -66,9 +66,9 @@ export function AllocationChart({
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#1e293b",
-                  borderColor: "#334155",
-                  color: "#f8fafc",
+                  backgroundColor: "#262626",
+                  borderColor: "#404040",
+                  color: "#fafafa",
                   borderRadius: "0.75rem",
                 }}
                 formatter={(value) =>
@@ -78,14 +78,14 @@ export function AllocationChart({
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex items-center justify-center h-full text-slate-500 text-sm">
+          <div className="flex items-center justify-center h-full text-neutral-500 text-sm">
             No allocation data
           </div>
         )}
         {chartData.length > 0 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center">
-              <p className="text-xs text-slate-500">Total</p>
+              <p className="text-xs text-neutral-500">Total</p>
               <p className="text-sm font-bold text-white">
                 {formatCurrency(totalValue, baseCurrency)}
               </p>
