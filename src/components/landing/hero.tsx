@@ -13,7 +13,7 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,var(--color-background)_85%)]" />
 
       <div className="relative z-10 mx-auto max-w-4xl text-center">
-        <h1 className="text-5xl sm:text-7xl md:text-8xl font-bold font-[family-name:var(--font-display)] tracking-tighter leading-[1.05] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 drop-shadow-[0_2px_30px_rgba(0,0,0,0.5)]">
+        <h1 className="text-5xl sm:text-7xl md:text-8xl font-bold font-[family-name:var(--font-display)] tracking-tighter leading-[1.15] pb-2 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 drop-shadow-[0_2px_30px_rgba(0,0,0,0.5)]">
           AI-Powered Portfolio Management
         </h1>
 

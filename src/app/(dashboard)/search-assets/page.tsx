@@ -1,9 +1,6 @@
-import { requireSession } from "@/server/require-session";
-import { SearchAssetsView } from "@/components/dashboard/search-assets-view";
+import { redirect } from "next/navigation";
 
-export default async function SearchAssetsPage() {
-  const session = await requireSession();
-  const baseCurrency = session.user.baseCurrency || "USD";
-
-  return <SearchAssetsView baseCurrency={baseCurrency} />;
+// Search and Add Asset were merged into a single flow at /add-asset.
+export default function SearchAssetsPage() {
+  redirect("/add-asset");
 }

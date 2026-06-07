@@ -6,8 +6,8 @@ import {
   SquaresFour,
   ChartPie,
   PlusCircle,
-  MagnifyingGlass,
   Gear,
+  Sparkle,
   SignOut,
 } from "@phosphor-icons/react/dist/ssr";
 import { signOut } from "@/lib/auth-client";
@@ -15,8 +15,8 @@ import { signOut } from "@/lib/auth-client";
 const menuItems = [
   { icon: SquaresFour, label: "Portfolio", path: "/overview" },
   { icon: ChartPie, label: "Assets", path: "/assets" },
+  { icon: Sparkle, label: "Advisor", path: "/advisor" },
   { icon: PlusCircle, label: "Add Asset", path: "/add-asset" },
-  { icon: MagnifyingGlass, label: "Search Assets", path: "/search-assets" },
   { icon: Gear, label: "Settings", path: "/settings" },
 ];
 
@@ -34,19 +34,16 @@ export function Sidebar({ userName, userEmail }: SidebarProps) {
   };
 
   return (
-    <div className="h-screen w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col fixed left-0 top-0 z-50">
+    <aside className="h-screen w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col fixed left-0 top-0 z-50">
       {/* Logo */}
-      <div className="p-6 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-          <span className="text-primary font-bold text-lg">N</span>
-        </div>
-        <h1 className="text-xl font-bold text-white tracking-wide font-[family-name:var(--font-display)]">
+      <div className="h-20 px-8 flex items-center">
+        <h1 className="text-xl font-bold text-white tracking-wide font-[family-name:var(--font-display)] select-none">
           NextWorth
         </h1>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-2">
+      <nav aria-label="Main" className="flex-1 px-4 py-4 space-y-1">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive =
@@ -57,21 +54,19 @@ export function Sidebar({ userName, userEmail }: SidebarProps) {
             <Link
               key={item.path}
               href={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+              aria-current={isActive ? "page" : undefined}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 active:scale-[0.98] ${
                 isActive
-                  ? "bg-primary text-neutral-900 shadow-lg shadow-white/20"
-                  : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                  ? "bg-primary text-neutral-900 shadow-lg shadow-white/10"
+                  : "text-neutral-400"
               }`}
             >
               <Icon
                 size={20}
-                className={
-                  isActive
-                    ? "text-neutral-900"
-                    : "text-neutral-400 group-hover:text-white"
-                }
+                weight={isActive ? "fill" : "regular"}
+                className={isActive ? "text-neutral-900" : "text-neutral-400"}
               />
-              <span className="font-medium">{item.label}</span>
+              <span>{item.label}</span>
             </Link>
           );
         })}
@@ -80,7 +75,7 @@ export function Sidebar({ userName, userEmail }: SidebarProps) {
       {/* Profile */}
       <div className="p-4 border-t border-neutral-800">
         <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-800/50">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-neutral-400 to-neutral-600 flex items-center justify-center text-white font-bold">
+          <div className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-tr from-neutral-400 to-neutral-600 flex items-center justify-center text-white font-semibold select-none">
             {userName?.charAt(0)?.toUpperCase() || "U"}
           </div>
           <div className="flex-1 min-w-0">
@@ -91,12 +86,15 @@ export function Sidebar({ userName, userEmail }: SidebarProps) {
           </div>
           <button
             onClick={handleLogout}
-            className="text-neutral-400 hover:text-red-400 transition-colors"
+            type="button"
+            aria-label="Sign out"
+            title="Sign out"
+            className="shrink-0 p-2 -mr-1 rounded-lg text-neutral-400 transition-colors hover:text-red-400 hover:bg-neutral-800 outline-none focus-visible:ring-2 focus-visible:ring-red-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
           >
             <SignOut size={18} />
           </button>
         </div>
       </div>
-    </div>
+    </aside>
   );
 }
