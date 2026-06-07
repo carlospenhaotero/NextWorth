@@ -11,6 +11,11 @@ const envSchema = z.object({
   BETTER_AUTH_URL: z.url(),
   NEXT_PUBLIC_APP_URL: z.url(),
   ML_SERVICE_URL: optionalStr,
+  // Optional so the app still boots without it; the advisor chat route checks it at runtime.
+  GOOGLE_GENERATIVE_AI_API_KEY: optionalStr,
+  // Optional asset-logo provider; the UI falls back to a placeholder when unset.
+  NEXT_PUBLIC_LOGO_DEV_TOKEN: optionalStr,
+  LOGO_DEV_SECRET_KEY: optionalStr,
 });
 
 export const env = envSchema.parse(process.env);

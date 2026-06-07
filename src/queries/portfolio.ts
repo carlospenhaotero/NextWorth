@@ -10,7 +10,7 @@ interface Position {
   assetCurrency: string;
   baseCurrency: string;
   quantity: number;
-  avgBuyPrice: number;
+  avgBuyPrice: number | null;
   tae: number | null;
   faceValue: number | null;
   couponRate: number | null;
@@ -21,6 +21,13 @@ interface Position {
   currentValue: number | null;
   profitLoss: number | null;
   profitLossPct: number | null;
+  // Derived metrics (in base currency where monetary)
+  projectedAnnualIncome: number | null; // savings: balance * TAE
+  projectedValue1y: number | null; // savings: balance * (1 + TAE)
+  annualCouponIncome: number | null; // bond: quantity * faceValue * couponRate
+  currentYield: number | null; // bond: annual coupon / current value, %
+  redemptionValue: number | null; // bond: quantity * faceValue at maturity
+  daysToMaturity: number | null; // bond
   error: string | null;
   priceEstimated: boolean;
 }
@@ -31,6 +38,17 @@ export interface PortfolioData {
   totalInvested: number;
   totalProfitLoss: number;
   positions: Position[];
+}
+
+/** Lightweight list of the user's holdings (no market data) for duplicate detection. */
+export async function getExistingPositionsLite(
+  userId: string
+): Promise<{ id: number; symbol: string; assetType: string }[]> {
+  const rows = await prisma.userPortfolio.findMany({
+    where: { userId },
+    select: { id: true, asset: { select: { symbol: true, assetType: true } } },
+  });
+  return rows.map((r) => ({ id: r.id, symbol: r.asset.symbol, assetType: r.asset.assetType }));
 }
 
 export async function getPortfolioForUser(
@@ -73,6 +91,12 @@ export async function getPortfolioForUser(
 
   for (const row of rows) {
     const assetCurrency = row.asset.currency.toUpperCase();
+    const quantity = Number(row.quantity);
+    const avgBuyPrice = row.avgBuyPrice != null ? Number(row.avgBuyPrice) : null;
+    const faceValue = row.faceValue != null ? Number(row.faceValue) : null;
+    const couponRate = row.couponRate != null ? Number(row.couponRate) : null;
+    const tae = row.tae != null ? Number(row.tae) : null;
+
     let currentPriceNative: number | null = null;
     let errorMsg: string | null = null;
     let priceEstimated = false;
@@ -85,9 +109,10 @@ export async function getPortfolioForUser(
         currentPriceNative = quote.currentPrice ?? null;
       }
     } catch {
-      currentPriceNative = Number(row.avgBuyPrice);
-      priceEstimated = true;
-      errorMsg = "Price unavailable, using buy price";
+      // No live price: fall back to cost, then to par (bonds), if known.
+      currentPriceNative = avgBuyPrice ?? faceValue ?? null;
+      priceEstimated = currentPriceNative != null;
+      errorMsg = "Price unavailable, using cost";
     }
 
     let fxRate: number | null = 1;
@@ -100,9 +125,8 @@ export async function getPortfolioForUser(
       }
     }
 
-    const quantity = Number(row.quantity);
-    const avgBuyPrice = Number(row.avgBuyPrice);
-    const investedNative = quantity * avgBuyPrice;
+    // Invested is only known when a cost basis was provided.
+    const investedNative = avgBuyPrice != null ? quantity * avgBuyPrice : null;
 
     let investedBase: number | null = null;
     let currentPriceBase: number | null = null;
@@ -110,7 +134,7 @@ export async function getPortfolioForUser(
     let profitLoss: number | null = null;
     let profitLossPct: number | null = null;
 
-    if (fxRate !== null) {
+    if (fxRate !== null && investedNative !== null) {
       investedBase = investedNative * fxRate;
     }
 
@@ -123,6 +147,36 @@ export async function getPortfolioForUser(
       }
     }
 
+    // Derived metrics for savings (TAE) and bonds (coupon/maturity).
+    let projectedAnnualIncome: number | null = null;
+    let projectedValue1y: number | null = null;
+    let annualCouponIncome: number | null = null;
+    let currentYield: number | null = null;
+    let redemptionValue: number | null = null;
+    let daysToMaturity: number | null = null;
+
+    if (row.asset.assetType === "savings" && tae != null && fxRate != null) {
+      const balanceBase = quantity * fxRate; // unit price is 1
+      projectedAnnualIncome = balanceBase * (tae / 100);
+      projectedValue1y = balanceBase * (1 + tae / 100);
+    }
+
+    if (row.asset.assetType === "bond") {
+      if (faceValue != null && couponRate != null && fxRate != null) {
+        annualCouponIncome = quantity * faceValue * (couponRate / 100) * fxRate;
+        if (currentValueBase != null && currentValueBase > 0) {
+          currentYield = (annualCouponIncome / currentValueBase) * 100;
+        }
+      }
+      if (faceValue != null && fxRate != null) {
+        redemptionValue = quantity * faceValue * fxRate;
+      }
+      if (row.maturityDate) {
+        const diffMs = row.maturityDate.getTime() - Date.now();
+        daysToMaturity = Math.max(0, Math.ceil(diffMs / 86_400_000));
+      }
+    }
+
     positions.push({
       id: row.id,
       symbol: row.asset.symbol,
@@ -132,9 +186,9 @@ export async function getPortfolioForUser(
       baseCurrency,
       quantity,
       avgBuyPrice,
-      tae: row.tae ? Number(row.tae) : null,
-      faceValue: row.faceValue ? Number(row.faceValue) : null,
-      couponRate: row.couponRate ? Number(row.couponRate) : null,
+      tae,
+      faceValue,
+      couponRate,
       couponFrequency: row.couponFrequency,
       maturityDate: row.maturityDate,
       currentPrice: currentPriceBase,
@@ -142,6 +196,12 @@ export async function getPortfolioForUser(
       currentValue: currentValueBase,
       profitLoss,
       profitLossPct,
+      projectedAnnualIncome,
+      projectedValue1y,
+      annualCouponIncome,
+      currentYield,
+      redemptionValue,
+      daysToMaturity,
       error: errorMsg,
       priceEstimated,
     });

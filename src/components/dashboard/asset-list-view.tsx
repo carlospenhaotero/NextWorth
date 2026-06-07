@@ -2,19 +2,22 @@
 
 import { useState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Trash } from "@phosphor-icons/react/dist/ssr";
+import { Trash, PencilSimple } from "@phosphor-icons/react/dist/ssr";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 import { deletePosition } from "@/actions/portfolio";
+import { AddAssetModal, type AssetSelection } from "@/components/shared/add-asset-modal";
+import { AssetLogo } from "@/components/shared/asset-logo";
 import type { PortfolioData } from "@/queries/portfolio";
 
 const ASSET_ICONS: Record<string, string> = {
-  stock: "S", etf: "E", crypto: "C", commodity: "Co", bond: "B", cash: "$", savings: "Sa",
+  stock: "S", etf: "E", fund: "F", crypto: "C", commodity: "Co", bond: "B", cash: "$", savings: "Sa",
 };
 
 const FILTER_OPTIONS = [
   { value: "all", label: "All" },
   { value: "stock", label: "Stocks" },
   { value: "etf", label: "ETFs" },
+  { value: "fund", label: "Funds" },
   { value: "crypto", label: "Crypto" },
   { value: "commodity", label: "Commodities" },
   { value: "bond", label: "Bonds" },
@@ -35,6 +38,27 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [isPending, startTransition] = useTransition();
+  const [editSelection, setEditSelection] = useState<AssetSelection | null>(null);
+
+  const handleEdit = (pos: (typeof portfolio.positions)[number]) => {
+    setEditSelection({
+      kind: "edit",
+      position: {
+        id: pos.id,
+        symbol: pos.symbol,
+        name: pos.name,
+        assetType: pos.assetType,
+        assetCurrency: pos.assetCurrency,
+        quantity: pos.quantity,
+        avgBuyPrice: pos.avgBuyPrice,
+        tae: pos.tae,
+        faceValue: pos.faceValue,
+        couponRate: pos.couponRate,
+        couponFrequency: pos.couponFrequency,
+        maturityDate: pos.maturityDate ? new Date(pos.maturityDate).toISOString() : null,
+      },
+    });
+  };
 
   const assetCounts = useMemo(() => {
     return portfolio.positions.reduce<Record<string, number>>((acc, pos) => {
@@ -87,11 +111,6 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold text-white mb-2">My Assets</h1>
-        <p className="text-neutral-400">Track and manage your portfolio holdings</p>
-      </header>
-
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="glass-card !p-4">
@@ -180,21 +199,36 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                   : "opacity-75"
               }`}
             >
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete(pos.id, pos.symbol);
-                }}
-                disabled={isPending}
-                className="absolute top-3 right-3 text-neutral-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <Trash size={16} />
-              </button>
+              <div className="absolute top-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEdit(pos);
+                  }}
+                  className="text-neutral-600 hover:text-white"
+                >
+                  <PencilSimple size={16} />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(pos.id, pos.symbol);
+                  }}
+                  disabled={isPending}
+                  className="text-neutral-600 hover:text-red-400"
+                >
+                  <Trash size={16} />
+                </button>
+              </div>
 
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center text-sm font-bold text-neutral-300">
-                  {ASSET_ICONS[pos.assetType] || "?"}
-                </div>
+                <AssetLogo
+                  symbol={pos.symbol}
+                  assetType={pos.assetType}
+                  name={pos.name}
+                  fallbackLabel={ASSET_ICONS[pos.assetType] || "?"}
+                  className="w-10 h-10 rounded-lg"
+                />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-white truncate">{pos.name || pos.symbol}</p>
                   <p className="text-xs text-neutral-500">{pos.symbol}</p>
@@ -211,7 +245,9 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                 </div>
                 <div>
                   <p className="text-neutral-500 text-xs">Avg Price</p>
-                  <p className="text-white">{formatCurrency(pos.avgBuyPrice, portfolio.baseCurrency)}</p>
+                  <p className="text-white">
+                    {pos.avgBuyPrice != null ? formatCurrency(pos.avgBuyPrice, portfolio.baseCurrency) : "—"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-neutral-500 text-xs">Current Price</p>
@@ -223,6 +259,48 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                 </div>
               </div>
 
+              {/* Savings / bond metrics */}
+              {pos.assetType === "savings" && pos.projectedAnnualIncome != null && (
+                <div className="grid grid-cols-2 gap-3 text-sm mb-4 pt-3 border-t border-neutral-800/50">
+                  <div>
+                    <p className="text-neutral-500 text-xs">Annual interest</p>
+                    <p className="text-green-400">{formatCurrency(pos.projectedAnnualIncome, portfolio.baseCurrency)}</p>
+                  </div>
+                  <div>
+                    <p className="text-neutral-500 text-xs">Value in 1y</p>
+                    <p className="text-white">{formatCurrency(pos.projectedValue1y, portfolio.baseCurrency)}</p>
+                  </div>
+                </div>
+              )}
+              {pos.assetType === "bond" && (pos.annualCouponIncome != null || pos.daysToMaturity != null) && (
+                <div className="grid grid-cols-2 gap-3 text-sm mb-4 pt-3 border-t border-neutral-800/50">
+                  {pos.annualCouponIncome != null && (
+                    <div>
+                      <p className="text-neutral-500 text-xs">Coupon / yr</p>
+                      <p className="text-green-400">{formatCurrency(pos.annualCouponIncome, portfolio.baseCurrency)}</p>
+                    </div>
+                  )}
+                  {pos.currentYield != null && (
+                    <div>
+                      <p className="text-neutral-500 text-xs">Current yield</p>
+                      <p className="text-white">{pos.currentYield.toFixed(2)}%</p>
+                    </div>
+                  )}
+                  {pos.daysToMaturity != null && (
+                    <div>
+                      <p className="text-neutral-500 text-xs">To maturity</p>
+                      <p className="text-white">{pos.daysToMaturity} days</p>
+                    </div>
+                  )}
+                  {pos.redemptionValue != null && (
+                    <div>
+                      <p className="text-neutral-500 text-xs">At maturity</p>
+                      <p className="text-white">{formatCurrency(pos.redemptionValue, portfolio.baseCurrency)}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center justify-between pt-3 border-t border-neutral-800/50">
                 <div>
                   <p className="text-xs text-neutral-500">Value</p>
@@ -230,19 +308,33 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                     {formatCurrency(pos.currentValue, portfolio.baseCurrency)}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className={`font-semibold ${(pos.profitLoss ?? 0) >= 0 ? "text-green-400" : "text-red-400"}`}>
-                    {formatCurrency(pos.profitLoss, portfolio.baseCurrency)}
-                  </p>
-                  <p className={`text-xs ${(pos.profitLossPct ?? 0) >= 0 ? "text-green-500" : "text-red-500"}`}>
-                    {formatPercent(pos.profitLossPct)}
-                  </p>
-                </div>
+                {pos.invested != null ? (
+                  <div className="text-right">
+                    <p className={`font-semibold ${(pos.profitLoss ?? 0) >= 0 ? "text-green-400" : "text-red-400"}`}>
+                      {formatCurrency(pos.profitLoss, portfolio.baseCurrency)}
+                    </p>
+                    <p className={`text-xs ${(pos.profitLossPct ?? 0) >= 0 ? "text-green-500" : "text-red-500"}`}>
+                      {formatPercent(pos.profitLossPct)}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-right">
+                    <p className="text-xs text-neutral-500">No cost set</p>
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <AddAssetModal
+        open={editSelection != null}
+        onClose={() => setEditSelection(null)}
+        selection={editSelection}
+        baseCurrency={portfolio.baseCurrency}
+        onSaved={() => router.refresh()}
+      />
     </div>
   );
 }

@@ -88,6 +88,15 @@ model Asset {
   currency  String @default("USD")
   riskLevel Int?   @map("risk_level")
 
+  // Enriched profile (static, cached from Yahoo quoteSummary).
+  // sector/industry/country only for equities; sectorWeightings only for ETFs.
+  sector           String?
+  industry         String?
+  country          String?
+  sectorWeightings Json?     @map("sector_weightings") // ETF: { "technology": 0.39, ... }
+  profileFetchedAt DateTime? @map("profile_fetched_at") @db.Timestamptz
+  profileStatus    String?   @map("profile_status") // "ok" | "unavailable" | "unsupported"
+
   portfolio    UserPortfolio[]
   priceHistory AssetPriceHistory[]
   predictions  AssetPrediction[]
@@ -101,7 +110,7 @@ model UserPortfolio {
   userId      String   @map("user_id")
   assetId     Int      @map("asset_id")
   quantity    Decimal  @db.Decimal(20, 8)
-  avgBuyPrice Decimal  @map("avg_buy_price") @db.Decimal(20, 8)
+  avgBuyPrice Decimal? @map("avg_buy_price") @db.Decimal(20, 8)
 
   // Bond/savings fields
   tae             Decimal?  @db.Decimal(5, 2)

@@ -18,12 +18,6 @@ export default function LandingPage() {
           </Link>
           <div className="flex items-center gap-6">
             <Link
-              href="/login"
-              className="text-sm text-neutral-400 hover:text-white transition-colors cursor-pointer"
-            >
-              Login
-            </Link>
-            <Link
               href="/register"
               className="text-sm px-4 py-2 bg-white/10 text-white font-medium rounded-lg border border-white/10 hover:bg-white/15 transition-colors cursor-pointer"
             >
@@ -41,7 +35,7 @@ export default function LandingPage() {
         <ContainerScroll
           titleComponent={
             <div className="mb-8">
-              <h2 className="text-4xl sm:text-6xl md:text-7xl font-bold font-[family-name:var(--font-display)] tracking-tighter leading-[1.05] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60">
+              <h2 className="text-4xl sm:text-6xl md:text-7xl font-bold font-[family-name:var(--font-display)] tracking-tighter leading-[1.15] pb-2 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60">
                 Everything you need
               </h2>
               <p className="mt-6 text-lg sm:text-xl text-neutral-400 max-w-2xl mx-auto leading-relaxed">
@@ -65,12 +59,6 @@ export default function LandingPage() {
             &copy; {new Date().getFullYear()} NextWorth. All rights reserved.
           </span>
           <div className="flex items-center gap-6">
-            <Link
-              href="/login"
-              className="text-sm text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
-            >
-              Login
-            </Link>
             <Link
               href="/register"
               className="text-sm text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"

@@ -160,17 +160,11 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Back */}
       <div className="flex items-center gap-4">
         <button onClick={() => router.back()} className="text-neutral-400 hover:text-white transition-colors">
           <ArrowLeft size={24} />
         </button>
-        <div>
-          <h1 className="text-3xl font-bold text-white">
-            {historyData?.name || symbol}
-          </h1>
-          <p className="text-neutral-400">{symbol}</p>
-        </div>
       </div>
 
       {error && (
