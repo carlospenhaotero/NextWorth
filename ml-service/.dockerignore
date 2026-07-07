@@ -1,0 +1,27 @@
+# Windows dev cruft (non-functional in the container)
+patch_*.py
+fix_pipeline.py
+run.bat
+temp_chronos/
+
+# Python virtualenvs and caches
+venv/
+ENV/
+env/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local environment / secrets
+.env
+
+# Local model cache (weights are baked at build time)
+.cache/
+models/cache/
+.transformers_cache/
+
+# Misc
+.DS_Store
+*.log

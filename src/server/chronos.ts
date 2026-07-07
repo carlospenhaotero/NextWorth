@@ -37,6 +37,12 @@ export async function getPrediction(
   }
 }
 
+/**
+ * Proactively checks whether the ML service is ready.
+ * Returns true when `/health` responds ok. Use it to degrade the UI gracefully
+ * (e.g. hide/disable predictions) instead of waiting for a failed prediction.
+ * Uses a short 5s timeout; does not affect the 30s prediction timeout.
+ */
 export async function checkHealth(): Promise<boolean> {
   try {
     const controller = new AbortController();

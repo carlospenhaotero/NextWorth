@@ -6,60 +6,43 @@ Machine learning microservice for generating asset price predictions using Amazo
 
 This service provides time-series forecasting capabilities for financial assets using the pre-trained Chronos model from Amazon. It exposes a REST API for generating predictions based on historical price data.
 
-## Prerequisites
+It runs as a Flask app served by Gunicorn inside a Docker container (Python 3.11, CPU-only PyTorch). Model weights are baked into the image at build time (see below), so there is no cold download on the first request.
 
-- Python 3.9 or higher
-- 4GB+ RAM (recommended: 8GB)
-- pip package manager
+## Running the Service (Docker)
 
-## Installation
+The service is orchestrated from the repo root `docker-compose.yml`. From the project root:
 
-1. Navigate to the ml-service directory:
 ```bash
-cd ml-service
+# Build the image (installs deps and pre-downloads the Chronos weights)
+docker compose build ml-service
+
+# Start the service in the background
+docker compose up -d ml-service
 ```
 
-2. Create a virtual environment (recommended):
+The service is exposed on `http://localhost:5001` (mapped to container port `5000`).
+
+Check it is healthy:
+
 ```bash
-python -m venv venv
-
-# On Windows:
-venv\Scripts\activate
-
-# On macOS/Linux:
-source venv/bin/activate
+curl http://localhost:5001/health
 ```
 
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
+### Configuration
+
+- `PORT` (default `5000`) — port Gunicorn binds to inside the container.
+- `MODEL_NAME` (default `amazon/chronos-t5-small`) — Hugging Face model id. This is passed both as a build ARG (to bake the weights) and as a runtime env var. If you change it, rebuild the image so the new weights are baked in.
+- `FLASK_ENV` — set to `production` in the compose file.
+
+### Model weights are baked at build time
+
+The Dockerfile pre-downloads the model during the build:
+
+```dockerfile
+RUN python -c "from chronos import ChronosPipeline; ChronosPipeline.from_pretrained('${MODEL_NAME}')"
 ```
 
-4. Configure environment variables:
-```bash
-cp .env.example .env
-# Edit .env if needed (default values should work)
-```
-
-## Running the Service
-
-### Development Mode
-
-Start the Flask development server:
-```bash
-python app.py
-```
-
-The service will be available at `http://localhost:5000`
-
-### Production Mode
-
-Use Gunicorn for production deployment:
-```bash
-gunicorn -w 2 -b 0.0.0.0:5000 app:app
-```
-
-**Note**: Using 2 workers is recommended for the Chronos model to avoid memory issues.
+Weights are stored under `HF_HOME=/app/.cache/huggingface` and shipped inside the image. This avoids the ~30s cold download that would otherwise exceed the backend client's 30s prediction timeout.
 
 ## API Endpoints
 
@@ -73,7 +56,7 @@ GET /health
 Response:
 {
   "status": "ok",
-  "model": "chronos-t5-small",
+  "model": "amazon/chronos-t5-small",
   "version": "1.0.0"
 }
 ```
@@ -124,39 +107,29 @@ Response:
 
 ## Performance
 
-- **Cold start**: ~30 seconds (model loading on first request)
+- **Cold start**: model weights are baked into the image, so there is no download on first request. The first inference still pays a one-time model load into memory (a few seconds).
 - **Inference time**: 3-5 seconds per prediction (CPU)
 - **Memory usage**: ~1.5GB RAM
-- **Concurrent requests**: 3 recommended maximum
+- **Workers**: Gunicorn runs with 1 worker to keep memory usage low.
 
 ## Troubleshooting
 
 ### Out of Memory Errors
 
 If you encounter memory errors:
-1. Ensure at least 4GB RAM is available
-2. Reduce the number of Gunicorn workers to 1
-3. Close other memory-intensive applications
-4. Consider using the smaller `chronos-t5-tiny` model
-
-### Slow Predictions
-
-To improve inference speed:
-1. **Use GPU acceleration** (if available):
-   - Install PyTorch with CUDA support
-   - The model will automatically detect and use GPU
-2. **Reduce prediction horizon**: Shorter horizons are faster
-3. **Use smaller model**: Switch to `chronos-t5-tiny` in `.env`
+1. Ensure at least 4GB RAM is available to Docker.
+2. Keep Gunicorn at 1 worker (default).
+3. Consider using the smaller `chronos-t5-tiny` model via `MODEL_NAME` (rebuild the image afterwards).
 
 ### Connection Refused
 
 If the backend cannot connect:
-1. Verify the service is running: `curl http://localhost:5000/health`
-2. Check firewall settings allow connections on port 5000
-3. Ensure `ML_SERVICE_URL` in backend `.env` points to correct address
+1. Verify the service is running: `curl http://localhost:5001/health`
+2. Ensure `ML_SERVICE_URL` in the backend `.env` points to the correct address.
 
 ## Model Information
 
+- **Package**: `chronos-forecasting==1.5.3` (classic `ChronosPipeline` API)
 - **Model**: amazon/chronos-t5-small
 - **Parameters**: 46 million
 - **Architecture**: T5-based encoder-decoder
@@ -171,13 +144,15 @@ If the backend cannot connect:
 ml-service/
 ├── app.py                    # Flask application entry point
 ├── models/
-│   └── chronos_model.py      # Chronos model wrapper
+│   └── chronos_model.py      # Chronos model wrapper (uses ChronosPipeline)
 ├── routes/
 │   └── prediction.py         # API route handlers
 ├── utils/
 │   └── data_processor.py     # Data preprocessing utilities
-├── requirements.txt          # Python dependencies
-├── .env.example             # Environment configuration template
+├── requirements.txt          # Python dependencies (pinned)
+├── Dockerfile                # CPU-only image, bakes model weights at build
+├── .dockerignore             # Excludes dev cruft from the image
+├── .env.example              # Environment configuration template
 └── README.md                # This file
 ```
 
