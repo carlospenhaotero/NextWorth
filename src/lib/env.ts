@@ -16,6 +16,10 @@ const envSchema = z.object({
   // Optional asset-logo provider; the UI falls back to a placeholder when unset.
   NEXT_PUBLIC_LOGO_DEV_TOKEN: optionalStr,
   LOGO_DEV_SECRET_KEY: optionalStr,
+  // Optional so the app still boots without it; when unset, password-reset emails
+  // are logged to the console instead of sent (dev fallback).
+  RESEND_API_KEY: optionalStr,
+  EMAIL_FROM: optionalStr,
 });
 
 export const env = envSchema.parse(process.env);
