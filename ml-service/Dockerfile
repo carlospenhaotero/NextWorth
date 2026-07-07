@@ -8,6 +8,14 @@ ARG MODEL_NAME=amazon/chronos-t5-small
 # HuggingFace cache in a predictable location; weights are baked into the image
 ENV HF_HOME=/app/.cache/huggingface
 
+# Cap CPU threads for the math backends. Without this, torch/BLAS see the host's
+# core count and oversubscribe inside the CPU-limited container, thrashing on
+# context switches: a 6-step forecast went from ~180ms to ~62s. 4 is a safe cap.
+ENV OMP_NUM_THREADS=4 \
+    MKL_NUM_THREADS=4 \
+    OPENBLAS_NUM_THREADS=4 \
+    NUMEXPR_NUM_THREADS=4
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
