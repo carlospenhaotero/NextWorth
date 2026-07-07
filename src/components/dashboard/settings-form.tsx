@@ -1,113 +1,143 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { FloppyDisk, WarningCircle, CheckCircle } from "@phosphor-icons/react/dist/ssr";
-import { updateBaseCurrency } from "@/actions/settings";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useLocale, useTranslations } from "next-intl";
+import { Check } from "@phosphor-icons/react/dist/ssr";
+import { updateBaseCurrency, updateLocale } from "@/actions/settings";
+import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
 
-const CURRENCIES = [
-  { code: "EUR", label: "Euro" },
-  { code: "USD", label: "US Dollar" },
-  { code: "GBP", label: "British Pound" },
-];
+const CURRENCIES = ["EUR", "USD", "GBP"] as const;
+const LOCALES = ["en", "es"] as const;
 
 interface SettingsFormProps {
   currentCurrency: string;
 }
 
-export function SettingsForm({ currentCurrency }: SettingsFormProps) {
-  const [currency, setCurrency] = useState(currentCurrency);
-  const [message, setMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
-  const [isPending, startTransition] = useTransition();
+interface OptionButtonProps {
+  code: string;
+  label: string;
+  active: boolean;
+  pending: boolean;
+  disabled: boolean;
+  onClick: () => void;
+}
 
-  const handleSave = () => {
-    setMessage(null);
+/** Shared segmented option — currency and language now behave identically. */
+function OptionButton({ code, label, active, pending, disabled, onClick }: OptionButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-pressed={active}
+      className={cn(
+        "flex items-center gap-2 rounded-xl border px-5 py-3 transition-colors duration-200 outline-none",
+        "focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        "disabled:opacity-60 disabled:pointer-events-none",
+        active
+          ? "border-accent bg-accent text-accent-foreground shadow-lg shadow-accent/25"
+          : "border-neutral-700 bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-neutral-200",
+      )}
+    >
+      <span className="font-bold uppercase">{code}</span>
+      <span className="text-xs opacity-80">{label}</span>
+      {pending ? (
+        <Spinner size={14} className="ml-0.5" />
+      ) : active ? (
+        <Check size={14} weight="bold" className="ml-0.5" />
+      ) : null}
+    </button>
+  );
+}
+
+export function SettingsForm({ currentCurrency }: SettingsFormProps) {
+  const t = useTranslations("settings");
+  const router = useRouter();
+  const activeLocale = useLocale();
+  const [currency, setCurrency] = useState(currentCurrency);
+  const [locale, setLocale] = useState(activeLocale);
+  const [savingCurrency, setSavingCurrency] = useState<string | null>(null);
+  const [savingLocale, setSavingLocale] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const [isLocalePending, startLocaleTransition] = useTransition();
+
+  const handleCurrency = (next: string) => {
+    if (next === currency) return;
+    setCurrency(next);
+    setSavingCurrency(next);
     startTransition(async () => {
       try {
-        await updateBaseCurrency(currency);
-        setMessage({ type: "success", text: "Settings saved successfully" });
+        await updateBaseCurrency(next);
+        toast.success(t("toast.saved"));
+        router.refresh();
       } catch {
-        setMessage({ type: "error", text: "Error saving settings" });
+        toast.error(t("toast.error"));
+        setCurrency(currentCurrency);
+      } finally {
+        setSavingCurrency(null);
+      }
+    });
+  };
+
+  const handleLocale = (next: string) => {
+    if (next === locale) return;
+    setLocale(next);
+    setSavingLocale(next);
+    startLocaleTransition(async () => {
+      try {
+        await updateLocale(next);
+        toast.success(t("toast.saved"));
+      } catch {
+        toast.error(t("toast.error"));
+        setLocale(activeLocale);
+      } finally {
+        setSavingLocale(null);
       }
     });
   };
 
   return (
     <div className="grid grid-cols-1 gap-6">
-      <div className="glass-card">
-        <h2 className="text-xl font-semibold text-white mb-4">
-          Currency Preferences
-        </h2>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-neutral-400 mb-2">
-              Primary Currency
-            </label>
-            <p className="text-xs text-neutral-500 mb-3">
-              This is the currency in which your total net worth will be
-              displayed.
-            </p>
-
-            <div className="flex gap-4">
-              {CURRENCIES.map((curr) => (
-                <button
-                  key={curr.code}
-                  onClick={() => setCurrency(curr.code)}
-                  className={`px-6 py-3 rounded-xl border transition-all duration-200 flex items-center gap-2 ${
-                    currency === curr.code
-                      ? "bg-primary border-primary text-neutral-900 shadow-lg shadow-black/30"
-                      : "bg-neutral-800 border-neutral-700 text-neutral-400 hover:bg-neutral-700 hover:text-neutral-200"
-                  }`}
-                >
-                  <span className="font-bold">{curr.code}</span>
-                  <span className="text-xs opacity-70">{curr.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-neutral-800 flex items-center justify-between">
-            <div className="flex-1">
-              {message && (
-                <div
-                  className={`flex items-center gap-2 text-sm ${
-                    message.type === "success"
-                      ? "text-green-400"
-                      : "text-red-400"
-                  }`}
-                >
-                  {message.type === "success" ? (
-                    <CheckCircle size={16} />
-                  ) : (
-                    <WarningCircle size={16} />
-                  )}
-                  {message.text}
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={handleSave}
+      {/* Currency */}
+      <section className="glass-card">
+        <h2 className="text-lg font-semibold text-white">{t("currency.title")}</h2>
+        <p className="mt-1 text-sm text-neutral-400">{t("currency.desc")}</p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          {CURRENCIES.map((code) => (
+            <OptionButton
+              key={code}
+              code={code}
+              label={t(`currency.options.${code}`)}
+              active={currency === code}
+              pending={savingCurrency === code}
               disabled={isPending}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium transition-all duration-200 ${
-                isPending
-                  ? "bg-neutral-800 text-neutral-500 cursor-not-allowed"
-                  : "bg-white text-neutral-900 hover:bg-neutral-200"
-              }`}
-            >
-              {isPending ? (
-                <span className="w-5 h-5 border-2 border-neutral-500 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <FloppyDisk size={18} />
-              )}
-              <span>Save Changes</span>
-            </button>
-          </div>
+              onClick={() => handleCurrency(code)}
+            />
+          ))}
         </div>
-      </div>
+      </section>
+
+      {/* Language */}
+      <section className="glass-card">
+        <h2 className="text-lg font-semibold text-white">{t("language.title")}</h2>
+        <p className="mt-1 text-sm text-neutral-400">{t("language.desc")}</p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          {LOCALES.map((code) => (
+            <OptionButton
+              key={code}
+              code={code}
+              label={t(`language.options.${code}`)}
+              active={locale === code}
+              pending={savingLocale === code}
+              disabled={isLocalePending}
+              onClick={() => handleLocale(code)}
+            />
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

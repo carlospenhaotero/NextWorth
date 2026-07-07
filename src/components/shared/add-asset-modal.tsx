@@ -1,20 +1,18 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, useTransition } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, useTransition } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { X, CheckCircle, Warning, Spinner } from "@phosphor-icons/react/dist/ssr";
+import { localeToIntl } from "@/i18n/locale";
 import { upsertPosition, addToPosition, editPosition } from "@/actions/portfolio";
+import { Button } from "@/components/ui/button";
 
-const ASSET_TYPES = [
-  { value: "stock", label: "Stock" },
-  { value: "etf", label: "ETF" },
-  { value: "fund", label: "Fund" },
-  { value: "crypto", label: "Crypto" },
-  { value: "commodity", label: "Commodity" },
-  { value: "bond", label: "Bond" },
-  { value: "other", label: "Other" },
-];
+const ASSET_TYPE_VALUES = ["stock", "etf", "fund", "crypto", "commodity", "bond", "other"] as const;
 
 const CURRENCIES = ["USD", "EUR", "GBP", "CHF", "JPY", "CAD", "AUD", "CNY"];
+
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export interface ListedAsset {
   symbol: string;
@@ -83,6 +81,8 @@ export function AddAssetModal({
   existingPositions = [],
   onSaved,
 }: AddAssetModalProps) {
+  const t = useTranslations("addAsset.modal");
+  const intlLocale = localeToIntl(useLocale());
   const [form, setForm] = useState({ ...emptyForm });
   const [quote, setQuote] = useState<QuoteState>({ status: "idle" });
   const [error, setError] = useState("");
@@ -90,6 +90,10 @@ export function AddAssetModal({
   // When the user tries to add an asset they already hold, ask how to merge.
   const [dupPrompt, setDupPrompt] = useState<UpsertInput | null>(null);
   const [isPending, startTransition] = useTransition();
+  // Accessibility: dialog container (focus target + trap scope) and the element
+  // that had focus before the modal opened, to restore it on close.
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   const kind = selection?.kind;
   const isCash = kind === "cash";
@@ -138,14 +142,22 @@ export function AddAssetModal({
       const a = selection.asset;
       setForm({ ...emptyForm, symbol: a.symbol, name: a.name, assetType: a.assetType, currency: a.currency || baseCurrency });
       fetchQuote(a.symbol).then((qte) => {
-        if (qte.status === "ok" && qte.currency) {
-          setForm((prev) => ({ ...prev, currency: qte.currency || prev.currency }));
+        if (qte.status === "ok") {
+          setForm((prev) => ({
+            ...prev,
+            currency: qte.currency || prev.currency,
+            // Default the buy price to the live quote so the user doesn't have to type it.
+            avgBuyPrice:
+              prev.avgBuyPrice.trim() === "" && qte.price != null
+                ? String(qte.price)
+                : prev.avgBuyPrice,
+          }));
         }
       });
     } else if (selection.kind === "cash") {
-      setForm({ ...emptyForm, symbol: "CASH", name: "Cash in bank", assetType: "cash", currency: baseCurrency });
+      setForm({ ...emptyForm, symbol: "CASH", name: t("defaultName.cash"), assetType: "cash", currency: baseCurrency });
     } else if (selection.kind === "savings") {
-      setForm({ ...emptyForm, symbol: "SAVINGS", name: "Savings account", assetType: "savings", currency: baseCurrency });
+      setForm({ ...emptyForm, symbol: "SAVINGS", name: t("defaultName.savings"), assetType: "savings", currency: baseCurrency });
     } else if (selection.kind === "manual") {
       setForm({ ...emptyForm, assetType: "other", currency: baseCurrency });
     } else {
@@ -167,7 +179,74 @@ export function AddAssetModal({
         fetchQuote(p.symbol);
       }
     }
-  }, [open, selection, baseCurrency, fetchQuote]);
+  }, [open, selection, baseCurrency, fetchQuote, t]);
+
+  // Close on Escape while the modal is open.
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
+
+  // Remember the previously focused element and return focus to it on close.
+  useEffect(() => {
+    if (!open) return;
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    return () => {
+      previousFocusRef.current?.focus?.();
+    };
+  }, [open]);
+
+  // Move focus into the dialog and trap Tab/Shift+Tab within it. Re-runs when the
+  // view switches (form <-> duplicate prompt) so focus lands on the new content.
+  useEffect(() => {
+    if (!open) return;
+    const container = dialogRef.current;
+    if (!container) return;
+
+    const focusables = Array.from(
+      container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+    );
+    const firstField = focusables.find((el) =>
+      ["input", "select", "textarea"].includes(el.tagName.toLowerCase())
+    );
+    (firstField ?? focusables[0] ?? container).focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const node = dialogRef.current;
+      if (!node) return;
+      const items = Array.from(
+        node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+      ).filter((el) => el.offsetParent !== null);
+      if (items.length === 0) {
+        e.preventDefault();
+        node.focus();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey) {
+        if (active === first || active === node) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open, dupPrompt]);
 
   const investmentTotal = useMemo(() => {
     const price = isCashLike ? 1 : parseFloat(form.avgBuyPrice) || 0;
@@ -197,10 +276,10 @@ export function AddAssetModal({
   }, [form, isCashLike, isSavings, isBond]);
 
   const validate = (): string | null => {
-    if (!form.symbol.trim()) return "Symbol is required";
-    if (!form.quantity || parseFloat(form.quantity) <= 0) return "Enter a valid quantity";
+    if (!form.symbol.trim()) return t("validation.symbolRequired");
+    if (!form.quantity || parseFloat(form.quantity) <= 0) return t("validation.validQuantity");
     // Cost is optional for listed assets, required for manual (uncatalogued) ones.
-    if (isManual && form.avgBuyPrice.trim() === "") return "Enter the value per unit";
+    if (isManual && form.avgBuyPrice.trim() === "") return t("validation.valuePerUnitRequired");
     return null;
   };
 
@@ -211,13 +290,13 @@ export function AddAssetModal({
         else await upsertPosition(input);
         finishOk();
       } catch {
-        setError("Error adding asset");
+        setError(t("message.errorAdding"));
       }
     });
   };
 
   const finishOk = () => {
-    setSuccess("Saved");
+    setSuccess(t("message.saved"));
     setTimeout(() => {
       setSuccess("");
       onSaved?.();
@@ -250,7 +329,7 @@ export function AddAssetModal({
           });
           finishOk();
         } catch {
-          setError("Error saving changes");
+          setError(t("message.errorSaving"));
         }
       });
       return;
@@ -273,14 +352,14 @@ export function AddAssetModal({
   const listedAsset = selection.kind === "listed" ? selection.asset : null;
 
   const title = isCash
-    ? "Add cash"
+    ? t("title.addCash")
     : isSavings
-    ? "Add savings"
+    ? t("title.addSavings")
     : isManual
-    ? "Add manually"
+    ? t("title.addManually")
     : editPos
-    ? `Edit ${editPos.name}`
-    : `Add ${listedAsset?.name ?? "asset"}`;
+    ? t("title.edit", { name: editPos.name })
+    : t("title.add", { name: listedAsset?.name ?? t("assetFallback") });
 
   const subtitle = listedAsset
     ? listedAsset.exchange
@@ -289,11 +368,11 @@ export function AddAssetModal({
     : editPos
     ? editPos.symbol
     : isCashLike
-    ? "Balance held in your account"
-    : "An asset that is not publicly listed (real estate, private fund, ...)";
+    ? t("subtitle.cashLike")
+    : t("subtitle.manual");
 
   const inputClass =
-    "w-full px-3 py-2 bg-neutral-900/50 border border-neutral-700 rounded-xl text-neutral-200 text-sm focus:outline-none focus:border-primary disabled:opacity-50";
+    "w-full px-3 py-2 bg-neutral-900/50 border border-neutral-700 rounded-xl text-neutral-100 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent-ring disabled:opacity-50";
   const labelClass = "block mb-1 text-xs font-medium text-neutral-400";
 
   // Duplicate-resolution view.
@@ -301,15 +380,22 @@ export function AddAssetModal({
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center">
         <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-        <div className="relative glass-card w-full max-w-md mx-4">
-          <button onClick={onClose} className="absolute top-4 right-4 text-neutral-400 hover:text-white">
+        <div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="dup-prompt-title"
+          tabIndex={-1}
+          className="relative glass-card w-full max-w-md mx-4 focus:outline-none"
+        >
+          <button onClick={onClose} aria-label={t("button.close")} className="absolute top-4 right-4 text-neutral-400 hover:text-white">
             <X size={20} />
           </button>
-          <h2 className="text-xl font-bold text-white mb-1 pr-8">You already hold {dupPrompt.symbol}</h2>
-          <p className="text-sm text-neutral-400 mb-6">Choose how to apply this entry to your existing position.</p>
+          <h2 id="dup-prompt-title" className="text-xl font-bold text-white mb-1 pr-8">{t("dup.title", { symbol: dupPrompt.symbol })}</h2>
+          <p className="text-sm text-neutral-400 mb-6">{t("dup.body")}</p>
 
-          {error && <div className="text-red-400 text-sm bg-red-500/10 py-2 px-3 rounded-lg mb-4">{error}</div>}
-          {success && <div className="text-green-400 text-sm bg-green-500/10 py-2 px-3 rounded-lg mb-4">{success}</div>}
+          {error && <div className="text-danger text-sm bg-danger/10 py-2 px-3 rounded-lg mb-4">{error}</div>}
+          {success && <div className="text-success text-sm bg-success/10 py-2 px-3 rounded-lg mb-4">{success}</div>}
 
           <div className="space-y-3">
             <button
@@ -317,16 +403,16 @@ export function AddAssetModal({
               disabled={isPending}
               className="w-full text-left glass-card !p-4 hover:!bg-surface-light disabled:opacity-50"
             >
-              <p className="font-medium text-white text-sm">Add to position</p>
-              <p className="text-xs text-neutral-400">Sums the quantity and recalculates the average buy price.</p>
+              <p className="font-medium text-white text-sm">{t("dup.addTitle")}</p>
+              <p className="text-xs text-neutral-400">{t("dup.addDesc")}</p>
             </button>
             <button
               onClick={() => runSave(dupPrompt, "replace")}
               disabled={isPending}
               className="w-full text-left glass-card !p-4 hover:!bg-surface-light disabled:opacity-50"
             >
-              <p className="font-medium text-white text-sm">Replace position</p>
-              <p className="text-xs text-neutral-400">Overwrites the existing quantity and price with these values.</p>
+              <p className="font-medium text-white text-sm">{t("dup.replaceTitle")}</p>
+              <p className="text-xs text-neutral-400">{t("dup.replaceDesc")}</p>
             </button>
           </div>
 
@@ -335,7 +421,7 @@ export function AddAssetModal({
             disabled={isPending}
             className="mt-4 w-full py-2.5 bg-neutral-800 text-neutral-300 rounded-xl hover:bg-neutral-700 transition-colors text-sm"
           >
-            Back
+            {t("dup.back")}
           </button>
         </div>
       </div>
@@ -345,38 +431,45 @@ export function AddAssetModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative glass-card w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-        <button onClick={onClose} className="absolute top-4 right-4 text-neutral-400 hover:text-white">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-asset-title"
+        tabIndex={-1}
+        className="relative glass-card w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto focus:outline-none"
+      >
+        <button onClick={onClose} aria-label={t("button.close")} className="absolute top-4 right-4 text-neutral-400 hover:text-white">
           <X size={20} />
         </button>
 
-        <h2 className="text-xl font-bold text-white mb-1 pr-8">{title}</h2>
+        <h2 id="add-asset-title" className="text-xl font-bold text-white mb-1 pr-8">{title}</h2>
         <p className="text-sm text-neutral-400 mb-6">{subtitle}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && <div className="text-red-400 text-sm bg-red-500/10 py-2 px-3 rounded-lg">{error}</div>}
-          {success && <div className="text-green-400 text-sm bg-green-500/10 py-2 px-3 rounded-lg">{success}</div>}
+          {error && <div className="text-danger text-sm bg-danger/10 py-2 px-3 rounded-lg">{error}</div>}
+          {success && <div className="text-success text-sm bg-success/10 py-2 px-3 rounded-lg">{success}</div>}
 
           {/* Manual (uncatalogued): symbol + name + type */}
           {isManual && (
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Symbol / ref</label>
-                  <input type="text" value={form.symbol} onChange={(e) => update("symbol", e.target.value)} required
-                    placeholder="e.g. FLAT-MAD" autoFocus className={`${inputClass} uppercase`} />
+                  <label htmlFor="asset-symbol" className={labelClass}>{t("field.symbolRef")}</label>
+                  <input id="asset-symbol" type="text" value={form.symbol} onChange={(e) => update("symbol", e.target.value)} required
+                    placeholder={t("field.symbolRefPlaceholder")} autoFocus className={`${inputClass} uppercase`} />
                 </div>
                 <div>
-                  <label className={labelClass}>Name</label>
-                  <input type="text" value={form.name} onChange={(e) => update("name", e.target.value)}
-                    placeholder="Asset name" className={inputClass} />
+                  <label htmlFor="asset-name" className={labelClass}>{t("field.name")}</label>
+                  <input id="asset-name" type="text" value={form.name} onChange={(e) => update("name", e.target.value)}
+                    placeholder={t("field.namePlaceholder")} className={inputClass} />
                 </div>
               </div>
               <div>
-                <label className={labelClass}>Type</label>
-                <select value={form.assetType} onChange={(e) => update("assetType", e.target.value)} className={inputClass}>
-                  {ASSET_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
+                <label htmlFor="asset-type" className={labelClass}>{t("field.type")}</label>
+                <select id="asset-type" value={form.assetType} onChange={(e) => update("assetType", e.target.value)} className={inputClass}>
+                  {ASSET_TYPE_VALUES.map((value) => (
+                    <option key={value} value={value}>{t(`assetType.${value}`)}</option>
                   ))}
                 </select>
               </div>
@@ -390,16 +483,16 @@ export function AddAssetModal({
                 {quote.status === "loading" && (
                   <>
                     <Spinner size={16} className="text-neutral-400 animate-spin shrink-0" />
-                    <span className="text-neutral-400">Fetching price...</span>
+                    <span className="text-neutral-400">{t("price.fetching")}</span>
                   </>
                 )}
                 {quote.status === "ok" && quote.price != null && (
                   <>
                     <CheckCircle size={16} className="text-green-400 shrink-0" />
                     <span className="text-neutral-300 truncate">
-                      Current price:{" "}
+                      {t("price.current")}{" "}
                       <span className="font-medium text-white">
-                        {quote.currency} {quote.price.toLocaleString("en-US", { maximumFractionDigits: 4 })}
+                        {quote.currency} {quote.price.toLocaleString(intlLocale, { maximumFractionDigits: 4 })}
                       </span>
                     </span>
                   </>
@@ -407,14 +500,14 @@ export function AddAssetModal({
                 {quote.status === "error" && (
                   <>
                     <Warning size={16} className="text-amber-400 shrink-0" />
-                    <span className="text-amber-400">Price unavailable right now</span>
+                    <span className="text-amber-400">{t("price.unavailable")}</span>
                   </>
                 )}
               </div>
               {quote.status === "ok" && quote.price != null && (
                 <button type="button" onClick={() => update("avgBuyPrice", String(quote.price))}
-                  className="text-xs text-primary hover:underline shrink-0">
-                  Use as buy price
+                  className="text-xs text-accent-hover hover:underline shrink-0">
+                  {t("price.useAsBuyPrice")}
                 </button>
               )}
             </div>
@@ -423,18 +516,18 @@ export function AddAssetModal({
           {/* Quantity + cost */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>{isCashLike ? "Balance" : "Quantity"}</label>
-              <input type="number" step="any" value={form.quantity} onChange={(e) => update("quantity", e.target.value)}
-                required placeholder="0.00" autoFocus={!isManual} className={inputClass} />
+              <label htmlFor="asset-quantity" className={labelClass}>{isCashLike ? t("field.balance") : t("field.quantity")}</label>
+              <input id="asset-quantity" type="number" step="any" min="0" value={form.quantity} onChange={(e) => update("quantity", e.target.value)}
+                required placeholder={t("field.zeroPlaceholder")} autoFocus={!isManual} className={inputClass} />
             </div>
             {!isCashLike && (
               <div>
-                <label className={labelClass}>
-                  {isManual ? "Value per unit" : "Buy price"} ({form.currency})
-                  {!isManual && <span className="text-neutral-600"> · optional</span>}
+                <label htmlFor="asset-buy-price" className={labelClass}>
+                  {isManual ? t("field.valuePerUnit") : t("field.buyPrice")} ({form.currency})
+                  {!isManual && <span className="text-neutral-600"> · {t("field.optional")}</span>}
                 </label>
-                <input type="number" step="any" value={form.avgBuyPrice} onChange={(e) => update("avgBuyPrice", e.target.value)}
-                  placeholder="0.00" className={inputClass} />
+                <input id="asset-buy-price" type="number" step="any" min="0" value={form.avgBuyPrice} onChange={(e) => update("avgBuyPrice", e.target.value)}
+                  placeholder={t("field.zeroPlaceholder")} className={inputClass} />
               </div>
             )}
           </div>
@@ -443,8 +536,8 @@ export function AddAssetModal({
           {(isCashLike || isManual) && (
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>Currency</label>
-                <select value={form.currency} onChange={(e) => update("currency", e.target.value)} className={inputClass}>
+                <label htmlFor="asset-currency" className={labelClass}>{t("field.currency")}</label>
+                <select id="asset-currency" value={form.currency} onChange={(e) => update("currency", e.target.value)} className={inputClass}>
                   {CURRENCIES.map((c) => (
                     <option key={c} value={c}>{c}</option>
                   ))}
@@ -452,9 +545,9 @@ export function AddAssetModal({
               </div>
               {isSavings && (
                 <div>
-                  <label className={labelClass}>Annual interest (TAE %)</label>
-                  <input type="number" step="0.01" value={form.tae} onChange={(e) => update("tae", e.target.value)}
-                    placeholder="e.g. 3.50" className={inputClass} />
+                  <label htmlFor="asset-tae" className={labelClass}>{t("field.tae")}</label>
+                  <input id="asset-tae" type="number" step="0.01" value={form.tae} onChange={(e) => update("tae", e.target.value)}
+                    placeholder={t("field.taePlaceholder")} className={inputClass} />
                 </div>
               )}
             </div>
@@ -463,38 +556,38 @@ export function AddAssetModal({
           {/* Savings TAE when editing */}
           {editPos?.assetType === "savings" && (
             <div>
-              <label className={labelClass}>Annual interest (TAE %)</label>
-              <input type="number" step="0.01" value={form.tae} onChange={(e) => update("tae", e.target.value)}
-                placeholder="e.g. 3.50" className={inputClass} />
+              <label htmlFor="asset-edit-tae" className={labelClass}>{t("field.tae")}</label>
+              <input id="asset-edit-tae" type="number" step="0.01" value={form.tae} onChange={(e) => update("tae", e.target.value)}
+                placeholder={t("field.taePlaceholder")} className={inputClass} />
             </div>
           )}
 
           {/* Bond details */}
           {isBond && (
             <div className="space-y-4 pt-4 border-t border-neutral-800">
-              <p className="text-sm text-neutral-400">Bond details</p>
+              <p className="text-sm text-neutral-400">{t("field.bondDetails")}</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Face value (per unit)</label>
-                  <input type="number" step="any" value={form.faceValue} onChange={(e) => update("faceValue", e.target.value)}
-                    placeholder="1000.00" className={inputClass} />
+                  <label htmlFor="asset-face-value" className={labelClass}>{t("field.faceValue")}</label>
+                  <input id="asset-face-value" type="number" step="any" value={form.faceValue} onChange={(e) => update("faceValue", e.target.value)}
+                    placeholder={t("field.faceValuePlaceholder")} className={inputClass} />
                 </div>
                 <div>
-                  <label className={labelClass}>Maturity date</label>
-                  <input type="date" value={form.maturityDate} onChange={(e) => update("maturityDate", e.target.value)} className={inputClass} />
+                  <label htmlFor="asset-maturity-date" className={labelClass}>{t("field.maturityDate")}</label>
+                  <input id="asset-maturity-date" type="date" value={form.maturityDate} onChange={(e) => update("maturityDate", e.target.value)} className={inputClass} />
                 </div>
                 <div>
-                  <label className={labelClass}>Coupon rate (%)</label>
-                  <input type="number" step="0.01" value={form.couponRate} onChange={(e) => update("couponRate", e.target.value)}
-                    placeholder="5.00" className={inputClass} />
+                  <label htmlFor="asset-coupon-rate" className={labelClass}>{t("field.couponRate")}</label>
+                  <input id="asset-coupon-rate" type="number" step="0.01" value={form.couponRate} onChange={(e) => update("couponRate", e.target.value)}
+                    placeholder={t("field.couponRatePlaceholder")} className={inputClass} />
                 </div>
                 <div>
-                  <label className={labelClass}>Coupon frequency</label>
-                  <select value={form.couponFrequency} onChange={(e) => update("couponFrequency", e.target.value)} className={inputClass}>
-                    <option value="1">Annual</option>
-                    <option value="2">Semi-annual</option>
-                    <option value="4">Quarterly</option>
-                    <option value="12">Monthly</option>
+                  <label htmlFor="asset-coupon-frequency" className={labelClass}>{t("field.couponFrequency")}</label>
+                  <select id="asset-coupon-frequency" value={form.couponFrequency} onChange={(e) => update("couponFrequency", e.target.value)} className={inputClass}>
+                    <option value="1">{t("couponFreq.annual")}</option>
+                    <option value="2">{t("couponFreq.semiannual")}</option>
+                    <option value="4">{t("couponFreq.quarterly")}</option>
+                    <option value="12">{t("couponFreq.monthly")}</option>
                   </select>
                 </div>
               </div>
@@ -504,22 +597,20 @@ export function AddAssetModal({
           {/* Investment summary */}
           {!isCashLike && investmentTotal > 0 && (
             <div className="flex justify-between items-center py-3 px-4 bg-neutral-800/50 rounded-xl">
-              <span className="text-sm text-neutral-400">{isManual ? "Total value" : "Total invested"}</span>
+              <span className="text-sm text-neutral-400">{isManual ? t("total.value") : t("total.invested")}</span>
               <span className="font-bold text-white">
-                {form.currency} {investmentTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {form.currency} {investmentTotal.toLocaleString(intlLocale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
           )}
 
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose}
-              className="flex-1 py-2.5 bg-neutral-800 text-neutral-300 rounded-xl hover:bg-neutral-700 transition-colors text-sm">
-              Cancel
-            </button>
-            <button type="submit" disabled={isPending}
-              className="flex-1 py-2.5 bg-primary text-neutral-900 font-bold rounded-xl shadow-lg shadow-white/20 hover:bg-white disabled:opacity-50 text-sm">
-              {isPending ? "Saving..." : isEdit ? "Save changes" : "Add to portfolio"}
-            </button>
+          <div className="sticky bottom-0 -mx-6 -mb-6 flex gap-3 border-t border-border bg-neutral-900/90 px-6 py-4 backdrop-blur-md">
+            <Button type="button" variant="secondary" className="flex-1" onClick={onClose}>
+              {t("button.cancel")}
+            </Button>
+            <Button type="submit" loading={isPending} className="flex-1">
+              {isPending ? t("button.saving") : isEdit ? t("button.saveChanges") : t("button.addToPortfolio")}
+            </Button>
           </div>
         </form>
       </div>

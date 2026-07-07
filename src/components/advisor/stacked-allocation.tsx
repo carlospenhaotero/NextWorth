@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import type { AllocationSlice } from "@/server/advisor/metrics";
 
 // Muted categorical palette (desaturated, reads well on dark, not neon).
@@ -45,6 +46,7 @@ function StackedRow({ title, slices, byAssetClass = false }: Dimension) {
   const data = [...slices].filter((s) => s.pct > 0);
   // Legend shows the most relevant segments; the bar shows everything.
   const legend = data.slice(0, 5);
+  const hiddenCount = data.length - legend.length;
 
   return (
     <div>
@@ -69,6 +71,9 @@ function StackedRow({ title, slices, byAssetClass = false }: Dimension) {
             <span className="text-neutral-500 tabular-nums">{s.pct.toFixed(0)}%</span>
           </span>
         ))}
+        {hiddenCount > 0 && (
+          <span className="text-xs text-neutral-500">+{hiddenCount}</span>
+        )}
       </div>
     </div>
   );
@@ -78,10 +83,11 @@ interface StackedAllocationProps {
   dimensions: Dimension[];
 }
 
-export function StackedAllocation({ dimensions }: StackedAllocationProps) {
+export async function StackedAllocation({ dimensions }: StackedAllocationProps) {
+  const t = await getTranslations("allocation");
   return (
     <div className="glass-card shrink-0 space-y-4">
-      <h3 className="text-neutral-400 font-medium">Allocation</h3>
+      <h3 className="text-neutral-400 font-medium">{t("title")}</h3>
       {dimensions.map((d) => (
         <StackedRow
           key={d.title}

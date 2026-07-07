@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { TrendUp } from "@phosphor-icons/react/dist/ssr";
+import { useTranslations } from "next-intl";
 
 const data = [
   { month: "Jan", value: 82400 },
@@ -26,12 +27,13 @@ const data = [
 ];
 
 export function PortfolioPreview() {
+  const t = useTranslations("landing.preview");
   return (
     <div className="flex h-full w-full flex-col p-5 md:p-8">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs md:text-sm text-neutral-400">Total Net Worth</p>
+          <p className="text-xs md:text-sm text-neutral-400">{t("netWorth")}</p>
           <p className="text-2xl md:text-4xl font-bold text-white tracking-tight">
             $124,580.32
           </p>
@@ -45,17 +47,17 @@ export function PortfolioPreview() {
       {/* Stats row */}
       <div className="mt-4 grid grid-cols-3 gap-3 md:gap-4">
         <div className="rounded-xl bg-neutral-800/60 p-3">
-          <p className="text-[10px] md:text-xs text-neutral-500">Invested</p>
+          <p className="text-[10px] md:text-xs text-neutral-500">{t("invested")}</p>
           <p className="text-sm md:text-lg font-semibold text-white">$99,840</p>
         </div>
         <div className="rounded-xl bg-neutral-800/60 p-3">
-          <p className="text-[10px] md:text-xs text-neutral-500">Profit</p>
+          <p className="text-[10px] md:text-xs text-neutral-500">{t("profit")}</p>
           <p className="text-sm md:text-lg font-semibold text-green-400">
             +$24,740
           </p>
         </div>
         <div className="rounded-xl bg-neutral-800/60 p-3">
-          <p className="text-[10px] md:text-xs text-neutral-500">Assets</p>
+          <p className="text-[10px] md:text-xs text-neutral-500">{t("assets")}</p>
           <p className="text-sm md:text-lg font-semibold text-white">14</p>
         </div>
       </div>

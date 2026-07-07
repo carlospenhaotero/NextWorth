@@ -2,9 +2,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function OverviewLoading() {
   return (
-    <div className="flex min-h-[calc(100dvh-4rem)] flex-col">
+    <div className="flex flex-col gap-6">
+      {/* Page header */}
+      <div className="space-y-2">
+        <Skeleton className="h-7 w-40" />
+        <Skeleton className="h-4 w-72 max-w-full" />
+      </div>
+
       {/* Chart card */}
-      <div className="glass-card flex flex-col gap-6">
+      <div className="glass-card flex min-h-[22rem] flex-col gap-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <Skeleton className="h-3 w-24" />
@@ -21,7 +27,7 @@ export default function OverviewLoading() {
       </div>
 
       {/* Top movers */}
-      <div className="mt-6 border-t border-neutral-800 pt-6 space-y-4">
+      <div className="space-y-4">
         <Skeleton className="h-4 w-40" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (

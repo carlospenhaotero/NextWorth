@@ -1,5 +1,8 @@
+import { useTranslations, useLocale } from "next-intl";
 import { formatCurrency, formatPercent } from "@/lib/utils";
+import { localeToIntl } from "@/i18n/locale";
 import { AssetLogo } from "@/components/shared/asset-logo";
+import { SectionHeader } from "@/components/ui/section-header";
 import type { PortfolioMover } from "@/server/portfolio-history";
 
 interface TopMoversProps {
@@ -9,12 +12,11 @@ interface TopMoversProps {
 }
 
 export function TopMovers({ movers, baseCurrency, periodLabel }: TopMoversProps) {
+  const t = useTranslations("topMovers");
+  const intlLocale = localeToIntl(useLocale());
   return (
     <div>
-      <div className="flex items-baseline justify-between mb-4">
-        <h3 className="text-neutral-400 font-medium">Top Movers</h3>
-        <span className="text-xs text-neutral-500">{periodLabel}</span>
-      </div>
+      <SectionHeader title={t("title")} hint={periodLabel} />
       {movers.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {movers.map((m) => {
@@ -35,7 +37,7 @@ export function TopMovers({ movers, baseCurrency, periodLabel }: TopMoversProps)
                   <div className="min-w-0">
                     <p className="font-medium text-white leading-tight">{m.name}</p>
                     <p className="text-xs text-neutral-500">
-                      {m.symbol} · {formatCurrency(m.value, baseCurrency)}
+                      {m.symbol} · {formatCurrency(m.value, baseCurrency, intlLocale)}
                     </p>
                   </div>
                 </div>
@@ -44,7 +46,7 @@ export function TopMovers({ movers, baseCurrency, periodLabel }: TopMoversProps)
                     {formatPercent(m.pnlPct)}
                   </div>
                   <div className={`text-xs ${up ? "text-green-500/70" : "text-red-500/70"}`}>
-                    {formatCurrency(m.pnl, baseCurrency)}
+                    {formatCurrency(m.pnl, baseCurrency, intlLocale)}
                   </div>
                 </div>
               </div>
@@ -53,7 +55,7 @@ export function TopMovers({ movers, baseCurrency, periodLabel }: TopMoversProps)
         </div>
       ) : (
         <p className="text-neutral-500 text-sm">
-          Añade activos para ver tus movimientos destacados.
+          {t("empty")}
         </p>
       )}
     </div>

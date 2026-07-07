@@ -1,24 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { PaperPlaneRight, Sparkle } from "@phosphor-icons/react/dist/ssr";
+import { PaperPlaneRight, Sparkle, User } from "@phosphor-icons/react/dist/ssr";
+import { ChatMarkdown } from "./chat-markdown";
 
-const PRESET_QUESTIONS = [
-  "¿Cómo está balanceada mi cartera?",
-  "¿Qué perfil de riesgo tengo?",
-  "¿A qué perfil debería llegar?",
-  "¿Cómo rebalancear hacia un perfil más conservador?",
-];
+function BotAvatar() {
+  return (
+    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent-hover">
+      <Sparkle size={16} weight="fill" />
+    </span>
+  );
+}
+
+function UserAvatar() {
+  return (
+    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-700 text-neutral-300">
+      <User size={16} />
+    </span>
+  );
+}
 
 export function AdvisorChat() {
+  const t = useTranslations("advisor.chat");
+  const presetQuestions = t.raw("presets") as string[];
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({ api: "/api/advisor/chat" }),
   });
   const [input, setInput] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const busy = status === "submitted" || status === "streaming";
+
+  // Keep the latest message in view as the conversation grows.
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, busy]);
 
   function submit(text: string) {
     const trimmed = text.trim();
@@ -29,24 +48,24 @@ export function AdvisorChat() {
 
   return (
     <div className="glass-card flex flex-col h-full min-h-[420px]">
-      <div className="flex items-center gap-2 mb-3 shrink-0">
-        <Sparkle size={18} className="text-neutral-300" />
-        <h3 className="text-neutral-200 font-medium">Advisor</h3>
+      <div className="flex items-center gap-2 mb-4 shrink-0">
+        <Sparkle size={18} weight="fill" className="text-accent-hover" />
+        <h3 className="text-neutral-200 font-semibold">{t("header")}</h3>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-4 pr-1">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center gap-4">
-            <p className="text-neutral-500 text-sm max-w-sm">
-              Ask about how your portfolio is balanced and your risk profile.
-              I explain, I don&apos;t recommend what to buy or sell.
-            </p>
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-accent-hover">
+              <Sparkle size={24} weight="fill" />
+            </span>
+            <p className="text-neutral-400 text-sm max-w-sm">{t("intro")}</p>
             <div className="flex flex-wrap gap-2 justify-center">
-              {PRESET_QUESTIONS.map((q) => (
+              {presetQuestions.map((q) => (
                 <button
                   key={q}
                   onClick={() => submit(q)}
-                  className="text-xs px-3 py-1.5 rounded-full border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
+                  className="text-xs px-3 py-1.5 rounded-full border border-neutral-700 text-neutral-300 transition-colors hover:border-accent hover:text-accent-hover outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
                 >
                   {q}
                 </button>
@@ -54,37 +73,50 @@ export function AdvisorChat() {
             </div>
           </div>
         ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={message.role === "user" ? "flex justify-end" : "flex justify-start"}
-            >
+          messages.map((message) => {
+            const isUser = message.role === "user";
+            return (
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
-                  message.role === "user"
-                    ? "bg-neutral-200 text-neutral-900"
-                    : "bg-neutral-800 text-neutral-100"
-                }`}
+                key={message.id}
+                className={`flex items-start gap-2.5 ${isUser ? "flex-row-reverse" : ""}`}
               >
-                {message.parts.map((part, i) => {
-                  if (part.type === "text") return <span key={i}>{part.text}</span>;
-                  if (part.type === "tool-getPortfolioMetrics") {
-                    return (
-                      <span key={i} className="block text-xs text-neutral-400 italic">
-                        Reading your portfolio…
-                      </span>
-                    );
-                  }
-                  return null;
-                })}
+                {isUser ? <UserAvatar /> : <BotAvatar />}
+                <div
+                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${
+                    isUser
+                      ? "bg-accent text-accent-foreground rounded-tr-sm"
+                      : "bg-neutral-800 text-neutral-100 rounded-tl-sm"
+                  }`}
+                >
+                  {message.parts.map((part, i) => {
+                    if (part.type === "text") {
+                      return isUser ? (
+                        <span key={i} className="whitespace-pre-wrap">{part.text}</span>
+                      ) : (
+                        <ChatMarkdown key={i} text={part.text} />
+                      );
+                    }
+                    if (part.type === "tool-getPortfolioMetrics") {
+                      return (
+                        <span key={i} className="block text-xs text-neutral-400 italic">
+                          {t("reading")}
+                        </span>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
         {busy && (
-          <div className="flex justify-start">
-            <div className="bg-neutral-800 text-neutral-400 rounded-2xl px-4 py-2.5 text-sm">
-              Thinking…
+          <div className="flex items-start gap-2.5">
+            <BotAvatar />
+            <div className="flex items-center gap-1 rounded-2xl rounded-tl-sm bg-neutral-800 px-4 py-3.5">
+              <span className="typing-dot h-1.5 w-1.5 rounded-full bg-neutral-400" />
+              <span className="typing-dot h-1.5 w-1.5 rounded-full bg-neutral-400" />
+              <span className="typing-dot h-1.5 w-1.5 rounded-full bg-neutral-400" />
             </div>
           </div>
         )}
@@ -95,25 +127,26 @@ export function AdvisorChat() {
           e.preventDefault();
           submit(input);
         }}
-        className="mt-3 flex items-center gap-2 shrink-0"
+        className="mt-4 flex items-center gap-2 shrink-0"
       >
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about your portfolio…"
-          className="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-neutral-500"
+          placeholder={t("placeholder")}
+          className="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-500 outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent-ring"
         />
         <button
           type="submit"
+          aria-label={t("send")}
           disabled={busy || !input.trim()}
-          className="p-2.5 rounded-xl bg-primary text-neutral-900 disabled:opacity-40 transition"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground shadow-lg shadow-accent/25 transition-colors hover:bg-accent-hover disabled:opacity-40 outline-none focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
-          <PaperPlaneRight size={18} />
+          <PaperPlaneRight size={18} weight="fill" />
         </button>
       </form>
 
       <p className="mt-2 text-[11px] text-neutral-600 text-center shrink-0">
-        General educational information, not personalized financial advice.
+        {t("disclaimer")}
       </p>
     </div>
   );

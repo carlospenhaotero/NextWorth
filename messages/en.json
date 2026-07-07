@@ -1,0 +1,535 @@
+{
+  "metadata": {
+    "appDescription": "AI-Powered Portfolio Management",
+    "overview": {
+      "title": "Overview",
+      "description": "Track your total net worth and portfolio performance over time."
+    },
+    "assets": {
+      "title": "Assets",
+      "description": "Browse and manage all the holdings in your portfolio."
+    },
+    "assetDetail": {
+      "description": "Price, performance and details for {symbol}."
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Manage your account preferences and base currency."
+    },
+    "addAsset": {
+      "title": "Add Asset",
+      "description": "Add a new holding to your portfolio."
+    },
+    "advisor": {
+      "title": "AI Advisor",
+      "description": "Get AI-powered insights on your portfolio balance and risk."
+    }
+  },
+  "common": {
+    "appName": "NextWorth",
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "back": "Back",
+      "add": "Add",
+      "close": "Close",
+      "tryAgain": "Try again",
+      "goHome": "Go home",
+      "view": "View",
+      "saveChanges": "Save changes"
+    },
+    "states": {
+      "loading": "Loading...",
+      "saving": "Saving..."
+    },
+    "na": "N/A"
+  },
+  "nav": {
+    "portfolio": "Portfolio",
+    "assets": "Assets",
+    "advisor": "Advisor",
+    "addAsset": "Add Asset",
+    "settings": "Settings",
+    "signOut": "Sign out",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "mainMenu": "Main menu",
+    "home": "Home",
+    "brandHome": "NextWorth home"
+  },
+  "landing": {
+    "nav": {
+      "login": "Log in",
+      "getStarted": "Get Started"
+    },
+    "hero": {
+      "title": "AI-Powered Portfolio Management",
+      "cta": "Start for free"
+    },
+    "scroll": {
+      "title": "Everything you need",
+      "subtitle": "Track every asset, forecast tomorrow with AI, and watch your net worth climb, all from one beautiful dashboard."
+    },
+    "features": {
+      "title": "Powerful under the hood",
+      "subtitle": "Real-time data, AI forecasting, and bank-grade security, everything your portfolio needs.",
+      "aiPredictions": {
+        "title": "AI Predictions",
+        "desc": "Time-series forecasts powered by Amazon Chronos to anticipate where your assets are heading."
+      },
+      "multiCurrency": {
+        "title": "Multi-Currency",
+        "desc": "Track your net worth in your preferred currency with automatic conversion rates."
+      },
+      "realTime": {
+        "title": "Real-time Data",
+        "desc": "Live market quotes from Yahoo Finance keep every valuation up to the second.",
+        "badge": "Live · Yahoo Finance"
+      },
+      "tracking": {
+        "title": "Portfolio Tracking",
+        "desc": "All your assets in one place, with net worth and allocation broken down in real time."
+      },
+      "security": {
+        "title": "Bank-grade Security",
+        "desc": "Encrypted sessions and modern authentication keep your financial data private by default."
+      },
+      "allocation": {
+        "stocks": "Stocks",
+        "crypto": "Crypto",
+        "etfs": "ETFs",
+        "cash": "Cash"
+      }
+    },
+    "preview": {
+      "netWorth": "Total Net Worth",
+      "invested": "Invested",
+      "profit": "Profit",
+      "assets": "Assets"
+    },
+    "footer": {
+      "rights": "© {year} NextWorth. All rights reserved.",
+      "register": "Register"
+    }
+  },
+  "auth": {
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "emailLabel": "Email",
+    "emailPlaceholder": "your@email.com",
+    "login": {
+      "subtitle": "Sign in to access your portfolio and predictions.",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "errorInvalid": "Invalid credentials",
+      "errorGeneric": "An error occurred. Please try again.",
+      "noAccount": "No account?",
+      "createAccount": "Create an account",
+      "title": "Welcome back"
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Start tracking your portfolio in a few seconds.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Your name",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Min. 8 characters",
+      "confirmLabel": "Confirm password",
+      "confirmPlaceholder": "Repeat your password",
+      "passwordMismatch": "Passwords do not match",
+      "errorFailed": "Registration failed",
+      "errorGeneric": "An error occurred. Please try again.",
+      "submit": "Create free account",
+      "submitting": "Creating account...",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "subtitle": "Enter your email and we'll send you a link to reset it.",
+      "submit": "Send reset link",
+      "submitting": "Sending...",
+      "backToLogin": "Back to login",
+      "successTitle": "Check your inbox",
+      "successBody": "If an account exists for that email, we've sent a reset link."
+    },
+    "resetPassword": {
+      "title": "Set a new password",
+      "subtitle": "Choose a strong password you don't use elsewhere.",
+      "newPasswordLabel": "New password",
+      "newPasswordPlaceholder": "Min. 8 characters",
+      "confirmLabel": "Confirm password",
+      "confirmPlaceholder": "Repeat your password",
+      "tooShort": "Password must be at least 8 characters",
+      "mismatch": "Passwords do not match",
+      "errorGeneric": "An error occurred. Please try again.",
+      "errorFailed": "Couldn't reset your password",
+      "successToast": "Password reset. You can now sign in.",
+      "submit": "Reset password",
+      "submitting": "Resetting...",
+      "backToLogin": "Back to login",
+      "invalidTitle": "Invalid or expired link",
+      "invalidBody": "This password reset link is no longer valid. Request a new one to continue.",
+      "invalidCta": "Request a new link"
+    }
+  },
+  "overview": {
+    "rangeSuffix": {
+      "1w": "past week",
+      "1m": "past month",
+      "3m": "past 3 months",
+      "6m": "past 6 months",
+      "1y": "past year",
+      "all": "since inception"
+    },
+    "chartError": "Couldn't update the chart. Showing previous data."
+  },
+  "portfolioChart": {
+    "netWorth": "Net worth",
+    "empty": "Add your first asset to see your net worth over time",
+    "tooltip": {
+      "value": "Value",
+      "invested": "Invested"
+    },
+    "range": {
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "6m": "6M",
+      "1y": "1Y",
+      "all": "All"
+    }
+  },
+  "topMovers": {
+    "title": "Top Movers",
+    "empty": "Add assets to see your top movers."
+  },
+  "allocation": {
+    "title": "Allocation",
+    "byAssetType": "By asset type",
+    "bySector": "By sector",
+    "byCountry": "By country",
+    "noData": "No data to show yet.",
+    "total": "Total"
+  },
+  "assetList": {
+    "filter": {
+      "all": "All",
+      "stock": "Stocks",
+      "etf": "ETFs",
+      "fund": "Funds",
+      "crypto": "Crypto",
+      "commodity": "Commodities",
+      "bond": "Bonds",
+      "cash": "Cash",
+      "savings": "Savings"
+    },
+    "stat": {
+      "totalAssets": "Total Assets",
+      "portfolioValue": "Portfolio Value",
+      "totalPL": "Total P/L",
+      "performance": "Performance",
+      "gainersLosers": "gainers / losers"
+    },
+    "field": {
+      "quantity": "Quantity",
+      "avgPrice": "Avg Price",
+      "currentPrice": "Current Price",
+      "currency": "Currency",
+      "value": "Value",
+      "noCostSet": "No cost set",
+      "annualInterest": "Annual interest",
+      "valueIn1y": "Value in 1y",
+      "couponPerYear": "Coupon / yr",
+      "currentYield": "Current yield",
+      "toMaturity": "To maturity",
+      "atMaturity": "At maturity",
+      "days": "{days} days"
+    },
+    "searchPlaceholder": "Search assets...",
+    "empty": {
+      "noMatch": "No assets match your filters",
+      "none": "No assets yet"
+    },
+    "addAsset": "+ Add Asset",
+    "aria": {
+      "edit": "Edit {name}",
+      "delete": "Delete {name}"
+    },
+    "confirmDelete": {
+      "title": "Delete asset",
+      "description": "Are you sure you want to delete {name}? This can't be undone.",
+      "confirm": "Delete"
+    },
+    "toast": {
+      "deleted": "Asset deleted",
+      "deleteError": "Failed to delete asset"
+    }
+  },
+  "assetDetail": {
+    "stat": {
+      "current": "Current",
+      "change": "Change",
+      "high": "High",
+      "low": "Low"
+    },
+    "aiPredictions": "AI Predictions",
+    "loadingPredictions": "Loading predictions...",
+    "today": "Today",
+    "noData": "No chart data available",
+    "range": {
+      "6m": "6M",
+      "12m": "1Y",
+      "24m": "2Y",
+      "60m": "5Y"
+    },
+    "horizon": {
+      "3m": "3M",
+      "6m": "6M",
+      "1y": "1Y",
+      "2y": "2Y",
+      "5y": "5Y"
+    },
+    "loadFailed": "Failed to load history",
+    "loadFailedShort": "Failed to load",
+    "predictionsToast": "Couldn't load AI predictions.",
+    "back": "Back"
+  },
+  "addAsset": {
+    "flow": {
+      "categories": {
+        "all": "All",
+        "stock": "Stocks",
+        "etf": "ETFs",
+        "crypto": "Crypto",
+        "commodity": "Commodities"
+      },
+      "toast": {
+        "added": "Added to your portfolio",
+        "addedAction": "View",
+        "searchFailed": "Search failed. Please try again."
+      },
+      "quickActions": {
+        "cashTitle": "Cash",
+        "cashDesc": "Bank balance",
+        "savingsTitle": "Savings",
+        "savingsDesc": "Interest-earning",
+        "manualTitle": "Add manually",
+        "manualDesc": "Not publicly listed"
+      },
+      "searchPlaceholder": "Search any stock, ETF, fund (name or ISIN), crypto...",
+      "found": "Found {count} for \"{query}\"",
+      "noResults": "No results for \"{query}\"",
+      "addToPortfolio": "Add to portfolio",
+      "cantFind": "Can't find it? It may not be publicly listed.",
+      "addManuallyInstead": "Add it manually instead",
+      "popularAssets": "Popular assets"
+    },
+    "modal": {
+      "assetType": {
+        "stock": "Stock",
+        "etf": "ETF",
+        "fund": "Fund",
+        "crypto": "Crypto",
+        "commodity": "Commodity",
+        "bond": "Bond",
+        "other": "Other"
+      },
+      "title": {
+        "addCash": "Add cash",
+        "addSavings": "Add savings",
+        "addManually": "Add manually",
+        "edit": "Edit {name}",
+        "add": "Add {name}"
+      },
+      "assetFallback": "asset",
+      "subtitle": {
+        "cashLike": "Balance held in your account",
+        "manual": "An asset that is not publicly listed (real estate, private fund, ...)"
+      },
+      "dup": {
+        "title": "You already hold {symbol}",
+        "body": "Choose how to apply this entry to your existing position.",
+        "addTitle": "Add to position",
+        "addDesc": "Sums the quantity and recalculates the average buy price.",
+        "replaceTitle": "Replace position",
+        "replaceDesc": "Overwrites the existing quantity and price with these values.",
+        "back": "Back"
+      },
+      "field": {
+        "symbolRef": "Symbol / ref",
+        "symbolRefPlaceholder": "e.g. FLAT-MAD",
+        "name": "Name",
+        "namePlaceholder": "Asset name",
+        "type": "Type",
+        "balance": "Balance",
+        "quantity": "Quantity",
+        "valuePerUnit": "Value per unit",
+        "buyPrice": "Buy price",
+        "optional": "optional",
+        "currency": "Currency",
+        "tae": "Annual interest (TAE %)",
+        "taePlaceholder": "e.g. 3.50",
+        "bondDetails": "Bond details",
+        "faceValue": "Face value (per unit)",
+        "faceValuePlaceholder": "1000.00",
+        "maturityDate": "Maturity date",
+        "couponRate": "Coupon rate (%)",
+        "couponRatePlaceholder": "5.00",
+        "couponFrequency": "Coupon frequency",
+        "zeroPlaceholder": "0.00"
+      },
+      "couponFreq": {
+        "annual": "Annual",
+        "semiannual": "Semi-annual",
+        "quarterly": "Quarterly",
+        "monthly": "Monthly"
+      },
+      "price": {
+        "fetching": "Fetching price...",
+        "current": "Current price:",
+        "unavailable": "Price unavailable right now",
+        "useAsBuyPrice": "Use as buy price"
+      },
+      "total": {
+        "value": "Total value",
+        "invested": "Total invested"
+      },
+      "button": {
+        "cancel": "Cancel",
+        "saving": "Saving...",
+        "saveChanges": "Save changes",
+        "addToPortfolio": "Add to portfolio",
+        "close": "Close"
+      },
+      "validation": {
+        "symbolRequired": "Symbol is required",
+        "validQuantity": "Enter a valid quantity",
+        "valuePerUnitRequired": "Enter the value per unit"
+      },
+      "message": {
+        "saved": "Saved",
+        "errorAdding": "Error adding asset",
+        "errorSaving": "Error saving changes"
+      },
+      "defaultName": {
+        "cash": "Cash in bank",
+        "savings": "Savings account"
+      }
+    }
+  },
+  "advisor": {
+    "empty": {
+      "title": "No holdings to analyze yet",
+      "subtitle": "Add assets to see your balance by sector, country and risk profile.",
+      "cta": "Add your first asset"
+    },
+    "chat": {
+      "presets": [
+        "How balanced is my portfolio?",
+        "What is my risk profile?",
+        "What profile should I aim for?",
+        "How do I rebalance toward a more conservative profile?"
+      ],
+      "header": "Advisor",
+      "intro": "Ask about how your portfolio is balanced and your risk profile. I explain, I don't recommend what to buy or sell.",
+      "reading": "Reading your portfolio…",
+      "thinking": "Thinking…",
+      "placeholder": "Ask about your portfolio…",
+      "send": "Send message",
+      "disclaimer": "General educational information, not personalized financial advice."
+    },
+    "kpi": {
+      "bands": {
+        "conservative": "Conservative",
+        "moderate": "Moderate",
+        "balanced": "Balanced",
+        "growth": "Growth",
+        "aggressive": "Aggressive"
+      },
+      "netWorth": "Net worth",
+      "totalPL": "Total P/L",
+      "riskProfile": "Risk profile"
+    },
+    "insights": {
+      "title": "What I notice",
+      "balancedFallback": "Your portfolio looks reasonably balanced. Ask the advisor for a deeper look."
+    }
+  },
+  "metrics": {
+    "assetType": {
+      "stock": "Stocks",
+      "etf": "ETFs",
+      "fund": "Funds",
+      "bond": "Bonds",
+      "crypto": "Crypto",
+      "commodity": "Commodities",
+      "cash": "Cash",
+      "savings": "Savings",
+      "currency": "Cash"
+    },
+    "sector": {
+      "unknown": "Unknown",
+      "etfNoBreakdown": "ETF (no breakdown)",
+      "crypto": "Crypto",
+      "commodities": "Commodities",
+      "fixedIncome": "Fixed Income",
+      "cash": "Cash"
+    },
+    "country": {
+      "diversified": "Diversified",
+      "global": "Global",
+      "na": "N/A",
+      "unknown": "Unknown"
+    },
+    "insight": {
+      "concentrationHolding": "High concentration: {pct}% of your portfolio is a single holding ({name}).",
+      "concentrationSector": "Low sector diversification: {pct}% sits in {sector}.",
+      "concentrationCountry": "Geographic concentration: {pct}% in {country}.",
+      "noDefensive": "No defensive buffer: little or no bonds, cash or gold to cushion downturns.",
+      "cashDrag": "High cash allocation: {pct}% is in cash/savings, which can lose value to inflation."
+    }
+  },
+  "errors": {
+    "somethingWrong": "Something went wrong",
+    "errorTitle": "An unexpected error occurred",
+    "errorBody": "Don't worry, your data is safe. You can try again, and if the problem persists come back in a moment.",
+    "tryAgain": "Try again",
+    "errorReference": "Error reference: {digest}",
+    "notFoundCode": "404",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The page you're looking for doesn't exist or may have been moved.",
+    "goHome": "Go home"
+  },
+  "settings": {
+    "currency": {
+      "title": "Currency Preferences",
+      "label": "Primary Currency",
+      "desc": "This is the currency in which your total net worth will be displayed.",
+      "options": {
+        "EUR": "Euro",
+        "USD": "US Dollar",
+        "GBP": "British Pound"
+      }
+    },
+    "language": {
+      "title": "Language",
+      "label": "Interface language",
+      "desc": "Choose the language used across the interface.",
+      "options": {
+        "en": "English",
+        "es": "Español"
+      }
+    },
+    "saveChanges": "Save Changes",
+    "toast": {
+      "saved": "Settings saved successfully",
+      "error": "Error saving settings"
+    }
+  }
+}
