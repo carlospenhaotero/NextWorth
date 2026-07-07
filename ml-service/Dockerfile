@@ -27,4 +27,6 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--timeout", "120", "app:app"]
+# Shell form so ${PORT} expands: Railway injects a dynamic PORT and routes to it;
+# falls back to 5000 for local/docker-compose where PORT is unset.
+CMD gunicorn --bind "0.0.0.0:${PORT:-5000}" --workers 1 --timeout 120 app:app
