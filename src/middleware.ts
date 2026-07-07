@@ -1,6 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const guestOnlyRoutes = ["/login", "/register", "/"];
+const guestOnlyRoutes = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/",
+];
 
 const protectedRoutes = [
   "/overview",
@@ -8,6 +14,7 @@ const protectedRoutes = [
   "/add-asset",
   "/search-assets",
   "/settings",
+  "/advisor",
 ];
 
 function hasSessionCookie(request: NextRequest): boolean {
@@ -47,10 +54,13 @@ export const config = {
     "/",
     "/login",
     "/register",
+    "/forgot-password",
+    "/reset-password",
     "/overview/:path*",
     "/assets/:path*",
     "/add-asset/:path*",
     "/search-assets/:path*",
     "/settings/:path*",
+    "/advisor/:path*",
   ],
 };

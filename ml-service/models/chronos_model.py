@@ -65,9 +65,9 @@ class ChronosModel:
             # Convert to tensor
             context = torch.tensor(historical_prices, dtype=torch.float32)
 
-            # Generate predictions
+            # Generate predictions (chronos-forecasting 1.5.x: context is positional)
             forecast = self.pipeline.predict(
-                inputs=context,
+                context,
                 prediction_length=horizon_months,
                 num_samples=num_samples,
             )

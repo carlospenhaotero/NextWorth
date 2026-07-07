@@ -40,3 +40,9 @@ ml-service/temp_chronos/
 
 # TypeScript build info
 *.tsbuildinfo
+
+# Playwright MCP session artifacts
+.playwright-mcp/
+
+# Local docker overrides (machine-specific ports)
+docker-compose.override.yml

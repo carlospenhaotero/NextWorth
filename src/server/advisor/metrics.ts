@@ -1,7 +1,11 @@
 import "server-only";
+import { getTranslations } from "next-intl/server";
 import { prisma } from "@/server/db";
 import { getPortfolioForUser } from "@/queries/portfolio";
 import { ensureAssetProfile } from "@/server/asset-profile";
+
+/** Minimal shape of the next-intl translator used to localize labels/insights. */
+type Translator = (key: string, values?: Record<string, string | number>) => string;
 
 export interface AllocationSlice {
   key: string;
@@ -60,20 +64,30 @@ const RISK_WEIGHTS: Record<string, number> = {
 const EQUITY_TYPES = new Set(["stock", "etf", "fund", "crypto"]);
 const DEFENSIVE_TYPES = new Set(["bond", "cash", "savings", "commodity", "currency"]);
 
-const ASSET_TYPE_LABELS: Record<string, string> = {
-  stock: "Stocks",
-  etf: "ETFs",
-  fund: "Funds",
-  crypto: "Crypto",
-  commodity: "Commodities",
-  bond: "Bonds",
-  cash: "Cash",
-  savings: "Savings",
-  currency: "Cash",
-};
+// Asset-type keys that map to a catalog label under metrics.assetType.*
+const KNOWN_ASSET_TYPES = new Set([
+  "stock",
+  "etf",
+  "fund",
+  "crypto",
+  "commodity",
+  "bond",
+  "cash",
+  "savings",
+  "currency",
+]);
 
 const UNKNOWN_SECTOR = "__unknown__";
 const ETF_NO_BREAKDOWN = "__etf_nobreakdown__";
+// Synthetic sector sentinels for asset classes without a Yahoo sector.
+const SECTOR_CRYPTO = "__crypto__";
+const SECTOR_COMMODITIES = "__commodities__";
+const SECTOR_FIXED_INCOME = "__fixed_income__";
+const SECTOR_CASH = "__cash__";
+// Country buckets used when no per-holding country is available.
+const COUNTRY_DIVERSIFIED = "Diversified";
+const COUNTRY_GLOBAL = "Global";
+const COUNTRY_NA = "N/A";
 
 function titleCase(key: string): string {
   return key
@@ -82,10 +96,44 @@ function titleCase(key: string): string {
     .join(" ");
 }
 
-function sectorLabel(key: string): string {
-  if (key === UNKNOWN_SECTOR) return "Unknown";
-  if (key === ETF_NO_BREAKDOWN) return "ETF (sin desglose)";
-  return titleCase(key);
+function assetTypeLabel(key: string, t: Translator): string {
+  return KNOWN_ASSET_TYPES.has(key) ? t(`assetType.${key}`) : titleCase(key);
+}
+
+function sectorLabel(key: string, t: Translator): string {
+  switch (key) {
+    case UNKNOWN_SECTOR:
+      return t("sector.unknown");
+    case ETF_NO_BREAKDOWN:
+      return t("sector.etfNoBreakdown");
+    case SECTOR_CRYPTO:
+      return t("sector.crypto");
+    case SECTOR_COMMODITIES:
+      return t("sector.commodities");
+    case SECTOR_FIXED_INCOME:
+      return t("sector.fixedIncome");
+    case SECTOR_CASH:
+      return t("sector.cash");
+    default:
+      // Real Yahoo sector keys (e.g. "technology") — not in the catalog.
+      return titleCase(key);
+  }
+}
+
+function countryLabel(key: string, t: Translator): string {
+  switch (key) {
+    case UNKNOWN_SECTOR:
+      return t("country.unknown");
+    case COUNTRY_DIVERSIFIED:
+      return t("country.diversified");
+    case COUNTRY_GLOBAL:
+      return t("country.global");
+    case COUNTRY_NA:
+      return t("country.na");
+    default:
+      // Real country names come from Yahoo (already human-readable).
+      return key;
+  }
 }
 
 /** Turn an accumulation map into sorted slices with percentages. */
@@ -116,7 +164,11 @@ function bandFor(score: number): RiskBand {
   return "aggressive";
 }
 
-export async function getAdvisorMetrics(userId: string): Promise<AdvisorMetrics> {
+export async function getAdvisorMetrics(
+  userId: string,
+  locale: string = "en"
+): Promise<AdvisorMetrics> {
+  const t = (await getTranslations({ locale, namespace: "metrics" })) as Translator;
   const portfolio = await getPortfolioForUser(userId);
   const { baseCurrency, positions } = portfolio;
   const { totalInvested, totalProfitLoss } = portfolio;
@@ -228,12 +280,12 @@ export async function getAdvisorMetrics(userId: string): Promise<AdvisorMetrics>
       // Synthetic sector buckets for asset classes without a Yahoo sector.
       const synthetic =
         type === "crypto"
-          ? "Crypto"
+          ? SECTOR_CRYPTO
           : type === "commodity"
-            ? "Commodities"
+            ? SECTOR_COMMODITIES
             : type === "bond"
-              ? "Fixed Income"
-              : "Cash";
+              ? SECTOR_FIXED_INCOME
+              : SECTOR_CASH;
       add(bySector, synthetic, value);
       classifiedSectorValue += value;
     }
@@ -255,7 +307,7 @@ export async function getAdvisorMetrics(userId: string): Promise<AdvisorMetrics>
   const breakdown = [...byTypeValue.entries()]
     .map(([key, value]) => ({
       key,
-      label: ASSET_TYPE_LABELS[key] ?? titleCase(key),
+      label: assetTypeLabel(key, t),
       value,
       weight: RISK_WEIGHTS[key] ?? 0.5,
     }))
@@ -263,25 +315,26 @@ export async function getAdvisorMetrics(userId: string): Promise<AdvisorMetrics>
 
   const classifiableTotal = classifiedSectorValue + unknownSectorValue;
 
-  const sectorSlices = toSlices(bySector, sectorLabel);
-  const countrySlices = toSlices(byCountry, (k) =>
-    k === UNKNOWN_SECTOR ? "Unknown" : k
-  );
-  const typeSlices = toSlices(byAssetType, (k) => ASSET_TYPE_LABELS[k] ?? titleCase(k));
+  const sectorSlices = toSlices(bySector, (k) => sectorLabel(k, t));
+  const countrySlices = toSlices(byCountry, (k) => countryLabel(k, t));
+  const typeSlices = toSlices(byAssetType, (k) => assetTypeLabel(k, t));
 
   const topHoldingPct = totalValue > 0 ? (topHoldingValue / totalValue) * 100 : 0;
   const equityPct = totalValue > 0 ? (equityValue / totalValue) * 100 : 0;
   const defensivePct = totalValue > 0 ? (defensiveValue / totalValue) * 100 : 0;
   const cashPct = totalValue > 0 ? (cashValue / totalValue) * 100 : 0;
 
-  const insights = buildInsights({
-    topHoldingPct,
-    topHoldingLabel,
-    topSector: sectorSlices[0] ?? null,
-    topCountry: countrySlices[0] ?? null,
-    defensivePct,
-    cashPct,
-  });
+  const insights = buildInsights(
+    {
+      topHoldingPct,
+      topHoldingLabel,
+      topSector: sectorSlices[0] ?? null,
+      topCountry: countrySlices[0] ?? null,
+      defensivePct,
+      cashPct,
+    },
+    t
+  );
 
   return {
     baseCurrency,
@@ -311,23 +364,27 @@ export async function getAdvisorMetrics(userId: string): Promise<AdvisorMetrics>
 }
 
 /** Deterministic, conservative observations. Describes, never recommends a trade. */
-function buildInsights(input: {
-  topHoldingPct: number;
-  topHoldingLabel: string;
-  topSector: AllocationSlice | null;
-  topCountry: AllocationSlice | null;
-  defensivePct: number;
-  cashPct: number;
-}): AdvisorInsight[] {
+function buildInsights(
+  input: {
+    topHoldingPct: number;
+    topHoldingLabel: string;
+    topSector: AllocationSlice | null;
+    topCountry: AllocationSlice | null;
+    defensivePct: number;
+    cashPct: number;
+  },
+  t: Translator
+): AdvisorInsight[] {
   const out: AdvisorInsight[] = [];
 
   if (input.topHoldingPct >= 40) {
     out.push({
       id: "concentration-holding",
       severity: "warn",
-      text: `High concentration: ${input.topHoldingPct.toFixed(0)}% of your portfolio is a single holding${
-        input.topHoldingLabel ? ` (${input.topHoldingLabel})` : ""
-      }.`,
+      text: t("insight.concentrationHolding", {
+        pct: Math.round(input.topHoldingPct),
+        name: input.topHoldingLabel,
+      }),
     });
   }
 
@@ -335,7 +392,10 @@ function buildInsights(input: {
     out.push({
       id: "concentration-sector",
       severity: "warn",
-      text: `Low sector diversification: ${input.topSector.pct.toFixed(0)}% sits in ${input.topSector.label}.`,
+      text: t("insight.concentrationSector", {
+        pct: Math.round(input.topSector.pct),
+        sector: input.topSector.label,
+      }),
     });
   }
 
@@ -343,7 +403,10 @@ function buildInsights(input: {
     out.push({
       id: "concentration-country",
       severity: "info",
-      text: `Geographic concentration: ${input.topCountry.pct.toFixed(0)}% in ${input.topCountry.label}.`,
+      text: t("insight.concentrationCountry", {
+        pct: Math.round(input.topCountry.pct),
+        country: input.topCountry.label,
+      }),
     });
   }
 
@@ -351,7 +414,7 @@ function buildInsights(input: {
     out.push({
       id: "no-defensive",
       severity: "info",
-      text: "No defensive buffer: little or no bonds, cash or gold to cushion downturns.",
+      text: t("insight.noDefensive"),
     });
   }
 
@@ -359,7 +422,7 @@ function buildInsights(input: {
     out.push({
       id: "cash-drag",
       severity: "info",
-      text: `High cash allocation: ${input.cashPct.toFixed(0)}% is in cash/savings, which can lose value to inflation.`,
+      text: t("insight.cashDrag", { pct: Math.round(input.cashPct) }),
     });
   }
 

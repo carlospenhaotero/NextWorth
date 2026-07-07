@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import {
   AreaChart,
   Area,
@@ -17,16 +18,12 @@ import {
   ArrowsClockwise,
 } from "@phosphor-icons/react/dist/ssr";
 import { formatCurrency, formatPercent } from "@/lib/utils";
+import { localeToIntl } from "@/i18n/locale";
+import { chartTheme } from "@/lib/chart-theme";
+import { Pill } from "@/components/ui/pill";
 import type { PortfolioHistoryData, PortfolioRange } from "@/server/portfolio-history";
 
-const RANGE_OPTIONS: { value: PortfolioRange; label: string }[] = [
-  { value: "1w", label: "1S" },
-  { value: "1m", label: "1M" },
-  { value: "3m", label: "3M" },
-  { value: "6m", label: "6M" },
-  { value: "1y", label: "1A" },
-  { value: "all", label: "Todo" },
-];
+const RANGE_VALUES: PortfolioRange[] = ["1w", "1m", "3m", "6m", "1y", "all"];
 
 interface PortfolioChartProps {
   data: PortfolioHistoryData;
@@ -43,9 +40,11 @@ export function PortfolioChart({
   periodLabel,
   onRangeChange,
 }: PortfolioChartProps) {
+  const t = useTranslations("portfolioChart");
+  const intlLocale = localeToIntl(useLocale());
   const baseCurrency = data.baseCurrency;
   const isProfit = data.profitLoss >= 0;
-  const accent = isProfit ? "#4ade80" : "#f87171";
+  const accent = isProfit ? chartTheme.positive : chartTheme.negative;
 
   const chartData = useMemo(() => {
     const longSpan = range === "1y" || range === "all";
@@ -53,13 +52,13 @@ export function PortfolioChart({
       const d = new Date(p.date);
       return {
         label: longSpan
-          ? d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" })
-          : d.toLocaleDateString("es-ES", { day: "numeric", month: "short" }),
+          ? d.toLocaleDateString(intlLocale, { month: "short", year: "2-digit" })
+          : d.toLocaleDateString(intlLocale, { day: "numeric", month: "short" }),
         value: p.value,
         invested: p.invested,
       };
     });
-  }, [data.series, range]);
+  }, [data.series, range, intlLocale]);
 
   const hasData = chartData.length > 0;
 
@@ -68,9 +67,9 @@ export function PortfolioChart({
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-neutral-400 font-medium mb-1">Patrimonio</h3>
+          <h3 className="text-neutral-400 font-medium mb-1">{t("netWorth")}</h3>
           <div className="text-4xl font-bold text-white tracking-tight mb-2">
-            {formatCurrency(data.currentValue, baseCurrency)}
+            {formatCurrency(data.currentValue, baseCurrency, intlLocale)}
           </div>
           <div className="flex items-center gap-2">
             <span
@@ -79,7 +78,7 @@ export function PortfolioChart({
               }`}
             >
               {isProfit ? <TrendUp size={14} /> : <TrendDown size={14} />}
-              {formatCurrency(data.profitLoss, baseCurrency)}
+              {formatCurrency(data.profitLoss, baseCurrency, intlLocale)}
             </span>
             <span className={`text-sm font-medium ${isProfit ? "text-green-400" : "text-red-400"}`}>
               {formatPercent(data.profitLossPct)}
@@ -88,20 +87,16 @@ export function PortfolioChart({
           </div>
         </div>
 
-        <div className="flex gap-2">
-          {RANGE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => onRangeChange(opt.value)}
+        <div className="flex flex-wrap gap-2">
+          {RANGE_VALUES.map((value) => (
+            <Pill
+              key={value}
+              active={range === value}
+              onClick={() => onRangeChange(value)}
               disabled={loading}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 ${
-                range === opt.value
-                  ? "bg-primary text-neutral-900"
-                  : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
-              }`}
             >
-              {opt.label}
-            </button>
+              {t(`range.${value}`)}
+            </Pill>
           ))}
         </div>
       </div>
@@ -123,38 +118,33 @@ export function PortfolioChart({
                   <stop offset="95%" stopColor={accent} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
               <XAxis
                 dataKey="label"
-                stroke="#525252"
-                tick={{ fill: "#737373", fontSize: 11 }}
+                stroke={chartTheme.axis}
+                tick={{ fill: chartTheme.axisTick, fontSize: 11 }}
                 minTickGap={32}
               />
               <YAxis
-                stroke="#525252"
-                tick={{ fill: "#737373", fontSize: 11 }}
+                stroke={chartTheme.axis}
+                tick={{ fill: chartTheme.axisTick, fontSize: 11 }}
                 domain={["auto", "auto"]}
                 width={64}
                 tickFormatter={(v) =>
-                  new Intl.NumberFormat("es-ES", { notation: "compact" }).format(Number(v))
+                  new Intl.NumberFormat(intlLocale, { notation: "compact" }).format(Number(v))
                 }
               />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "#262626",
-                  borderColor: "#404040",
-                  color: "#fafafa",
-                  borderRadius: "0.75rem",
-                }}
+                contentStyle={chartTheme.tooltip}
                 formatter={(value, name) => [
-                  formatCurrency(Number(value), baseCurrency),
-                  name === "value" ? "Valor" : "Invertido",
+                  formatCurrency(Number(value), baseCurrency, intlLocale),
+                  name === "value" ? t("tooltip.value") : t("tooltip.invested"),
                 ]}
               />
               <Line
                 type="monotone"
                 dataKey="invested"
-                stroke="#737373"
+                stroke={chartTheme.reference}
                 strokeWidth={1.5}
                 strokeDasharray="5 5"
                 dot={false}
@@ -173,7 +163,7 @@ export function PortfolioChart({
           </div>
         ) : (
           <div className="flex h-full items-center justify-center text-neutral-500 text-sm">
-            Añade tu primer activo para ver la evolución de tu patrimonio
+            {t("empty")}
           </div>
         )}
       </div>

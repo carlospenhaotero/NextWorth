@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   AreaChart,
   Area,
@@ -14,22 +15,17 @@ import {
   ReferenceLine,
 } from "recharts";
 import { ArrowLeft, ArrowsClockwise, Sparkle } from "@phosphor-icons/react/dist/ssr";
+import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
+import { localeToIntl } from "@/i18n/locale";
+import { chartTheme } from "@/lib/chart-theme";
+import { StatCard } from "@/components/ui/stat-card";
+import { Pill } from "@/components/ui/pill";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const RANGE_OPTIONS = [
-  { value: "6m", label: "6M" },
-  { value: "12m", label: "1Y" },
-  { value: "24m", label: "2Y" },
-  { value: "60m", label: "5Y" },
-];
+const RANGE_VALUES = ["6m", "12m", "24m", "60m"] as const;
 
-const HORIZON_OPTIONS = [
-  { value: "3m", label: "3M" },
-  { value: "6m", label: "6M" },
-  { value: "1y", label: "1Y" },
-  { value: "2y", label: "2Y" },
-  { value: "5y", label: "5Y" },
-];
+const HORIZON_VALUES = ["3m", "6m", "1y", "2y", "5y"] as const;
 
 interface SeriesPoint {
   date: string;
@@ -61,6 +57,8 @@ interface AssetDetailViewProps {
 
 export function AssetDetailView({ symbol }: AssetDetailViewProps) {
   const router = useRouter();
+  const t = useTranslations("assetDetail");
+  const intlLocale = localeToIntl(useLocale());
   const [historyData, setHistoryData] = useState<HistoryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,15 +76,15 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
       const res = await fetch(
         `/api/market/history/${encodeURIComponent(symbol)}?range=${selectedRange}&interval=1mo`
       );
-      if (!res.ok) throw new Error("Failed to load history");
+      if (!res.ok) throw new Error(t("loadFailed"));
       const data = await res.json();
       setHistoryData(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load");
+      setError(err instanceof Error ? err.message : t("loadFailedShort"));
     } finally {
       setLoading(false);
     }
-  }, [symbol, selectedRange]);
+  }, [symbol, selectedRange, t]);
 
   useEffect(() => {
     fetchHistory();
@@ -104,32 +102,32 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
           setPredictionData(await res.json());
         }
       } catch {
-        // Non-critical
+        toast.error(t("predictionsToast"));
       } finally {
         setPredictionLoading(false);
       }
     };
     fetchPredictions();
-  }, [symbol, predictionHorizon, showPredictions]);
+  }, [symbol, predictionHorizon, showPredictions, t]);
 
   const chartData = useMemo(() => {
     if (!historyData?.series) return [];
     return historyData.series.map((p) => ({
-      date: new Date(p.date).toLocaleDateString("en-US", { month: "short", year: "2-digit" }),
+      date: new Date(p.date).toLocaleDateString(intlLocale, { month: "short", year: "2-digit" }),
       close: p.close,
       predicted: null as number | null,
     }));
-  }, [historyData]);
+  }, [historyData, intlLocale]);
 
   const combinedChartData = useMemo(() => {
     if (!showPredictions || !predictionData?.predictions) return chartData;
     const predictions = predictionData.predictions.map((p) => ({
-      date: new Date(p.date).toLocaleDateString("en-US", { month: "short", year: "2-digit" }),
+      date: new Date(p.date).toLocaleDateString(intlLocale, { month: "short", year: "2-digit" }),
       close: null as number | null,
       predicted: p.predicted_close,
     }));
     return [...chartData, ...predictions];
-  }, [chartData, predictionData, showPredictions]);
+  }, [chartData, predictionData, showPredictions, intlLocale]);
 
   const priceStats = useMemo(() => {
     if (chartData.length === 0) return null;
@@ -150,25 +148,59 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
 
   const todayLabel = showPredictions && chartData.length > 0 ? chartData[chartData.length - 1]?.date : null;
 
+  const backButton = (
+    <button
+      onClick={() => router.back()}
+      aria-label={t("back")}
+      className="shrink-0 rounded-lg p-2 -ml-2 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
+    >
+      <ArrowLeft size={22} />
+    </button>
+  );
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <ArrowsClockwise className="animate-spin text-neutral-400" size={24} />
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          {backButton}
+          <div className="min-w-0 space-y-2">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-xl border border-border bg-surface p-4">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="mt-2 h-5 w-24" />
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-14 rounded-lg" />
+          ))}
+        </div>
+        <Skeleton className="h-[400px] w-full rounded-2xl" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Back */}
+      {/* Back + Title */}
       <div className="flex items-center gap-4">
-        <button onClick={() => router.back()} className="text-neutral-400 hover:text-white transition-colors">
-          <ArrowLeft size={24} />
-        </button>
+        {backButton}
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold text-white truncate">
+            {historyData?.name || symbol}
+          </h1>
+          <p className="text-sm text-neutral-500">{historyData?.symbol || symbol}</p>
+        </div>
       </div>
 
       {error && (
-        <div className="glass-card !bg-red-500/10 border-red-500/30 text-red-400">
+        <div className="glass-card border-danger/30 bg-danger/10 text-danger">
           {error}
         </div>
       )}
@@ -176,78 +208,61 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
       {/* Price Stats */}
       {priceStats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-card !p-4">
-            <p className="text-xs text-neutral-500">Current</p>
-            <p className="text-lg font-bold text-white">
-              {formatCurrency(priceStats.current, historyData?.currency || "USD")}
-            </p>
-          </div>
-          <div className="glass-card !p-4">
-            <p className="text-xs text-neutral-500">Change</p>
-            <p className={`text-lg font-bold ${priceStats.change >= 0 ? "text-green-400" : "text-red-400"}`}>
-              {priceStats.changePct >= 0 ? "+" : ""}{priceStats.changePct.toFixed(2)}%
-            </p>
-          </div>
-          <div className="glass-card !p-4">
-            <p className="text-xs text-neutral-500">High</p>
-            <p className="text-lg font-bold text-white">
-              {formatCurrency(priceStats.high, historyData?.currency || "USD")}
-            </p>
-          </div>
-          <div className="glass-card !p-4">
-            <p className="text-xs text-neutral-500">Low</p>
-            <p className="text-lg font-bold text-white">
-              {formatCurrency(priceStats.low, historyData?.currency || "USD")}
-            </p>
-          </div>
+          <StatCard
+            label={t("stat.current")}
+            value={formatCurrency(priceStats.current, historyData?.currency || "USD", intlLocale)}
+          />
+          <StatCard
+            label={t("stat.change")}
+            tone={priceStats.change >= 0 ? "success" : "danger"}
+            value={`${priceStats.changePct >= 0 ? "+" : ""}${priceStats.changePct.toFixed(2)}%`}
+          />
+          <StatCard
+            label={t("stat.high")}
+            value={formatCurrency(priceStats.high, historyData?.currency || "USD", intlLocale)}
+          />
+          <StatCard
+            label={t("stat.low")}
+            value={formatCurrency(priceStats.low, historyData?.currency || "USD", intlLocale)}
+          />
         </div>
       )}
 
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-4">
-        <div className="flex gap-2">
-          {RANGE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setSelectedRange(opt.value)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                selectedRange === opt.value
-                  ? "bg-primary text-neutral-900"
-                  : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
-              }`}
+        <div className="flex flex-wrap gap-2">
+          {RANGE_VALUES.map((value) => (
+            <Pill
+              key={value}
+              active={selectedRange === value}
+              onClick={() => setSelectedRange(value)}
             >
-              {opt.label}
-            </button>
+              {t(`range.${value}`)}
+            </Pill>
           ))}
         </div>
 
-        <div className="flex items-center gap-3 ml-auto">
-          <button
+        <div className="flex flex-wrap items-center gap-2 ml-auto">
+          <Pill
+            active={showPredictions}
             onClick={() => setShowPredictions(!showPredictions)}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              showPredictions
-                ? "bg-primary text-neutral-900"
-                : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
-            }`}
+            className="flex items-center gap-1.5"
           >
-            <Sparkle size={14} />
-            AI Predictions
-          </button>
+            <Sparkle size={14} weight={showPredictions ? "fill" : "regular"} />
+            {t("aiPredictions")}
+          </Pill>
 
           {showPredictions && (
-            <div className="flex gap-1">
-              {HORIZON_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setPredictionHorizon(opt.value)}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                    predictionHorizon === opt.value
-                      ? "bg-neutral-700 text-white"
-                      : "bg-neutral-800 text-neutral-500 hover:bg-neutral-700"
-                  }`}
+            <div className="flex flex-wrap gap-1">
+              {HORIZON_VALUES.map((value) => (
+                <Pill
+                  key={value}
+                  active={predictionHorizon === value}
+                  onClick={() => setPredictionHorizon(value)}
+                  className="px-2.5"
                 >
-                  {opt.label}
-                </button>
+                  {t(`horizon.${value}`)}
+                </Pill>
               ))}
             </div>
           )}
@@ -255,11 +270,11 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
       </div>
 
       {/* Chart */}
-      <div className="glass-card" style={{ height: 400 }}>
+      <div className="glass-card h-[400px]">
         {predictionLoading && showPredictions && (
           <div className="flex items-center gap-2 text-neutral-300 text-sm mb-2">
             <ArrowsClockwise className="animate-spin" size={14} />
-            Loading predictions...
+            {t("loadingPredictions")}
           </div>
         )}
         {combinedChartData.length > 0 ? (
@@ -271,29 +286,22 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                   <stop offset="95%" stopColor="#a3a3a3" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorPredicted" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#737373" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#737373" stopOpacity={0} />
+                  <stop offset="5%" stopColor={chartTheme.accent} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={chartTheme.accent} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
               <XAxis
                 dataKey="date"
-                stroke="#525252"
-                tick={{ fill: "#737373", fontSize: 11 }}
+                stroke={chartTheme.axis}
+                tick={{ fill: chartTheme.axisTick, fontSize: 11 }}
               />
               <YAxis
-                stroke="#525252"
-                tick={{ fill: "#737373", fontSize: 11 }}
+                stroke={chartTheme.axis}
+                tick={{ fill: chartTheme.axisTick, fontSize: 11 }}
                 domain={["auto", "auto"]}
               />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#262626",
-                  borderColor: "#404040",
-                  color: "#fafafa",
-                  borderRadius: "0.75rem",
-                }}
-              />
+              <Tooltip contentStyle={chartTheme.tooltip} />
               <Area
                 type="monotone"
                 dataKey="close"
@@ -307,7 +315,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                   <Area
                     type="monotone"
                     dataKey="predicted"
-                    stroke="#a3a3a3"
+                    stroke={chartTheme.accent}
                     fill="url(#colorPredicted)"
                     strokeWidth={2}
                     strokeDasharray="5 5"
@@ -316,9 +324,9 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
                   {todayLabel && (
                     <ReferenceLine
                       x={todayLabel}
-                      stroke="#737373"
+                      stroke={chartTheme.reference}
                       strokeDasharray="3 3"
-                      label={{ value: "Today", fill: "#a3a3a3", fontSize: 11 }}
+                      label={{ value: t("today"), fill: "#a3a3a3", fontSize: 11 }}
                     />
                   )}
                 </>
@@ -327,19 +335,19 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
           </ResponsiveContainer>
         ) : (
           <div className="flex items-center justify-center h-full text-neutral-500">
-            No chart data available
+            {t("noData")}
           </div>
         )}
       </div>
 
       {/* Warning */}
       {historyData?.warning && (
-        <div className="text-sm text-neutral-300 bg-neutral-700/40 border border-neutral-600 px-4 py-2 rounded-lg">
+        <div className="text-sm text-neutral-300 bg-neutral-800/60 border border-neutral-700 px-4 py-2.5 rounded-lg">
           {historyData.warning}
         </div>
       )}
       {predictionData?.warning && (
-        <div className="text-sm text-neutral-400 bg-neutral-700/30 px-4 py-2 rounded-lg">
+        <div className="text-sm text-neutral-400 bg-neutral-800/40 px-4 py-2.5 rounded-lg">
           {predictionData.warning}
         </div>
       )}

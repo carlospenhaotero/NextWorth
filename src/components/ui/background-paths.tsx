@@ -39,7 +39,7 @@ function FloatingPaths({ position }: { position: number }) {
   return (
     <div className="absolute inset-0 pointer-events-none">
       <svg
-        className="w-full h-full text-white"
+        className="w-full h-full text-[#a78bfa]"
         viewBox={viewBox}
         fill="none"
         preserveAspectRatio="none"
@@ -80,8 +80,8 @@ function FloatingPaths({ position }: { position: number }) {
 
 /**
  * Animated SVG paths background. Renders only the moving lines on a
- * transparent surface so it can sit behind any content. Lines are white,
- * tuned for the app's dark monochrome theme.
+ * transparent surface so it can sit behind any content. Lines use the
+ * accent color, tuned for the app's dark theme.
  */
 export function BackgroundPaths() {
   return (

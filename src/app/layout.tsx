@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
+import { Toaster } from "sonner";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import "./globals.css";
 
 const inter = Inter({
@@ -13,20 +16,32 @@ const outfit = Outfit({
   variable: "--font-display",
 });
 
-export const metadata: Metadata = {
-  title: "NextWorth",
-  description: "AI-Powered Portfolio Management",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata");
+  return {
+    title: {
+      default: "NextWorth",
+      template: "%s · NextWorth",
+    },
+    description: t("appDescription"),
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body className={`${inter.variable} ${outfit.variable} antialiased`}>
-        {children}
+        <NextIntlClientProvider messages={messages}>
+          {children}
+        </NextIntlClientProvider>
+        <Toaster theme="dark" richColors position="bottom-center" />
       </body>
     </html>
   );

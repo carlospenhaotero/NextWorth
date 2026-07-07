@@ -20,6 +20,8 @@ services:
     build:
       context: ./ml-service
       dockerfile: Dockerfile
+      args:
+        MODEL_NAME: amazon/chronos-t5-small
     container_name: nextworth-ml
     ports:
       - "5001:5000"
@@ -27,9 +29,6 @@ services:
       - PORT=5000
       - MODEL_NAME=amazon/chronos-t5-small
       - FLASK_ENV=production
-    depends_on:
-      db:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s

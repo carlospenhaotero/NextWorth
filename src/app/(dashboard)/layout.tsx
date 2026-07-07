@@ -14,7 +14,9 @@ export default async function DashboardLayout({
         userName={session.user.name}
         userEmail={session.user.email}
       />
-      <main className="flex-1 ml-64 p-8">{children}</main>
+      <main className="flex-1 ml-0 lg:ml-64 px-5 pb-10 pt-24 sm:px-8 lg:pt-8">
+        <div className="mx-auto w-full max-w-7xl">{children}</div>
+      </main>
     </div>
   );
 }

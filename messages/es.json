@@ -1,0 +1,535 @@
+{
+  "metadata": {
+    "appDescription": "Gestión de carteras con IA",
+    "overview": {
+      "title": "Resumen",
+      "description": "Sigue tu patrimonio neto total y la evolución de tu cartera en el tiempo."
+    },
+    "assets": {
+      "title": "Activos",
+      "description": "Explora y gestiona todas las posiciones de tu cartera."
+    },
+    "assetDetail": {
+      "description": "Precio, evolución y detalles de {symbol}."
+    },
+    "settings": {
+      "title": "Ajustes",
+      "description": "Gestiona las preferencias de tu cuenta y tu divisa base."
+    },
+    "addAsset": {
+      "title": "Añadir activo",
+      "description": "Añade una nueva posición a tu cartera."
+    },
+    "advisor": {
+      "title": "Asesor IA",
+      "description": "Obtén ideas con IA sobre el equilibrio y el riesgo de tu cartera."
+    }
+  },
+  "common": {
+    "appName": "NextWorth",
+    "actions": {
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "edit": "Editar",
+      "back": "Volver",
+      "add": "Añadir",
+      "close": "Cerrar",
+      "tryAgain": "Reintentar",
+      "goHome": "Ir al inicio",
+      "view": "Ver",
+      "saveChanges": "Guardar cambios"
+    },
+    "states": {
+      "loading": "Cargando...",
+      "saving": "Guardando..."
+    },
+    "na": "N/D"
+  },
+  "nav": {
+    "portfolio": "Cartera",
+    "assets": "Activos",
+    "advisor": "Asesor",
+    "addAsset": "Añadir activo",
+    "settings": "Ajustes",
+    "signOut": "Cerrar sesión",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "mainMenu": "Menú principal",
+    "home": "Inicio",
+    "brandHome": "Inicio de NextWorth"
+  },
+  "landing": {
+    "nav": {
+      "login": "Iniciar sesión",
+      "getStarted": "Empezar"
+    },
+    "hero": {
+      "title": "Gestión de carteras con IA",
+      "cta": "Empieza gratis"
+    },
+    "scroll": {
+      "title": "Todo lo que necesitas",
+      "subtitle": "Sigue cada activo, anticipa el mañana con IA y observa cómo crece tu patrimonio, todo desde un único panel."
+    },
+    "features": {
+      "title": "Potente por dentro",
+      "subtitle": "Datos en tiempo real, previsiones con IA y seguridad de nivel bancario: todo lo que tu cartera necesita.",
+      "aiPredictions": {
+        "title": "Predicciones con IA",
+        "desc": "Previsiones de series temporales con Amazon Chronos para anticipar hacia dónde se dirigen tus activos."
+      },
+      "multiCurrency": {
+        "title": "Multidivisa",
+        "desc": "Sigue tu patrimonio neto en tu divisa preferida con conversión automática."
+      },
+      "realTime": {
+        "title": "Datos en tiempo real",
+        "desc": "Las cotizaciones en directo de Yahoo Finance mantienen cada valoración al segundo.",
+        "badge": "En directo · Yahoo Finance"
+      },
+      "tracking": {
+        "title": "Seguimiento de cartera",
+        "desc": "Todos tus activos en un solo lugar, con el patrimonio neto y la distribución desglosados en tiempo real."
+      },
+      "security": {
+        "title": "Seguridad de nivel bancario",
+        "desc": "Sesiones cifradas y autenticación moderna mantienen tus datos financieros privados por defecto."
+      },
+      "allocation": {
+        "stocks": "Acciones",
+        "crypto": "Cripto",
+        "etfs": "ETFs",
+        "cash": "Efectivo"
+      }
+    },
+    "preview": {
+      "netWorth": "Patrimonio neto total",
+      "invested": "Invertido",
+      "profit": "Beneficio",
+      "assets": "Activos"
+    },
+    "footer": {
+      "rights": "© {year} NextWorth. Todos los derechos reservados.",
+      "register": "Registrarse"
+    }
+  },
+  "auth": {
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
+    "emailLabel": "Correo electrónico",
+    "emailPlaceholder": "tu@email.com",
+    "login": {
+      "subtitle": "Inicia sesión para acceder a tu cartera y tus predicciones.",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "Introduce tu contraseña",
+      "forgotPassword": "¿Has olvidado la contraseña?",
+      "submit": "Iniciar sesión",
+      "submitting": "Iniciando sesión...",
+      "errorInvalid": "Credenciales no válidas",
+      "errorGeneric": "Se ha producido un error. Inténtalo de nuevo.",
+      "noAccount": "¿No tienes cuenta?",
+      "createAccount": "Crear una cuenta",
+      "title": "Bienvenido de nuevo"
+    },
+    "register": {
+      "title": "Crea tu cuenta",
+      "subtitle": "Empieza a seguir tu cartera en unos segundos.",
+      "nameLabel": "Nombre",
+      "namePlaceholder": "Tu nombre",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "Mín. 8 caracteres",
+      "confirmLabel": "Confirmar contraseña",
+      "confirmPlaceholder": "Repite tu contraseña",
+      "passwordMismatch": "Las contraseñas no coinciden",
+      "errorFailed": "No se ha podido completar el registro",
+      "errorGeneric": "Se ha producido un error. Inténtalo de nuevo.",
+      "submit": "Crear cuenta gratis",
+      "submitting": "Creando cuenta...",
+      "haveAccount": "¿Ya tienes cuenta?",
+      "signIn": "Iniciar sesión"
+    },
+    "forgotPassword": {
+      "title": "Restablece tu contraseña",
+      "subtitle": "Introduce tu correo y te enviaremos un enlace para restablecerla.",
+      "submit": "Enviar enlace",
+      "submitting": "Enviando...",
+      "backToLogin": "Volver al inicio de sesión",
+      "successTitle": "Revisa tu bandeja de entrada",
+      "successBody": "Si existe una cuenta con ese correo, te hemos enviado un enlace para restablecerla."
+    },
+    "resetPassword": {
+      "title": "Establece una nueva contraseña",
+      "subtitle": "Elige una contraseña segura que no uses en otros sitios.",
+      "newPasswordLabel": "Nueva contraseña",
+      "newPasswordPlaceholder": "Mín. 8 caracteres",
+      "confirmLabel": "Confirmar contraseña",
+      "confirmPlaceholder": "Repite tu contraseña",
+      "tooShort": "La contraseña debe tener al menos 8 caracteres",
+      "mismatch": "Las contraseñas no coinciden",
+      "errorGeneric": "Se ha producido un error. Inténtalo de nuevo.",
+      "errorFailed": "No se ha podido restablecer tu contraseña",
+      "successToast": "Contraseña restablecida. Ya puedes iniciar sesión.",
+      "submit": "Restablecer contraseña",
+      "submitting": "Restableciendo...",
+      "backToLogin": "Volver al inicio de sesión",
+      "invalidTitle": "Enlace no válido o caducado",
+      "invalidBody": "Este enlace para restablecer la contraseña ya no es válido. Solicita uno nuevo para continuar.",
+      "invalidCta": "Solicitar un nuevo enlace"
+    }
+  },
+  "overview": {
+    "rangeSuffix": {
+      "1w": "última semana",
+      "1m": "último mes",
+      "3m": "últimos 3 meses",
+      "6m": "últimos 6 meses",
+      "1y": "último año",
+      "all": "desde el inicio"
+    },
+    "chartError": "No se ha podido actualizar la gráfica. Se muestran los datos anteriores."
+  },
+  "portfolioChart": {
+    "netWorth": "Patrimonio neto",
+    "empty": "Añade tu primer activo para ver tu patrimonio neto a lo largo del tiempo",
+    "tooltip": {
+      "value": "Valor",
+      "invested": "Invertido"
+    },
+    "range": {
+      "1w": "1S",
+      "1m": "1M",
+      "3m": "3M",
+      "6m": "6M",
+      "1y": "1A",
+      "all": "Todo"
+    }
+  },
+  "topMovers": {
+    "title": "Mayores movimientos",
+    "empty": "Añade activos para ver tus mayores movimientos."
+  },
+  "allocation": {
+    "title": "Distribución",
+    "byAssetType": "Por tipo de activo",
+    "bySector": "Por sector",
+    "byCountry": "Por país",
+    "noData": "Aún no hay datos que mostrar.",
+    "total": "Total"
+  },
+  "assetList": {
+    "filter": {
+      "all": "Todos",
+      "stock": "Acciones",
+      "etf": "ETFs",
+      "fund": "Fondos",
+      "crypto": "Cripto",
+      "commodity": "Materias primas",
+      "bond": "Bonos",
+      "cash": "Efectivo",
+      "savings": "Ahorro"
+    },
+    "stat": {
+      "totalAssets": "Total de activos",
+      "portfolioValue": "Valor de la cartera",
+      "totalPL": "P/G total",
+      "performance": "Rendimiento",
+      "gainersLosers": "al alza / a la baja"
+    },
+    "field": {
+      "quantity": "Cantidad",
+      "avgPrice": "Precio medio",
+      "currentPrice": "Precio actual",
+      "currency": "Divisa",
+      "value": "Valor",
+      "noCostSet": "Sin coste definido",
+      "annualInterest": "Interés anual",
+      "valueIn1y": "Valor en 1 año",
+      "couponPerYear": "Cupón / año",
+      "currentYield": "Rentabilidad actual",
+      "toMaturity": "Hasta vencimiento",
+      "atMaturity": "Al vencimiento",
+      "days": "{days} días"
+    },
+    "searchPlaceholder": "Buscar activos...",
+    "empty": {
+      "noMatch": "Ningún activo coincide con tus filtros",
+      "none": "Aún no hay activos"
+    },
+    "addAsset": "+ Añadir activo",
+    "aria": {
+      "edit": "Editar {name}",
+      "delete": "Eliminar {name}"
+    },
+    "confirmDelete": {
+      "title": "Eliminar activo",
+      "description": "¿Seguro que quieres eliminar {name}? Esta acción no se puede deshacer.",
+      "confirm": "Eliminar"
+    },
+    "toast": {
+      "deleted": "Activo eliminado",
+      "deleteError": "No se ha podido eliminar el activo"
+    }
+  },
+  "assetDetail": {
+    "stat": {
+      "current": "Actual",
+      "change": "Variación",
+      "high": "Máximo",
+      "low": "Mínimo"
+    },
+    "aiPredictions": "Predicciones IA",
+    "loadingPredictions": "Cargando predicciones...",
+    "today": "Hoy",
+    "noData": "No hay datos de gráfica disponibles",
+    "range": {
+      "6m": "6M",
+      "12m": "1A",
+      "24m": "2A",
+      "60m": "5A"
+    },
+    "horizon": {
+      "3m": "3M",
+      "6m": "6M",
+      "1y": "1A",
+      "2y": "2A",
+      "5y": "5A"
+    },
+    "loadFailed": "No se ha podido cargar el histórico",
+    "loadFailedShort": "No se ha podido cargar",
+    "predictionsToast": "No se han podido cargar las predicciones IA.",
+    "back": "Volver"
+  },
+  "addAsset": {
+    "flow": {
+      "categories": {
+        "all": "Todos",
+        "stock": "Acciones",
+        "etf": "ETFs",
+        "crypto": "Cripto",
+        "commodity": "Materias primas"
+      },
+      "toast": {
+        "added": "Añadido a tu cartera",
+        "addedAction": "Ver",
+        "searchFailed": "La búsqueda ha fallado. Inténtalo de nuevo."
+      },
+      "quickActions": {
+        "cashTitle": "Efectivo",
+        "cashDesc": "Saldo en banco",
+        "savingsTitle": "Ahorro",
+        "savingsDesc": "Con intereses",
+        "manualTitle": "Añadir manualmente",
+        "manualDesc": "No cotizado públicamente"
+      },
+      "searchPlaceholder": "Busca cualquier acción, ETF, fondo (nombre o ISIN), cripto...",
+      "found": "{count} resultados para \"{query}\"",
+      "noResults": "Sin resultados para \"{query}\"",
+      "addToPortfolio": "Añadir a la cartera",
+      "cantFind": "¿No lo encuentras? Puede que no cotice públicamente.",
+      "addManuallyInstead": "Añádelo manualmente",
+      "popularAssets": "Activos populares"
+    },
+    "modal": {
+      "assetType": {
+        "stock": "Acción",
+        "etf": "ETF",
+        "fund": "Fondo",
+        "crypto": "Cripto",
+        "commodity": "Materia prima",
+        "bond": "Bono",
+        "other": "Otro"
+      },
+      "title": {
+        "addCash": "Añadir efectivo",
+        "addSavings": "Añadir ahorro",
+        "addManually": "Añadir manualmente",
+        "edit": "Editar {name}",
+        "add": "Añadir {name}"
+      },
+      "assetFallback": "activo",
+      "subtitle": {
+        "cashLike": "Saldo disponible en tu cuenta",
+        "manual": "Un activo que no cotiza públicamente (inmueble, fondo privado, ...)"
+      },
+      "dup": {
+        "title": "Ya tienes {symbol}",
+        "body": "Elige cómo aplicar esta entrada a tu posición actual.",
+        "addTitle": "Sumar a la posición",
+        "addDesc": "Suma la cantidad y recalcula el precio medio de compra.",
+        "replaceTitle": "Reemplazar la posición",
+        "replaceDesc": "Sobrescribe la cantidad y el precio actuales con estos valores.",
+        "back": "Volver"
+      },
+      "field": {
+        "symbolRef": "Símbolo / ref.",
+        "symbolRefPlaceholder": "p. ej. FLAT-MAD",
+        "name": "Nombre",
+        "namePlaceholder": "Nombre del activo",
+        "type": "Tipo",
+        "balance": "Saldo",
+        "quantity": "Cantidad",
+        "valuePerUnit": "Valor por unidad",
+        "buyPrice": "Precio de compra",
+        "optional": "opcional",
+        "currency": "Divisa",
+        "tae": "Interés anual (TAE %)",
+        "taePlaceholder": "p. ej. 3,50",
+        "bondDetails": "Detalles del bono",
+        "faceValue": "Valor nominal (por unidad)",
+        "faceValuePlaceholder": "1000,00",
+        "maturityDate": "Fecha de vencimiento",
+        "couponRate": "Tipo de cupón (%)",
+        "couponRatePlaceholder": "5,00",
+        "couponFrequency": "Frecuencia del cupón",
+        "zeroPlaceholder": "0,00"
+      },
+      "couponFreq": {
+        "annual": "Anual",
+        "semiannual": "Semestral",
+        "quarterly": "Trimestral",
+        "monthly": "Mensual"
+      },
+      "price": {
+        "fetching": "Obteniendo precio...",
+        "current": "Precio actual:",
+        "unavailable": "Precio no disponible ahora mismo",
+        "useAsBuyPrice": "Usar como precio de compra"
+      },
+      "total": {
+        "value": "Valor total",
+        "invested": "Total invertido"
+      },
+      "button": {
+        "cancel": "Cancelar",
+        "saving": "Guardando...",
+        "saveChanges": "Guardar cambios",
+        "addToPortfolio": "Añadir a la cartera",
+        "close": "Cerrar"
+      },
+      "validation": {
+        "symbolRequired": "El símbolo es obligatorio",
+        "validQuantity": "Introduce una cantidad válida",
+        "valuePerUnitRequired": "Introduce el valor por unidad"
+      },
+      "message": {
+        "saved": "Guardado",
+        "errorAdding": "Error al añadir el activo",
+        "errorSaving": "Error al guardar los cambios"
+      },
+      "defaultName": {
+        "cash": "Efectivo en banco",
+        "savings": "Cuenta de ahorro"
+      }
+    }
+  },
+  "advisor": {
+    "empty": {
+      "title": "Aún no hay posiciones que analizar",
+      "subtitle": "Añade activos para ver tu equilibrio por sector, país y perfil de riesgo.",
+      "cta": "Añade tu primer activo"
+    },
+    "chat": {
+      "presets": [
+        "¿Está equilibrada mi cartera?",
+        "¿Cuál es mi perfil de riesgo?",
+        "¿A qué perfil debería aspirar?",
+        "¿Cómo reequilibro hacia un perfil más conservador?"
+      ],
+      "header": "Asesor",
+      "intro": "Pregúntame sobre el equilibrio de tu cartera y tu perfil de riesgo. Yo te lo explico, no te recomiendo qué comprar o vender.",
+      "reading": "Leyendo tu cartera…",
+      "thinking": "Pensando…",
+      "placeholder": "Pregunta sobre tu cartera…",
+      "send": "Enviar mensaje",
+      "disclaimer": "Información educativa de carácter general, no asesoramiento financiero personalizado."
+    },
+    "kpi": {
+      "bands": {
+        "conservative": "Conservador",
+        "moderate": "Moderado",
+        "balanced": "Equilibrado",
+        "growth": "Crecimiento",
+        "aggressive": "Agresivo"
+      },
+      "netWorth": "Patrimonio neto",
+      "totalPL": "P/G total",
+      "riskProfile": "Perfil de riesgo"
+    },
+    "insights": {
+      "title": "Lo que observo",
+      "balancedFallback": "Tu cartera parece razonablemente equilibrada. Pregunta al asesor para un análisis más profundo."
+    }
+  },
+  "metrics": {
+    "assetType": {
+      "stock": "Acciones",
+      "etf": "ETFs",
+      "fund": "Fondos",
+      "bond": "Bonos",
+      "crypto": "Cripto",
+      "commodity": "Materias primas",
+      "cash": "Efectivo",
+      "savings": "Ahorro",
+      "currency": "Efectivo"
+    },
+    "sector": {
+      "unknown": "Desconocido",
+      "etfNoBreakdown": "ETF (sin desglose)",
+      "crypto": "Cripto",
+      "commodities": "Materias primas",
+      "fixedIncome": "Renta fija",
+      "cash": "Efectivo"
+    },
+    "country": {
+      "diversified": "Diversificado",
+      "global": "Global",
+      "na": "N/D",
+      "unknown": "Desconocido"
+    },
+    "insight": {
+      "concentrationHolding": "Alta concentración: el {pct}% de tu cartera está en una sola posición ({name}).",
+      "concentrationSector": "Baja diversificación sectorial: el {pct}% está en {sector}.",
+      "concentrationCountry": "Concentración geográfica: el {pct}% en {country}.",
+      "noDefensive": "Sin colchón defensivo: pocos o ningún bono, efectivo u oro para amortiguar caídas.",
+      "cashDrag": "Alta asignación a efectivo: el {pct}% está en efectivo/ahorro, que puede perder valor por la inflación."
+    }
+  },
+  "errors": {
+    "somethingWrong": "Algo ha ido mal",
+    "errorTitle": "Se ha producido un error inesperado",
+    "errorBody": "No te preocupes, tus datos están a salvo. Puedes reintentarlo y, si el problema persiste, vuelve en un momento.",
+    "tryAgain": "Reintentar",
+    "errorReference": "Referencia del error: {digest}",
+    "notFoundCode": "404",
+    "notFoundTitle": "Página no encontrada",
+    "notFoundBody": "La página que buscas no existe o puede que se haya movido.",
+    "goHome": "Ir al inicio"
+  },
+  "settings": {
+    "currency": {
+      "title": "Preferencias de divisa",
+      "label": "Divisa principal",
+      "desc": "Es la divisa en la que se mostrará tu patrimonio neto total.",
+      "options": {
+        "EUR": "Euro",
+        "USD": "Dólar estadounidense",
+        "GBP": "Libra esterlina"
+      }
+    },
+    "language": {
+      "title": "Idioma",
+      "label": "Idioma de la interfaz",
+      "desc": "Elige el idioma que se usa en toda la interfaz.",
+      "options": {
+        "en": "English",
+        "es": "Español"
+      }
+    },
+    "saveChanges": "Guardar cambios",
+    "toast": {
+      "saved": "Ajustes guardados correctamente",
+      "error": "Error al guardar los ajustes"
+    }
+  }
+}

@@ -1,9 +1,8 @@
 flask==3.1.0
-chronos-forecasting[training]
-pandas
+chronos-forecasting==1.5.3
+pandas==2.2.3
 python-dotenv==1.0.0
 gunicorn==21.2.0
 flask-cors==4.0.0
 python-dateutil==2.8.2
-typing_extensions
-
+typing_extensions==4.12.2

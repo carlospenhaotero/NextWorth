@@ -3,6 +3,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function AssetsLoading() {
   return (
     <div className="space-y-6">
+      {/* Page header */}
+      <div className="flex items-end justify-between gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-32" />
+          <Skeleton className="h-4 w-64 max-w-full" />
+        </div>
+        <Skeleton className="h-9 w-32 rounded-xl" />
+      </div>
+
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (

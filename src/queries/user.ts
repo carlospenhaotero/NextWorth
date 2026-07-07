@@ -9,6 +9,7 @@ export async function getUserProfile(userId: string) {
       name: true,
       email: true,
       baseCurrency: true,
+      locale: true,
       createdAt: true,
     },
   });

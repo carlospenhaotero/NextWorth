@@ -20,8 +20,9 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // NextWorth custom field
+  // NextWorth custom fields
   baseCurrency String @default("USD") @map("base_currency")
+  locale       String @default("en") @map("locale")
 
   sessions  Session[]
   accounts  Account[]

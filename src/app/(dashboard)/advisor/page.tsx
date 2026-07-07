@@ -1,38 +1,46 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { getTranslations, getLocale } from "next-intl/server";
 import { requireSession } from "@/server/require-session";
 import { getAdvisorMetrics } from "@/server/advisor/metrics";
 import { KpiHeader } from "@/components/advisor/kpi-header";
 import { StackedAllocation } from "@/components/advisor/stacked-allocation";
 import { InsightsPanel } from "@/components/advisor/insights-panel";
 import { AdvisorChat } from "@/components/advisor/advisor-chat";
+import { PageHeader } from "@/components/ui/page-header";
+import { buttonClasses } from "@/components/ui/button";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata.advisor");
+  return {
+    title: t("title"),
+    description: t("description"),
+  };
+}
 
 export default async function AdvisorPage() {
   const session = await requireSession();
-  const metrics = await getAdvisorMetrics(session.user.id);
+  const locale = await getLocale();
+  const metrics = await getAdvisorMetrics(session.user.id, locale);
+  const t = await getTranslations("advisor");
+  const tAllocation = await getTranslations("allocation");
 
   if (metrics.totalValue <= 0) {
     return (
-      <div className="space-y-6">
-        <div className="glass-card flex flex-col items-center justify-center text-center py-16">
-          <p className="text-neutral-300 font-medium mb-1">
-            No holdings to analyze yet
-          </p>
-          <p className="text-neutral-500 text-sm mb-4">
-            Add assets to see your balance by sector, country and risk profile.
-          </p>
-          <Link
-            href="/add-asset"
-            className="px-4 py-2 rounded-xl bg-primary text-neutral-900 font-medium hover:opacity-90 transition"
-          >
-            Add your first asset
+      <>
+        <PageHeader title={t("empty.title")} subtitle={t("empty.subtitle")} />
+        <div className="glass-card flex flex-col items-center justify-center gap-4 py-16 text-center">
+          <p className="max-w-sm text-sm text-neutral-400">{t("empty.subtitle")}</p>
+          <Link href="/add-asset" className={buttonClasses("primary", "md")}>
+            {t("empty.cta")}
           </Link>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4 lg:h-[calc(100vh-4rem)]">
+    <div className="flex flex-col gap-4 lg:h-[calc(100dvh-5rem)]">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
         {/* Left: chat (only the history scrolls) */}
         <div className="min-h-0 h-full">
@@ -51,9 +59,9 @@ export default async function AdvisorPage() {
           />
           <StackedAllocation
             dimensions={[
-              { title: "By asset type", slices: metrics.byAssetType, byAssetClass: true },
-              { title: "By sector", slices: metrics.bySector },
-              { title: "By country", slices: metrics.byCountry },
+              { title: tAllocation("byAssetType"), slices: metrics.byAssetType, byAssetClass: true },
+              { title: tAllocation("bySector"), slices: metrics.bySector },
+              { title: tAllocation("byCountry"), slices: metrics.byCountry },
             ]}
           />
           <InsightsPanel insights={metrics.insights} />
