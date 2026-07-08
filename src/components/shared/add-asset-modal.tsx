@@ -437,16 +437,19 @@ export function AddAssetModal({
         aria-modal="true"
         aria-labelledby="add-asset-title"
         tabIndex={-1}
-        className="relative glass-card w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto focus:outline-none"
+        className="relative glass-card !p-0 flex flex-col w-full max-w-md mx-4 max-h-[90vh] overflow-hidden focus:outline-none"
       >
-        <button onClick={onClose} aria-label={t("button.close")} className="absolute top-4 right-4 text-neutral-400 hover:text-white">
+        <button onClick={onClose} aria-label={t("button.close")} className="absolute top-4 right-4 z-10 text-neutral-400 hover:text-white">
           <X size={20} />
         </button>
 
-        <h2 id="add-asset-title" className="text-xl font-bold text-white mb-1 pr-8">{title}</h2>
-        <p className="text-sm text-neutral-400 mb-6">{subtitle}</p>
+        <div className="shrink-0 px-6 pt-6 pb-4">
+          <h2 id="add-asset-title" className="text-xl font-bold text-white mb-1 pr-8">{title}</h2>
+          <p className="text-sm text-neutral-400">{subtitle}</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-4">
           {error && <div className="text-danger text-sm bg-danger/10 py-2 px-3 rounded-lg">{error}</div>}
           {success && <div className="text-success text-sm bg-success/10 py-2 px-3 rounded-lg">{success}</div>}
 
@@ -514,7 +517,7 @@ export function AddAssetModal({
           )}
 
           {/* Quantity + cost */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 items-end gap-4">
             <div>
               <label htmlFor="asset-quantity" className={labelClass}>{isCashLike ? t("field.balance") : t("field.quantity")}</label>
               <input id="asset-quantity" type="number" step="any" min="0" value={form.quantity} onChange={(e) => update("quantity", e.target.value)}
@@ -604,7 +607,9 @@ export function AddAssetModal({
             </div>
           )}
 
-          <div className="sticky bottom-0 -mx-6 -mb-6 flex gap-3 border-t border-border bg-neutral-900/90 px-6 py-4 backdrop-blur-md">
+          </div>
+
+          <div className="flex shrink-0 gap-3 border-t border-border bg-neutral-900/90 px-6 py-4 backdrop-blur-md">
             <Button type="button" variant="secondary" className="flex-1" onClick={onClose}>
               {t("button.cancel")}
             </Button>
