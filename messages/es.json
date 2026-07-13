@@ -189,7 +189,12 @@
       "1y": "último año",
       "all": "desde el inicio"
     },
-    "chartError": "No se ha podido actualizar la gráfica. Se muestran los datos anteriores."
+    "chartError": "No se ha podido actualizar la gráfica. Se muestran los datos anteriores.",
+    "kpi": {
+      "invested": "Invertido",
+      "today": "Hoy",
+      "last30d": "Últimos 30 días"
+    }
   },
   "onboarding": {
     "title": "Bienvenido a NextWorth",

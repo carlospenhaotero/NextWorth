@@ -304,3 +304,53 @@ export async function getPortfolioHistory(
     startDate: series[0]?.date ?? null,
   };
 }
+
+export interface PortfolioKpis {
+  baseCurrency: string;
+  /** Total cost basis, in base currency. */
+  invested: number;
+  /** Current market value, in base currency. */
+  currentValue: number;
+  /** Last-day move, deposits netted out, in base currency. */
+  todayChange: number;
+  todayChangePct: number;
+  /** Last-30-days move, deposits netted out, in base currency. */
+  change30d: number;
+  change30dPct: number;
+}
+
+/**
+ * Fixed KPIs for the overview header. Derived from the 1-month daily
+ * reconstruction so it reuses the exact same net-worth logic as the chart:
+ * - invested / currentValue / 30d move come straight from that window.
+ * - today's move is the delta between the last two daily points, netting out
+ *   any deposit made that day (same convention as profitLoss and the movers).
+ *
+ * The 1m window stays under MAX_POINTS, so its series is never downsampled and
+ * the last-two-points delta is exact.
+ */
+export async function getPortfolioKpis(userId: string): Promise<PortfolioKpis> {
+  const h = await getPortfolioHistory(userId, "1m");
+  const { series } = h;
+  const last = series[series.length - 1];
+  const prev = series[series.length - 2];
+
+  let todayChange = 0;
+  let todayChangePct = 0;
+  if (last && prev) {
+    const deposits = last.invested - prev.invested;
+    todayChange = last.value - prev.value - deposits;
+    const base = prev.value + deposits;
+    todayChangePct = base > 0 ? (todayChange / base) * 100 : 0;
+  }
+
+  return {
+    baseCurrency: h.baseCurrency,
+    invested: h.totalInvested,
+    currentValue: h.currentValue,
+    todayChange,
+    todayChangePct,
+    change30d: h.profitLoss,
+    change30dPct: h.profitLossPct,
+  };
+}

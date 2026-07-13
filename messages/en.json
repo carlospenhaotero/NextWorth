@@ -189,7 +189,12 @@
       "1y": "past year",
       "all": "since inception"
     },
-    "chartError": "Couldn't update the chart. Showing previous data."
+    "chartError": "Couldn't update the chart. Showing previous data.",
+    "kpi": {
+      "invested": "Invested",
+      "today": "Today",
+      "last30d": "Last 30 days"
+    }
   },
   "onboarding": {
     "title": "Welcome to NextWorth",
