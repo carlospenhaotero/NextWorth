@@ -1,13 +1,22 @@
 import Link from "next/link";
+import { NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { Hero } from "@/components/landing/hero";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import { PortfolioPreview } from "@/components/landing/portfolio-preview";
 import { Features } from "@/components/landing/features";
+import enMessages from "../../messages/en.json";
+
+// The landing page is always English, regardless of the visitor's locale.
+const LANDING_LOCALE = "en";
 
 export default async function LandingPage() {
-  const t = await getTranslations("landing");
+  const t = await getTranslations({
+    locale: LANDING_LOCALE,
+    namespace: "landing",
+  });
   return (
+    <NextIntlClientProvider locale={LANDING_LOCALE} messages={enMessages}>
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
       {/* Nav */}
       <nav className="absolute top-0 inset-x-0 z-50">
@@ -82,5 +91,6 @@ export default async function LandingPage() {
         </div>
       </footer>
     </div>
+    </NextIntlClientProvider>
   );
 }
