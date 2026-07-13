@@ -31,7 +31,7 @@ servicio ML Chronos desplegado en Railway.
 | 2 | Qué modelo de predicción y con qué datos | HECHO, mejorable. Amazon Chronos T5-small; falta aclarar que es pre-entrenado zero-shot sobre histórico de Yahoo (quita el "parece random") |
 | 3 | Cuenta demo con activos | HECHO (sin desplegar). `demo@nextworth.app` / `demo1234`, 11 activos, botón "Probar demo". Discrepancia de credenciales con la guía de pruebas, a unificar |
 | 4 | Repositorio con el código | HECHO. GitHub |
-| 5 | Ver evolución pasada y futura al añadir un activo | FALTA. Punto más visible |
+| 5 | Ver evolución pasada y futura al añadir un activo | HECHO (sin desplegar). Modal de alta ancho a 2 columnas con histórico ~24m + proyección Chronos 1y siempre activa |
 | 6 | Sugerir qué activos añadir | PARCIAL. Catálogo estático de "populares", no personalizado |
 | 7 | Indicador de si un activo es aconsejable | FALTA. Se hará como señal educativa neutra (ver Fase 2) |
 | 8 | Cartera: invertido, variación hoy, 30d, próxima semana | PARCIAL. Hay valor + P/L por rango + proyección mensual; faltan KPIs fijos y granularidad semanal |
@@ -41,7 +41,7 @@ servicio ML Chronos desplegado en Railway.
 | 12 | Test de carga (1000 activos) | FALTA |
 | 13 | "Precios obtenidos de:" | HECHO parcial. Visible en detalle de activo; falta hacerlo global; FX no declarado |
 | 14 | Modificar datos de usuario (nombre, contraseña) | FALTA. Ajustes solo tiene divisa e idioma |
-| 15 | La predicción está muy escondida, debe estar siempre activa | HECHO parcial. Ya arranca activada en el detalle; falta subirla a cartera y a alta |
+| 15 | La predicción está muy escondida, debe estar siempre activa | HECHO parcial. Activada por defecto en el detalle y en el alta; falta subirla a cartera |
 | 16 | Más IA (consejos, indicador de qué comprar) | Solapa con 6 y 7 |
 
 ---
@@ -69,10 +69,16 @@ queda pendiente para más adelante.
 
 Lo que de verdad falta y es de cara al usuario.
 
-- [ ] **Add-asset con histórico + proyección (punto 5).** Al seleccionar un
-  activo en el flujo de alta, mostrar su gráfica de evolución pasada y una
-  mini-proyección. Reutiliza `getAssetHistory` (Yahoo) y `getAssetPrediction`
-  (Chronos), ya existentes. Archivos: `src/components/dashboard/add-asset-flow.tsx`,
+- [x] **Add-asset con histórico + proyección (punto 5).** Al seleccionar un
+  activo de mercado en el alta, el modal se ensancha a 2 columnas y muestra su
+  histórico ~24m + una mini-proyección Chronos a 1 año, siempre activa. Camino de
+  predicción sin BD (`predictFromHistory` + `getPreviewPrediction` +
+  `/api/predictions/preview`, `getAssetHistory` con `persist:false`) para no crear
+  filas al previsualizar. Gráfica compartida `AssetChart` extraída del detalle.
+  Fallback a solo-histórico si el ML falla. Archivos: `src/server/prediction.ts`,
+  `src/server/prediction-preview.ts`, `src/server/market-data.ts`,
+  `src/components/shared/asset-chart.tsx`,
+  `src/components/shared/asset-preview-chart.tsx`,
   `src/components/shared/add-asset-modal.tsx`.
 - [ ] **Cartera (/overview) completa (puntos 8 y 9).**
   - Fila de KPIs fijos: dinero invertido, variación de hoy, últimos 30 días.
