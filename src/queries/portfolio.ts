@@ -28,6 +28,8 @@ interface Position {
   currentYield: number | null; // bond: annual coupon / current value, %
   redemptionValue: number | null; // bond: quantity * faceValue at maturity
   daysToMaturity: number | null; // bond
+  annualDividendIncome: number | null; // stock/etf: quantity * dividendRate
+  dividendYield: number | null; // stock/etf: trailing dividend yield, %
   error: string | null;
   priceEstimated: boolean;
 }
@@ -100,12 +102,13 @@ export async function getPortfolioForUser(
     let currentPriceNative: number | null = null;
     let errorMsg: string | null = null;
     let priceEstimated = false;
+    let quote: Awaited<ReturnType<typeof getQuote>> | null = null;
 
     try {
       if (["cash", "savings"].includes(row.asset.assetType)) {
         currentPriceNative = 1;
       } else {
-        const quote = await getQuote(row.asset.symbol);
+        quote = await getQuote(row.asset.symbol);
         currentPriceNative = quote.currentPrice ?? null;
       }
     } catch {
@@ -154,6 +157,17 @@ export async function getPortfolioForUser(
     let currentYield: number | null = null;
     let redemptionValue: number | null = null;
     let daysToMaturity: number | null = null;
+    let annualDividendIncome: number | null = null;
+    let dividendYield: number | null = null;
+
+    if (
+      (row.asset.assetType === "stock" || row.asset.assetType === "etf") &&
+      quote?.dividendRate != null &&
+      fxRate != null
+    ) {
+      annualDividendIncome = quantity * quote.dividendRate * fxRate;
+      dividendYield = quote.dividendYield != null ? quote.dividendYield * 100 : null;
+    }
 
     if (row.asset.assetType === "savings" && tae != null && fxRate != null) {
       const balanceBase = quantity * fxRate; // unit price is 1
@@ -202,6 +216,8 @@ export async function getPortfolioForUser(
       currentYield,
       redemptionValue,
       daysToMaturity,
+      annualDividendIncome,
+      dividendYield,
       error: errorMsg,
       priceEstimated,
     });

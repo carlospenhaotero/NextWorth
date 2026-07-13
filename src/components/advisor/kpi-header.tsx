@@ -1,6 +1,7 @@
 import { getTranslations, getLocale } from "next-intl/server";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 import { localeToIntl } from "@/i18n/locale";
+import { GlossaryTerm } from "@/components/ui/glossary-term";
 import type { RiskBand } from "@/server/advisor/metrics";
 
 // Risk meter color scale — low risk (green) through high risk (red).
@@ -37,7 +38,9 @@ export async function KpiHeader({
   return (
     <div className="glass-card shrink-0 flex flex-wrap items-center justify-between gap-4">
       <div>
-        <p className="text-xs text-neutral-500">{t("netWorth")}</p>
+        <p className="text-xs text-neutral-500">
+          <GlossaryTerm termId="netWorth">{t("netWorth")}</GlossaryTerm>
+        </p>
         <p className="text-2xl font-bold text-white tabular-nums">
           {formatCurrency(totalValue, baseCurrency, intlLocale)}
         </p>
@@ -62,7 +65,9 @@ export async function KpiHeader({
 
       <div className="min-w-[160px]">
         <div className="flex items-center justify-between">
-          <p className="text-xs text-neutral-500">{t("riskProfile")}</p>
+          <p className="text-xs text-neutral-500">
+            <GlossaryTerm termId="riskProfile">{t("riskProfile")}</GlossaryTerm>
+          </p>
           <p className="text-xs text-neutral-300">
             {t(`bands.${riskBand}`)} · {riskScore}
           </p>

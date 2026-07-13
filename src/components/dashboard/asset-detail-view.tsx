@@ -21,6 +21,7 @@ import { localeToIntl } from "@/i18n/locale";
 import { chartTheme } from "@/lib/chart-theme";
 import { StatCard } from "@/components/ui/stat-card";
 import { Pill } from "@/components/ui/pill";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const RANGE_VALUES = ["6m", "12m", "24m", "60m"] as const;
@@ -64,7 +65,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
   const [error, setError] = useState<string | null>(null);
   const [selectedRange, setSelectedRange] = useState("24m");
 
-  const [showPredictions, setShowPredictions] = useState(false);
+  const [showPredictions, setShowPredictions] = useState(true);
   const [predictionHorizon, setPredictionHorizon] = useState("6m");
   const [predictionData, setPredictionData] = useState<PredictionData | null>(null);
   const [predictionLoading, setPredictionLoading] = useState(false);
@@ -243,28 +244,41 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 ml-auto">
-          <Pill
-            active={showPredictions}
-            onClick={() => setShowPredictions(!showPredictions)}
-            className="flex items-center gap-1.5"
-          >
-            <Sparkle size={14} weight={showPredictions ? "fill" : "regular"} />
-            {t("aiPredictions")}
-          </Pill>
+          {showPredictions ? (
+            <>
+              <Badge
+                variant="accent"
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold"
+              >
+                <Sparkle size={13} weight="fill" />
+                {t("aiPredictions")}
+              </Badge>
 
-          {showPredictions && (
-            <div className="flex flex-wrap gap-1">
-              {HORIZON_VALUES.map((value) => (
-                <Pill
-                  key={value}
-                  active={predictionHorizon === value}
-                  onClick={() => setPredictionHorizon(value)}
-                  className="px-2.5"
-                >
-                  {t(`horizon.${value}`)}
-                </Pill>
-              ))}
-            </div>
+              <div className="flex flex-wrap gap-1">
+                {HORIZON_VALUES.map((value) => (
+                  <Pill
+                    key={value}
+                    active={predictionHorizon === value}
+                    onClick={() => setPredictionHorizon(value)}
+                    className="px-2.5"
+                  >
+                    {t(`horizon.${value}`)}
+                  </Pill>
+                ))}
+              </div>
+
+              <Pill onClick={() => setShowPredictions(false)} className="text-neutral-500">
+                {t("hidePredictions")}
+              </Pill>
+            </>
+          ) : (
+            <Pill
+              onClick={() => setShowPredictions(true)}
+              className="flex items-center gap-1.5"
+            >
+              <Sparkle size={14} />
+              {t("aiPredictions")}
+            </Pill>
           )}
         </div>
       </div>
@@ -337,6 +351,17 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
           <div className="flex items-center justify-center h-full text-neutral-500">
             {t("noData")}
           </div>
+        )}
+      </div>
+
+      {/* Data sources */}
+      <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
+        <span>{t("dataSource")}</span>
+        {showPredictions && (
+          <>
+            <span aria-hidden="true">·</span>
+            <span>{t("forecastSource")}</span>
+          </>
         )}
       </div>
 

@@ -22,6 +22,8 @@ export async function getYahooQuote(symbol: string) {
     volume: quote.regularMarketVolume,
     marketCap: quote.marketCap,
     currency: quote.currency,
+    dividendRate: quote.trailingAnnualDividendRate ?? null,
+    dividendYield: quote.trailingAnnualDividendYield ?? null,
     source: "yahoo" as const,
   };
 }
