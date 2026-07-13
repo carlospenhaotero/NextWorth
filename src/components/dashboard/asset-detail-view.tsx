@@ -3,22 +3,11 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  AreaChart,
-  Area,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-} from "recharts";
 import { ArrowLeft, ArrowsClockwise, Sparkle } from "@phosphor-icons/react/dist/ssr";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
 import { localeToIntl } from "@/i18n/locale";
-import { chartTheme } from "@/lib/chart-theme";
+import { AssetChart } from "@/components/shared/asset-chart";
 import { StatCard } from "@/components/ui/stat-card";
 import { Pill } from "@/components/ui/pill";
 import { Badge } from "@/components/ui/badge";
@@ -291,67 +280,13 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
             {t("loadingPredictions")}
           </div>
         )}
-        {combinedChartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={combinedChartData}>
-              <defs>
-                <linearGradient id="colorClose" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#a3a3a3" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#a3a3a3" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorPredicted" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={chartTheme.accent} stopOpacity={0.3} />
-                  <stop offset="95%" stopColor={chartTheme.accent} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
-              <XAxis
-                dataKey="date"
-                stroke={chartTheme.axis}
-                tick={{ fill: chartTheme.axisTick, fontSize: 11 }}
-              />
-              <YAxis
-                stroke={chartTheme.axis}
-                tick={{ fill: chartTheme.axisTick, fontSize: 11 }}
-                domain={["auto", "auto"]}
-              />
-              <Tooltip contentStyle={chartTheme.tooltip} />
-              <Area
-                type="monotone"
-                dataKey="close"
-                stroke="#fafafa"
-                fill="url(#colorClose)"
-                strokeWidth={2}
-                connectNulls={false}
-              />
-              {showPredictions && (
-                <>
-                  <Area
-                    type="monotone"
-                    dataKey="predicted"
-                    stroke={chartTheme.accent}
-                    fill="url(#colorPredicted)"
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    connectNulls={false}
-                  />
-                  {todayLabel && (
-                    <ReferenceLine
-                      x={todayLabel}
-                      stroke={chartTheme.reference}
-                      strokeDasharray="3 3"
-                      label={{ value: t("today"), fill: "#a3a3a3", fontSize: 11 }}
-                    />
-                  )}
-                </>
-              )}
-            </AreaChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="flex items-center justify-center h-full text-neutral-500">
-            {t("noData")}
-          </div>
-        )}
+        <AssetChart
+          data={combinedChartData}
+          showPredictions={showPredictions}
+          todayLabel={todayLabel}
+          todayText={t("today")}
+          noDataText={t("noData")}
+        />
       </div>
 
       {/* Data sources */}
