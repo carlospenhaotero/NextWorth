@@ -687,6 +687,65 @@
     "netWorth": {
       "term": "Patrimonio",
       "definition": "El valor total actual de todo lo que tienes en tu cartera, sumado."
+    },
+    "momentum": {
+      "term": "Momentum",
+      "definition": "La tendencia reciente del precio: si en los últimos meses ha subido, bajado o se ha mantenido estable."
+    },
+    "volatility": {
+      "term": "Volatilidad",
+      "definition": "Cuánto oscila el precio de un activo. Más volatilidad significa más riesgo de subidas y bajadas bruscas."
     }
+  },
+  "assetSignal": {
+    "title": "Lectura educativa del activo",
+    "desc": "Una lectura descriptiva de este activo a partir de su histórico. No es una recomendación de compra o venta.",
+    "momentum": {
+      "label": "Momentum (6 meses)",
+      "band": {
+        "strongUp": "Subiendo con fuerza",
+        "up": "Subiendo",
+        "flat": "Estable",
+        "down": "Bajando",
+        "strongDown": "Bajando con fuerza"
+      }
+    },
+    "volatility": {
+      "label": "Volatilidad",
+      "annualized": "{pct}% anualizada",
+      "band": {
+        "low": "Baja",
+        "medium": "Media",
+        "high": "Alta"
+      }
+    },
+    "risk": {
+      "label": "Clase de riesgo",
+      "class": {
+        "low": "Bajo",
+        "medium": "Medio",
+        "high": "Alto"
+      }
+    },
+    "riskBand": {
+      "conservative": "conservador",
+      "moderate": "moderado",
+      "balanced": "equilibrado",
+      "growth": "de crecimiento",
+      "aggressive": "agresivo"
+    },
+    "fit": {
+      "aligned": "Su nivel de riesgo encaja con el perfil {band} de tu cartera.",
+      "above": "Tiene más riesgo que el perfil {band} de tu cartera; añadirlo la haría más arriesgada.",
+      "below": "Tiene menos riesgo que el perfil {band} de tu cartera; añadirlo la haría más defensiva."
+    },
+    "assetType": {
+      "stock": "Acción",
+      "etf": "ETF",
+      "fund": "Fondo",
+      "crypto": "Cripto",
+      "commodity": "Materia prima"
+    },
+    "disclaimer": "Lectura educativa basada en datos históricos. No garantiza resultados futuros ni constituye asesoramiento financiero."
   }
 }

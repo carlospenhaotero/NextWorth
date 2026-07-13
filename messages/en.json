@@ -687,6 +687,65 @@
     "netWorth": {
       "term": "Net worth",
       "definition": "The total current value of everything in your portfolio, added together."
+    },
+    "momentum": {
+      "term": "Momentum",
+      "definition": "The recent price trend: whether it has gone up, down or stayed flat over the past few months."
+    },
+    "volatility": {
+      "term": "Volatility",
+      "definition": "How much an asset's price swings. Higher volatility means a higher risk of sharp ups and downs."
     }
+  },
+  "assetSignal": {
+    "title": "Educational reading of this asset",
+    "desc": "A descriptive reading of this asset based on its history. It is not a buy or sell recommendation.",
+    "momentum": {
+      "label": "Momentum (6 months)",
+      "band": {
+        "strongUp": "Rising strongly",
+        "up": "Rising",
+        "flat": "Flat",
+        "down": "Falling",
+        "strongDown": "Falling strongly"
+      }
+    },
+    "volatility": {
+      "label": "Volatility",
+      "annualized": "{pct}% annualized",
+      "band": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      }
+    },
+    "risk": {
+      "label": "Risk class",
+      "class": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      }
+    },
+    "riskBand": {
+      "conservative": "conservative",
+      "moderate": "moderate",
+      "balanced": "balanced",
+      "growth": "growth",
+      "aggressive": "aggressive"
+    },
+    "fit": {
+      "aligned": "Its risk level matches your portfolio's {band} profile.",
+      "above": "It carries more risk than your portfolio's {band} profile; adding it would make it more aggressive.",
+      "below": "It carries less risk than your portfolio's {band} profile; adding it would make it more defensive."
+    },
+    "assetType": {
+      "stock": "Stock",
+      "etf": "ETF",
+      "fund": "Fund",
+      "crypto": "Crypto",
+      "commodity": "Commodity"
+    },
+    "disclaimer": "Educational reading based on historical data. It does not guarantee future results and is not financial advice."
   }
 }

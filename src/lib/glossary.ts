@@ -9,6 +9,8 @@ export const GLOSSARY_TERM_IDS = [
   "riskProfile",
   "diversification",
   "netWorth",
+  "momentum",
+  "volatility",
 ] as const;
 
 export type GlossaryTermId = (typeof GLOSSARY_TERM_IDS)[number];

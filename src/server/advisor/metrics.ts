@@ -49,7 +49,7 @@ export interface AdvisorMetrics {
 }
 
 // Relative risk weight per asset class (proxy for volatility, 0..1).
-const RISK_WEIGHTS: Record<string, number> = {
+export const RISK_WEIGHTS: Record<string, number> = {
   cash: 0,
   savings: 0,
   currency: 0,

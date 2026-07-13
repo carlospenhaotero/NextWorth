@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
 import { localeToIntl } from "@/i18n/locale";
 import { AssetChart } from "@/components/shared/asset-chart";
+import { AssetSignalPanel } from "@/components/dashboard/asset-signal";
 import { StatCard } from "@/components/ui/stat-card";
 import { Pill } from "@/components/ui/pill";
 import { Badge } from "@/components/ui/badge";
@@ -311,6 +312,9 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
           {predictionData.warning}
         </div>
       )}
+
+      {/* Educational per-asset signal (momentum, volatility, risk fit) */}
+      <AssetSignalPanel symbol={symbol} />
     </div>
   );
 }
