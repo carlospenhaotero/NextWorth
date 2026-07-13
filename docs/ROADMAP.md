@@ -46,18 +46,17 @@ servicio ML Chronos desplegado en Railway.
 
 ---
 
-## Fase 0 — Consolidar lo que ya existe (en local)
+## Fase 0 — Consolidar lo que ya existe (en local) ✅ COMPLETADA
 
 Sin código nuevo. Máximo retorno: adelanta o cierra los puntos 3, 10, 13, 15 y
 parte de 8 y 9 sin escribir una línea. Todo el trabajo se hace y se verifica en
 **local**; el despliegue a producción se pospone a una fase posterior.
 
-- [ ] Revisar y agrupar el working tree en commits limpios por feature
-  (Conventional Commits), siguiendo `docs/borrar.md`.
-- [ ] Unificar credenciales demo: el seed crea `demo@nextworth.app` / `demo1234`
-  pero `docs/GUIA-DE-PRUEBAS.md` publica `demo-e2e@nextworth.app`, que no existe.
-  Decidir unas únicas y alinear seed + guía + botón "Probar demo".
-- [ ] Levantar la app en local (`pnpm dev` + `docker compose up -d`), seedear la
+- [x] Revisar y agrupar el working tree en commits limpios por feature
+  (Conventional Commits). Rama `feat/mvp-consolidation`, 10 commits temáticos.
+- [x] Unificar credenciales demo. Únicas: `demo-e2e@nextworth.app` /
+  `NextWorth2026!`, alineadas en seed + guía + botón "Probar demo".
+- [x] Levantar la app en local (`pnpm dev` + `docker compose up -d`), seedear la
   demo y verificar la cuenta de extremo a extremo.
 
 **Criterio de hecho:** en local, entrando con la demo se ven iconos, proyección,
