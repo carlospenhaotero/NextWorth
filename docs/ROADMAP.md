@@ -40,7 +40,7 @@ servicio ML Chronos desplegado en Railway.
 | 11 | Qué tests hay | FALTA. Cero tests |
 | 12 | Test de carga (1000 activos) | FALTA |
 | 13 | "Precios obtenidos de:" | HECHO parcial. Visible en detalle de activo; falta hacerlo global; FX no declarado |
-| 14 | Modificar datos de usuario (nombre, contraseña) | FALTA. Ajustes solo tiene divisa e idioma |
+| 14 | Modificar datos de usuario (nombre, contraseña) | HECHO (sin desplegar). Ajustes permite cambiar nombre y contraseña; el cambio de contraseña exige la actual y revoca las demás sesiones |
 | 15 | La predicción está muy escondida, debe estar siempre activa | HECHO parcial. Activada por defecto en el detalle y en el alta; falta subirla a cartera |
 | 16 | Más IA (consejos, indicador de qué comprar) | Solapa con 6 y 7 |
 
@@ -90,10 +90,15 @@ Lo que de verdad falta y es de cara al usuario.
     defendible. La proyección mensual/anual sigue disponible en la gráfica.
   - Archivos: `src/app/(dashboard)/overview/page.tsx`,
     `src/components/dashboard/portfolio-kpis.tsx`, `src/server/portfolio-history.ts`.
-- [ ] **Ajustes de perfil (punto 14).** Cambiar nombre y contraseña estando
-  logueado. BetterAuth soporta `changePassword`. Archivos:
-  `src/actions/settings.ts`, `src/components/dashboard/settings-form.tsx`,
-  `src/server/auth.ts`.
+- [x] **Ajustes de perfil (punto 14).** Cambiar nombre y contraseña estando
+  logueado. Nombre via server action (`updateDisplayName`); contraseña via
+  `authClient.changePassword` en cliente (exige la actual + `revokeOtherSessions`,
+  así BetterAuth rota la cookie del navegador correctamente). De paso se cerró un
+  bug latente del middleware: una cookie presente pero con sesión revocada/expirada
+  metía al usuario en un loop /login<->/overview; ahora `requireSession` la limpia
+  via `/api/auth/session-expired`. Archivos: `src/actions/settings.ts`,
+  `src/components/dashboard/settings-form.tsx`, `src/server/require-session.ts`,
+  `src/app/api/auth/session-expired/route.ts`.
 - [ ] **Reforzar transparencia (puntos 1, 2, 13).** Tarjeta "Cómo funciona la IA"
   (Chronos pre-entrenado zero-shot, datos de Yahoo) y "Fuente de precios" visible
   de forma global, no solo en el detalle. Declarar también FX (Frankfurter).
