@@ -194,7 +194,33 @@
       "invested": "Invested",
       "today": "Today",
       "last30d": "Last 30 days"
-    }
+    },
+    "sourceFooter": "Prices from Yahoo Finance · Currency conversion by Frankfurter"
+  },
+  "dataSources": {
+    "title": "How the AI works and where the data comes from",
+    "desc": "NextWorth combines real-time market data with AI models. Here is the source of each piece.",
+    "prices": {
+      "title": "Prices",
+      "source": "Yahoo Finance",
+      "desc": "Live quotes and historical data for stocks, ETFs, funds, crypto and commodities."
+    },
+    "fx": {
+      "title": "Currencies (FX)",
+      "source": "Frankfurter",
+      "desc": "Exchange rates used to convert every asset into your base currency."
+    },
+    "advisorText": {
+      "title": "Advisor text",
+      "source": "Google Gemini 2.5 Flash",
+      "desc": "Generates the advisor's answers from your portfolio data. It may contain errors."
+    },
+    "forecast": {
+      "title": "Forecasts",
+      "source": "Amazon Chronos",
+      "desc": "A pre-trained (zero-shot) time-series model: it projects from Yahoo's real price history, not made-up data."
+    },
+    "disclaimer": "This information is for guidance only and is not financial advice."
   },
   "onboarding": {
     "title": "Welcome to NextWorth",

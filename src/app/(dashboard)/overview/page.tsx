@@ -38,6 +38,7 @@ export default async function OverviewPage() {
     getAdvisorMetrics(session.user.id, locale),
   ]);
   const tAllocation = await getTranslations("allocation");
+  const tOverview = await getTranslations("overview");
 
   return (
     <>
@@ -54,6 +55,7 @@ export default async function OverviewPage() {
             ]}
           />
         )}
+        <p className="text-xs text-neutral-500">{tOverview("sourceFooter")}</p>
       </div>
     </>
   );

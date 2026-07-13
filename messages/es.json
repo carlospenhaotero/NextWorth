@@ -194,7 +194,33 @@
       "invested": "Invertido",
       "today": "Hoy",
       "last30d": "Últimos 30 días"
-    }
+    },
+    "sourceFooter": "Precios de Yahoo Finance · Conversión de divisas de Frankfurter"
+  },
+  "dataSources": {
+    "title": "Cómo funciona la IA y de dónde vienen los datos",
+    "desc": "NextWorth combina datos de mercado en tiempo real con modelos de IA. Estas son las fuentes de cada pieza.",
+    "prices": {
+      "title": "Precios",
+      "source": "Yahoo Finance",
+      "desc": "Cotizaciones en directo e histórico de acciones, ETFs, fondos, cripto y materias primas."
+    },
+    "fx": {
+      "title": "Divisas (FX)",
+      "source": "Frankfurter",
+      "desc": "Tipos de cambio para convertir cada activo a tu moneda base."
+    },
+    "advisorText": {
+      "title": "Texto del asesor",
+      "source": "Google Gemini 2.5 Flash",
+      "desc": "Genera las respuestas del asesor a partir de los datos de tu cartera. Puede contener errores."
+    },
+    "forecast": {
+      "title": "Predicciones",
+      "source": "Amazon Chronos",
+      "desc": "Modelo de series temporales pre-entrenado (zero-shot): proyecta a partir del histórico de precios de Yahoo, no de datos inventados."
+    },
+    "disclaimer": "La información es orientativa y no constituye asesoramiento financiero."
   },
   "onboarding": {
     "title": "Bienvenido a NextWorth",
