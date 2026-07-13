@@ -37,8 +37,8 @@ servicio ML Chronos desplegado en Railway.
 | 8 | Cartera: invertido, variación hoy, 30d, próxima semana | HECHO (sin desplegar). Fila de KPIs fijos en /overview: invertido + variación hoy + 30d. Proyección semanal descartada por criterio (Chronos proyecta a meses/años; 7d sería ruido); la proyección mensual/anual sigue en la gráfica |
 | 9 | Panel de distribución también en cartera | HECHO (sin desplegar). StackedAllocation añadido a /overview (por tipo, sector, país) |
 | 10 | Iconos por tipo de activo en add-asset | HECHO (sin desplegar) |
-| 11 | Qué tests hay | FALTA. Cero tests |
-| 12 | Test de carga (1000 activos) | FALTA |
+| 11 | Qué tests hay | HECHO. 69 tests unitarios (Vitest) de la lógica crítica + suite e2e (Playwright) del flujo demo. `pnpm test` / `pnpm test:e2e` |
+| 12 | Test de carga (1000 activos) | HECHO. Seed de 1000 posiciones + medición documentada en `docs/LOAD-TEST.md`; aflora el N+1 de `getPortfolioForUser` (~78 s, 300 quotes secuenciales) |
 | 13 | "Precios obtenidos de:" | HECHO. Global: tarjeta de fuentes en /settings + línea precios+FX al pie de /overview; FX (Frankfurter) declarado |
 | 14 | Modificar datos de usuario (nombre, contraseña) | HECHO (sin desplegar). Ajustes permite cambiar nombre y contraseña; el cambio de contraseña exige la actual y revoca las demás sesiones |
 | 15 | La predicción está muy escondida, debe estar siempre activa | HECHO parcial. Activada por defecto en el detalle y en el alta; falta subirla a cartera |
@@ -144,15 +144,27 @@ no prescriptiva; y en cartera, avisos de concentración basados en datos reales.
 
 Responde a los puntos 11 y 12 y da material para la defensa.
 
-- [ ] **Tests unitarios** de la lógica crítica: reconstrucción de patrimonio,
-  proyección por tipo de activo, cálculo de P/L, caché de 3 niveles.
-- [ ] **Tests e2e** (Playwright): login demo, alta de activo, ver predicción.
-- [ ] **Test de carga:** seed de 1000 activos, medir y documentar. Probablemente
-  aflore el N+1 conocido de `getPortfolioForUser` (quote + FX secuencial por
-  posición): documentarlo y, si compensa, optimizarlo. Buena historia técnica.
+- [x] **Tests unitarios** de la lógica crítica (Vitest, 69 tests): reconstrucción
+  de patrimonio y P/L neteando depósitos (`portfolio-history`), caché de 3 niveles
+  (`market-data`: dedup, hit de BD, fetch de Yahoo, stale, not-found), banda de
+  riesgo/allocations/insights (`metrics`), métricas derivadas por tipo
+  (`portfolio`: dividendos, cupón, TAE, fallback a coste) y la señal por activo
+  (`asset-signal`: momentum/volatilidad/riesgo). Dependencias y red mockeadas en
+  el límite; `server-only` neutralizado por alias. Archivos: `vitest.config.ts`,
+  `tests/`.
+- [x] **Tests e2e** (Playwright): login demo -> /overview con KPIs fijos; detalle
+  de activo con la predicción Chronos activa por defecto. Reusa el dev server de
+  :3005, fuerza inglés para estabilidad. Archivos: `playwright.config.ts`, `e2e/`.
+- [x] **Test de carga:** seed de 1000 posiciones (`prisma/seed-load.ts`) +
+  medición (`scripts/load-test.ts`), documentado en `docs/LOAD-TEST.md`. Aflora el
+  N+1 de `getPortfolioForUser`: ~78 s en frío con 1000 activos, dominado por 300
+  cotizaciones secuenciales a Yahoo (~261 ms cada una) y **sin caché de quote** (el
+  run en caliente sigue en ~62 s). Se documenta la causa y el fix propuesto
+  (pool acotado + caché de quote); no se implementa para no tocar lógica de
+  negocio sin acordarlo.
 
-**Criterio de hecho:** suite verde, un `pnpm test`, y una nota con los resultados
-del test de carga.
+**Criterio de hecho:** suite verde (`pnpm test`), e2e verde (`pnpm test:e2e`), y la
+nota de carga en `docs/LOAD-TEST.md`.
 
 ---
 

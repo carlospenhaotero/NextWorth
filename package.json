@@ -19,7 +19,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "loadtest": "tsx scripts/load-test.ts"
+    "loadtest": "NODE_OPTIONS=--conditions=react-server tsx scripts/load-test.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.80",
@@ -57,6 +57,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "prisma": "^7.4.0",
+    "server-only": "^0.0.1",
     "shadcn": "^3.8.5",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
