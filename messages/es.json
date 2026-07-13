@@ -584,6 +584,29 @@
     "goHome": "Ir al inicio"
   },
   "settings": {
+    "profile": {
+      "title": "Perfil",
+      "desc": "Cambia el nombre que se muestra en la aplicación.",
+      "nameLabel": "Nombre",
+      "save": "Guardar nombre"
+    },
+    "password": {
+      "title": "Contraseña",
+      "desc": "Cambia tu contraseña. Necesitarás la actual.",
+      "current": "Contraseña actual",
+      "new": "Nueva contraseña",
+      "confirm": "Confirmar nueva contraseña",
+      "hint": "Mínimo 8 caracteres.",
+      "save": "Cambiar contraseña",
+      "updated": "Contraseña actualizada. Se han cerrado las demás sesiones."
+    },
+    "errors": {
+      "invalid_name": "Introduce un nombre válido.",
+      "invalid_password": "La contraseña actual no es correcta.",
+      "weak_password": "La contraseña debe tener al menos 8 caracteres.",
+      "mismatch": "Las contraseñas no coinciden.",
+      "error": "Algo ha ido mal. Inténtalo de nuevo."
+    },
     "currency": {
       "title": "Preferencias de divisa",
       "label": "Divisa principal",

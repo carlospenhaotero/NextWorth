@@ -584,6 +584,29 @@
     "goHome": "Go home"
   },
   "settings": {
+    "profile": {
+      "title": "Profile",
+      "desc": "Update the name shown across the app.",
+      "nameLabel": "Display name",
+      "save": "Save name"
+    },
+    "password": {
+      "title": "Password",
+      "desc": "Change your password. You'll need your current one.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "hint": "At least 8 characters.",
+      "save": "Update password",
+      "updated": "Password updated. Other sessions were signed out."
+    },
+    "errors": {
+      "invalid_name": "Enter a valid name.",
+      "invalid_password": "Your current password is incorrect.",
+      "weak_password": "Password must be at least 8 characters.",
+      "mismatch": "Passwords don't match.",
+      "error": "Something went wrong. Please try again."
+    },
     "currency": {
       "title": "Currency Preferences",
       "label": "Primary Currency",

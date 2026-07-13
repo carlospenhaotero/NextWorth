@@ -21,7 +21,10 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader title={t("title")} subtitle={t("description")} />
-      <SettingsForm currentCurrency={profile?.baseCurrency || "USD"} />
+      <SettingsForm
+        currentCurrency={profile?.baseCurrency || "USD"}
+        currentName={profile?.name || ""}
+      />
     </>
   );
 }
