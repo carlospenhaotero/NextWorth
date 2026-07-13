@@ -34,8 +34,8 @@ servicio ML Chronos desplegado en Railway.
 | 5 | Ver evolución pasada y futura al añadir un activo | HECHO (sin desplegar). Modal de alta ancho a 2 columnas con histórico ~24m + proyección Chronos 1y siempre activa |
 | 6 | Sugerir qué activos añadir | PARCIAL. Catálogo estático de "populares", no personalizado |
 | 7 | Indicador de si un activo es aconsejable | FALTA. Se hará como señal educativa neutra (ver Fase 2) |
-| 8 | Cartera: invertido, variación hoy, 30d, próxima semana | PARCIAL. Hay valor + P/L por rango + proyección mensual; faltan KPIs fijos y granularidad semanal |
-| 9 | Panel de distribución también en cartera | PARCIAL. Está en Asesor y en /assets, no en /overview |
+| 8 | Cartera: invertido, variación hoy, 30d, próxima semana | HECHO (sin desplegar). Fila de KPIs fijos en /overview: invertido + variación hoy + 30d. Proyección semanal descartada por criterio (Chronos proyecta a meses/años; 7d sería ruido); la proyección mensual/anual sigue en la gráfica |
+| 9 | Panel de distribución también en cartera | HECHO (sin desplegar). StackedAllocation añadido a /overview (por tipo, sector, país) |
 | 10 | Iconos por tipo de activo en add-asset | HECHO (sin desplegar) |
 | 11 | Qué tests hay | FALTA. Cero tests |
 | 12 | Test de carga (1000 activos) | FALTA |
@@ -80,13 +80,16 @@ Lo que de verdad falta y es de cara al usuario.
   `src/components/shared/asset-chart.tsx`,
   `src/components/shared/asset-preview-chart.tsx`,
   `src/components/shared/add-asset-modal.tsx`.
-- [ ] **Cartera (/overview) completa (puntos 8 y 9).**
-  - Fila de KPIs fijos: dinero invertido, variación de hoy, últimos 30 días.
-  - Añadir el panel de distribución (`StackedAllocation`) a /overview.
-  - Añadir granularidad corta a la proyección (horizonte semanal / próxima semana).
+- [x] **Cartera (/overview) completa (puntos 8 y 9).**
+  - [x] Fila de KPIs fijos: dinero invertido, variación de hoy, últimos 30 días
+    (`getPortfolioKpis` reusa la reconstrucción de 1m; hoy = delta del último día
+    neteando depósitos). Componente `portfolio-kpis.tsx`.
+  - [x] Panel de distribución (`StackedAllocation`) añadido a /overview.
+  - [~] Granularidad semanal descartada por criterio: Chronos proyecta a
+    meses/años; una previsión a 7 días de la cartera sería ruido y poco
+    defendible. La proyección mensual/anual sigue disponible en la gráfica.
   - Archivos: `src/app/(dashboard)/overview/page.tsx`,
-    `src/components/dashboard/dashboard-overview.tsx`,
-    `src/server/portfolio-projection.ts`.
+    `src/components/dashboard/portfolio-kpis.tsx`, `src/server/portfolio-history.ts`.
 - [ ] **Ajustes de perfil (punto 14).** Cambiar nombre y contraseña estando
   logueado. BetterAuth soporta `changePassword`. Archivos:
   `src/actions/settings.ts`, `src/components/dashboard/settings-form.tsx`,
