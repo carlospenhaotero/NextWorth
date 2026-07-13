@@ -23,9 +23,12 @@ function UserAvatar() {
   );
 }
 
+type ExplainChip = { label: string; prompt: string };
+
 export function AdvisorChat() {
   const t = useTranslations("advisor.chat");
   const presetQuestions = t.raw("presets") as string[];
+  const explainChips = t.raw("explain") as ExplainChip[];
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({ api: "/api/advisor/chat" }),
   });
@@ -48,9 +51,25 @@ export function AdvisorChat() {
 
   return (
     <div className="glass-card flex flex-col h-full min-h-[420px]">
-      <div className="flex items-center gap-2 mb-4 shrink-0">
+      <div className="flex items-center gap-2 mb-1 shrink-0">
         <Sparkle size={18} weight="fill" className="text-accent-hover" />
         <h3 className="text-neutral-200 font-semibold">{t("header")}</h3>
+      </div>
+      <p className="mb-3 text-xs text-neutral-500 shrink-0">{t("aiDisclaimer")}</p>
+
+      <div className="mb-4 flex flex-wrap items-center gap-1.5 shrink-0">
+        <span className="text-[11px] text-neutral-500">{t("explainTitle")}</span>
+        {explainChips.map((chip) => (
+          <button
+            key={chip.label}
+            type="button"
+            onClick={() => submit(chip.prompt)}
+            disabled={busy}
+            className="text-xs px-3 py-1.5 rounded-full border border-neutral-700 text-neutral-300 transition-colors hover:border-accent hover:text-accent-hover disabled:opacity-40 disabled:pointer-events-none outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
+          >
+            {chip.label}
+          </button>
+        ))}
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-4 pr-1">
