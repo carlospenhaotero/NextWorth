@@ -130,7 +130,9 @@
       "errorGeneric": "Se ha producido un error. Inténtalo de nuevo.",
       "noAccount": "¿No tienes cuenta?",
       "createAccount": "Crear una cuenta",
-      "title": "Bienvenido de nuevo"
+      "title": "Bienvenido de nuevo",
+      "demoButton": "Probar con la cuenta demo",
+      "demoHint": "Entra con datos de ejemplo, sin registro"
     },
     "register": {
       "title": "Crea tu cuenta",
@@ -189,12 +191,25 @@
     },
     "chartError": "No se ha podido actualizar la gráfica. Se muestran los datos anteriores."
   },
+  "onboarding": {
+    "title": "Bienvenido a NextWorth",
+    "subtitle": "Vamos a configurar tu cartera para que puedas seguir tu patrimonio y recibir información generada por IA.",
+    "step1Title": "Añade tu primer activo",
+    "step1Desc": "Acciones, ETFs, cripto, efectivo, ahorro o bonos. Solo te llevará un minuto.",
+    "step2Title": "Descubre tu proyección y las predicciones IA",
+    "step2Desc": "Consulta cómo evoluciona tu patrimonio y hacia dónde podría dirigirse.",
+    "step3Title": "Pregunta a tu asesor",
+    "step3Desc": "Obtén un análisis de tu cartera e información personalizada.",
+    "cta": "Añadir mi primer activo",
+    "ctaSecondary": "Hablar con el asesor"
+  },
   "portfolioChart": {
     "netWorth": "Patrimonio neto",
     "empty": "Añade tu primer activo para ver tu patrimonio neto a lo largo del tiempo",
     "tooltip": {
       "value": "Valor",
-      "invested": "Invertido"
+      "invested": "Invertido",
+      "projected": "Proyección"
     },
     "range": {
       "1w": "1S",
@@ -203,11 +218,27 @@
       "6m": "6M",
       "1y": "1A",
       "all": "Todo"
+    },
+    "projection": {
+      "toggle": "Proyección",
+      "hide": "Ocultar proyección",
+      "today": "Hoy",
+      "loading": "Cargando proyección...",
+      "error": "No se ha podido cargar la proyección.",
+      "disclaimer": "Proyección estimada con Amazon Chronos. No es una garantía de rentabilidad.",
+      "horizon": {
+        "3m": "3M",
+        "6m": "6M",
+        "1y": "1A",
+        "2y": "2A",
+        "5y": "5A"
+      }
     }
   },
   "topMovers": {
     "title": "Mayores movimientos",
-    "empty": "Añade activos para ver tus mayores movimientos."
+    "empty": "Añade activos para ver tus mayores movimientos.",
+    "viewForecast": "Ver predicción IA"
   },
   "allocation": {
     "title": "Distribución",
@@ -249,7 +280,9 @@
       "currentYield": "Rentabilidad actual",
       "toMaturity": "Hasta vencimiento",
       "atMaturity": "Al vencimiento",
-      "days": "{days} días"
+      "days": "{days} días",
+      "annualDividend": "Dividendo anual",
+      "dividendYield": "Rent. por dividendo"
     },
     "searchPlaceholder": "Buscar activos...",
     "empty": {
@@ -269,7 +302,26 @@
     "toast": {
       "deleted": "Activo eliminado",
       "deleteError": "No se ha podido eliminar el activo"
-    }
+    },
+    "dataSource": "Precios obtenidos de Yahoo Finance"
+  },
+  "exportData": {
+    "button": "Exportar",
+    "csv": "Descargar CSV",
+    "pdf": "Descargar PDF",
+    "title": "Cartera NextWorth",
+    "generatedAt": "Generado el",
+    "colSymbol": "Símbolo",
+    "colName": "Nombre",
+    "colType": "Tipo",
+    "colQuantity": "Cantidad",
+    "colAvgPrice": "Precio medio",
+    "colCurrentPrice": "Precio actual",
+    "colValue": "Valor actual",
+    "colPl": "P/G",
+    "colPlPct": "P/G %",
+    "colCurrency": "Divisa",
+    "totalLabel": "Total"
   },
   "assetDetail": {
     "stat": {
@@ -279,9 +331,12 @@
       "low": "Mínimo"
     },
     "aiPredictions": "Predicciones IA",
+    "hidePredictions": "Ocultar predicción",
     "loadingPredictions": "Cargando predicciones...",
     "today": "Hoy",
     "noData": "No hay datos de gráfica disponibles",
+    "dataSource": "Precios obtenidos de Yahoo Finance",
+    "forecastSource": "Predicciones generadas con Amazon Chronos",
     "range": {
       "6m": "6M",
       "12m": "1A",
@@ -442,7 +497,15 @@
       "thinking": "Pensando…",
       "placeholder": "Pregunta sobre tu cartera…",
       "send": "Enviar mensaje",
-      "disclaimer": "Información educativa de carácter general, no asesoramiento financiero personalizado."
+      "disclaimer": "Información educativa de carácter general, no asesoramiento financiero personalizado.",
+      "aiDisclaimer": "Respuestas generadas por IA (Google Gemini). Pueden contener errores; no es asesoramiento financiero.",
+      "explainTitle": "Explícame",
+      "explain": [
+        { "label": "Mi riesgo", "prompt": "Explícame mi perfil de riesgo y qué lo determina." },
+        { "label": "Mi diversificación", "prompt": "Explícame mi diversificación." },
+        { "label": "Rentas y dividendos", "prompt": "Explícame mis rentas y dividendos." },
+        { "label": "Interpretar mi cartera", "prompt": "¿Cómo interpreto mi cartera en general?" }
+      ]
     },
     "kpi": {
       "bands": {
@@ -530,6 +593,37 @@
     "toast": {
       "saved": "Ajustes guardados correctamente",
       "error": "Error al guardar los ajustes"
+    }
+  },
+  "glossary": {
+    "ariaLabel": "¿Qué significa {term}?",
+    "tae": {
+      "term": "TAE",
+      "definition": "Tasa Anual Equivalente: el rendimiento anual de una cuenta remunerada teniendo en cuenta el interés compuesto."
+    },
+    "coupon": {
+      "term": "Cupón",
+      "definition": "El pago periódico de intereses que reparte un bono, expresado normalmente como cantidad anual."
+    },
+    "dividendYield": {
+      "term": "Rentabilidad por dividendo",
+      "definition": "Los dividendos anuales que paga una acción, expresados como porcentaje sobre su precio actual."
+    },
+    "bondYield": {
+      "term": "Rentabilidad del bono",
+      "definition": "El rendimiento anual que te da un bono ahora mismo, según su cupón y su precio actual."
+    },
+    "riskProfile": {
+      "term": "Perfil de riesgo",
+      "definition": "Cuánto puede subir o bajar el valor de tu cartera, según los activos que tienes."
+    },
+    "diversification": {
+      "term": "Diversificación",
+      "definition": "Repartir tu dinero entre distintos activos para que una mala inversión no afecte a toda tu cartera."
+    },
+    "netWorth": {
+      "term": "Patrimonio",
+      "definition": "El valor total actual de todo lo que tienes en tu cartera, sumado."
     }
   }
 }
