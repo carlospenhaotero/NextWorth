@@ -31,8 +31,11 @@ async function resolveLocale(): Promise<Locale> {
   return defaultLocale;
 }
 
-export default getRequestConfig(async () => {
-  const locale = await resolveLocale();
+export default getRequestConfig(async ({ requestLocale }) => {
+  // An explicit locale (e.g. getTranslations({ locale: "en" })) overrides the
+  // request-based resolution. Used to force the landing page to English.
+  const requested = await requestLocale;
+  const locale = isSupported(requested) ? requested : await resolveLocale();
   const messages = (await import(`../../messages/${locale}.json`)).default;
   return { locale, messages };
 });

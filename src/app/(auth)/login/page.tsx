@@ -4,12 +4,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Envelope, ArrowRight } from "@phosphor-icons/react/dist/ssr";
+import { Envelope, ArrowRight, Sparkle } from "@phosphor-icons/react/dist/ssr";
 import { signIn } from "@/lib/auth-client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { PasswordInput } from "@/components/auth/password-input";
+
+// Credenciales de la cuenta demo publica (prisma/seed-demo.ts). Es intencional
+// que vayan en el cliente: la cuenta solo contiene datos de ejemplo.
+const DEMO_EMAIL = "demo-e2e@nextworth.app";
+const DEMO_PASSWORD = "NextWorth2026!";
 
 export default function LoginPage() {
   const t = useTranslations("auth");
@@ -18,24 +23,35 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
+
+  const loginWith = async (loginEmail: string, loginPassword: string) => {
+    setError("");
+    try {
+      const result = await signIn.email({ email: loginEmail, password: loginPassword });
+      if (result.error) {
+        setError(result.error.message ?? t("login.errorInvalid"));
+        return false;
+      }
+      router.push("/overview");
+      return true;
+    } catch {
+      setError(t("login.errorGeneric"));
+      return false;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
+    await loginWith(email, password);
+    setLoading(false);
+  };
 
-    try {
-      const result = await signIn.email({ email, password });
-      if (result.error) {
-        setError(result.error.message ?? t("login.errorInvalid"));
-      } else {
-        router.push("/overview");
-      }
-    } catch {
-      setError(t("login.errorGeneric"));
-    } finally {
-      setLoading(false);
-    }
+  const handleDemoLogin = async () => {
+    setDemoLoading(true);
+    await loginWith(DEMO_EMAIL, DEMO_PASSWORD);
+    setDemoLoading(false);
   };
 
   return (
@@ -91,11 +107,33 @@ export default function LoginPage() {
           />
         </Field>
 
-        <Button type="submit" size="lg" loading={loading} className="w-full">
+        <Button
+          type="submit"
+          size="lg"
+          loading={loading}
+          disabled={demoLoading}
+          className="w-full"
+        >
           {loading ? t("login.submitting") : t("login.submit")}
           {!loading && <ArrowRight size={18} weight="bold" />}
         </Button>
       </form>
+
+      <div className="space-y-1.5">
+        <Button
+          type="button"
+          variant="secondary"
+          size="lg"
+          loading={demoLoading}
+          disabled={loading}
+          onClick={handleDemoLogin}
+          className="w-full"
+        >
+          {!demoLoading && <Sparkle size={18} weight="bold" />}
+          {t("login.demoButton")}
+        </Button>
+        <p className="text-center text-xs text-neutral-500">{t("login.demoHint")}</p>
+      </div>
 
       <p className="text-center text-sm text-neutral-500">
         {t("login.noAccount")}{" "}

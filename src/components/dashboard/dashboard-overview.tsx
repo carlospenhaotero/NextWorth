@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { PortfolioChart } from "./portfolio-chart";
 import { TopMovers } from "./top-movers";
 import type { PortfolioHistoryData, PortfolioRange } from "@/server/portfolio-history";
+import type { PortfolioProjectionData, ProjectionHorizon } from "@/server/portfolio-projection";
 
 interface DashboardOverviewProps {
   initialData: PortfolioHistoryData;
@@ -13,9 +14,15 @@ interface DashboardOverviewProps {
 
 export function DashboardOverview({ initialData }: DashboardOverviewProps) {
   const t = useTranslations("overview");
+  const tChart = useTranslations("portfolioChart");
   const [data, setData] = useState<PortfolioHistoryData>(initialData);
   const [range, setRange] = useState<PortfolioRange>(initialData.range as PortfolioRange);
   const [loading, setLoading] = useState(false);
+
+  const [projectionEnabled, setProjectionEnabled] = useState(false);
+  const [projectionHorizon, setProjectionHorizon] = useState<ProjectionHorizon>("1y");
+  const [projectionData, setProjectionData] = useState<PortfolioProjectionData | null>(null);
+  const [projectionLoading, setProjectionLoading] = useState(false);
 
   const onRangeChange = useCallback(
     async (next: PortfolioRange) => {
@@ -42,6 +49,33 @@ export function DashboardOverview({ initialData }: DashboardOverviewProps) {
     setRange(initialData.range as PortfolioRange);
   }, [initialData]);
 
+  // Fetch (or refresh) the projection whenever it's toggled on or its horizon changes.
+  useEffect(() => {
+    if (!projectionEnabled) return;
+    let cancelled = false;
+    const run = async () => {
+      setProjectionLoading(true);
+      try {
+        const res = await fetch(`/api/portfolio/projection?horizon=${projectionHorizon}`);
+        if (!res.ok) throw new Error("Failed to load projection");
+        const json = await res.json();
+        if (!cancelled) setProjectionData(json);
+      } catch {
+        if (!cancelled) toast.error(tChart("projection.error"));
+      } finally {
+        if (!cancelled) setProjectionLoading(false);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [projectionEnabled, projectionHorizon, tChart]);
+
+  const onToggleProjection = useCallback(() => {
+    setProjectionEnabled((prev) => !prev);
+  }, []);
+
   const periodLabel = t(`rangeSuffix.${range}`);
 
   return (
@@ -53,6 +87,12 @@ export function DashboardOverview({ initialData }: DashboardOverviewProps) {
           loading={loading}
           periodLabel={periodLabel}
           onRangeChange={onRangeChange}
+          projectionEnabled={projectionEnabled}
+          projectionHorizon={projectionHorizon}
+          projectionData={projectionData}
+          projectionLoading={projectionLoading}
+          onToggleProjection={onToggleProjection}
+          onProjectionHorizonChange={setProjectionHorizon}
         />
       </section>
       <section>

@@ -11,19 +11,24 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  ReferenceLine,
 } from "recharts";
 import {
   TrendUp,
   TrendDown,
   ArrowsClockwise,
+  Sparkle,
 } from "@phosphor-icons/react/dist/ssr";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 import { localeToIntl } from "@/i18n/locale";
 import { chartTheme } from "@/lib/chart-theme";
 import { Pill } from "@/components/ui/pill";
+import { Badge } from "@/components/ui/badge";
 import type { PortfolioHistoryData, PortfolioRange } from "@/server/portfolio-history";
+import type { PortfolioProjectionData, ProjectionHorizon } from "@/server/portfolio-projection";
 
 const RANGE_VALUES: PortfolioRange[] = ["1w", "1m", "3m", "6m", "1y", "all"];
+const HORIZON_VALUES: ProjectionHorizon[] = ["3m", "6m", "1y", "2y", "5y"];
 
 interface PortfolioChartProps {
   data: PortfolioHistoryData;
@@ -31,6 +36,12 @@ interface PortfolioChartProps {
   loading: boolean;
   periodLabel: string;
   onRangeChange: (range: PortfolioRange) => void;
+  projectionEnabled: boolean;
+  projectionHorizon: ProjectionHorizon;
+  projectionData: PortfolioProjectionData | null;
+  projectionLoading: boolean;
+  onToggleProjection: () => void;
+  onProjectionHorizonChange: (horizon: ProjectionHorizon) => void;
 }
 
 export function PortfolioChart({
@@ -39,6 +50,12 @@ export function PortfolioChart({
   loading,
   periodLabel,
   onRangeChange,
+  projectionEnabled,
+  projectionHorizon,
+  projectionData,
+  projectionLoading,
+  onToggleProjection,
+  onProjectionHorizonChange,
 }: PortfolioChartProps) {
   const t = useTranslations("portfolioChart");
   const intlLocale = localeToIntl(useLocale());
@@ -46,7 +63,7 @@ export function PortfolioChart({
   const isProfit = data.profitLoss >= 0;
   const accent = isProfit ? chartTheme.positive : chartTheme.negative;
 
-  const chartData = useMemo(() => {
+  const historicalData = useMemo(() => {
     const longSpan = range === "1y" || range === "all";
     return data.series.map((p) => {
       const d = new Date(p.date);
@@ -54,11 +71,35 @@ export function PortfolioChart({
         label: longSpan
           ? d.toLocaleDateString(intlLocale, { month: "short", year: "2-digit" })
           : d.toLocaleDateString(intlLocale, { day: "numeric", month: "short" }),
-        value: p.value,
-        invested: p.invested,
+        value: p.value as number | null,
+        invested: p.invested as number | null,
+        projected: null as number | null,
       };
     });
   }, [data.series, range, intlLocale]);
+
+  const projectedData = useMemo(() => {
+    if (!projectionEnabled || !projectionData) return [];
+    return projectionData.series.map((p) => {
+      const d = new Date(p.date);
+      return {
+        label: d.toLocaleDateString(intlLocale, { month: "short", year: "2-digit" }),
+        value: null as number | null,
+        invested: null as number | null,
+        projected: p.value as number | null,
+      };
+    });
+  }, [projectionEnabled, projectionData, intlLocale]);
+
+  const chartData = useMemo(
+    () => [...historicalData, ...projectedData],
+    [historicalData, projectedData]
+  );
+
+  const todayLabel =
+    projectionEnabled && historicalData.length > 0
+      ? historicalData[historicalData.length - 1].label
+      : null;
 
   const hasData = chartData.length > 0;
 
@@ -101,6 +142,47 @@ export function PortfolioChart({
         </div>
       </div>
 
+      {/* Projection controls */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {projectionEnabled ? (
+          <>
+            <Badge
+              variant="accent"
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold"
+            >
+              <Sparkle size={13} weight="fill" />
+              {t("projection.toggle")}
+            </Badge>
+            <div className="flex flex-wrap gap-1">
+              {HORIZON_VALUES.map((value) => (
+                <Pill
+                  key={value}
+                  active={projectionHorizon === value}
+                  onClick={() => onProjectionHorizonChange(value)}
+                  className="px-2.5"
+                >
+                  {t(`projection.horizon.${value}`)}
+                </Pill>
+              ))}
+            </div>
+            <Pill onClick={onToggleProjection} className="text-neutral-500">
+              {t("projection.hide")}
+            </Pill>
+            {projectionLoading && (
+              <span className="flex items-center gap-1.5 text-xs text-neutral-500">
+                <ArrowsClockwise className="animate-spin" size={12} />
+                {t("projection.loading")}
+              </span>
+            )}
+          </>
+        ) : (
+          <Pill onClick={onToggleProjection} className="flex items-center gap-1.5">
+            <Sparkle size={14} />
+            {t("projection.toggle")}
+          </Pill>
+        )}
+      </div>
+
       {/* Chart */}
       <div className="relative flex-1 min-h-[260px]">
         {loading && (
@@ -116,6 +198,10 @@ export function PortfolioChart({
                 <linearGradient id="colorNetWorth" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={accent} stopOpacity={0.25} />
                   <stop offset="95%" stopColor={accent} stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorProjection" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chartTheme.accent} stopOpacity={0.25} />
+                  <stop offset="95%" stopColor={chartTheme.accent} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
@@ -138,7 +224,11 @@ export function PortfolioChart({
                 contentStyle={chartTheme.tooltip}
                 formatter={(value, name) => [
                   formatCurrency(Number(value), baseCurrency, intlLocale),
-                  name === "value" ? t("tooltip.value") : t("tooltip.invested"),
+                  name === "value"
+                    ? t("tooltip.value")
+                    : name === "projected"
+                      ? t("tooltip.projected")
+                      : t("tooltip.invested"),
                 ]}
               />
               <Line
@@ -149,6 +239,7 @@ export function PortfolioChart({
                 strokeDasharray="5 5"
                 dot={false}
                 activeDot={false}
+                connectNulls={false}
               />
               <Area
                 type="monotone"
@@ -157,7 +248,30 @@ export function PortfolioChart({
                 fill="url(#colorNetWorth)"
                 strokeWidth={2}
                 dot={false}
+                connectNulls={false}
               />
+              {projectionEnabled && (
+                <>
+                  <Area
+                    type="monotone"
+                    dataKey="projected"
+                    stroke={chartTheme.accent}
+                    fill="url(#colorProjection)"
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    dot={false}
+                    connectNulls={false}
+                  />
+                  {todayLabel && (
+                    <ReferenceLine
+                      x={todayLabel}
+                      stroke={chartTheme.reference}
+                      strokeDasharray="3 3"
+                      label={{ value: t("projection.today"), fill: chartTheme.axisTick, fontSize: 11 }}
+                    />
+                  )}
+                </>
+              )}
             </AreaChart>
           </ResponsiveContainer>
           </div>
@@ -167,6 +281,9 @@ export function PortfolioChart({
           </div>
         )}
       </div>
+      {projectionEnabled && (
+        <p className="mt-3 text-xs text-neutral-500">{t("projection.disclaimer")}</p>
+      )}
     </div>
   );
 }

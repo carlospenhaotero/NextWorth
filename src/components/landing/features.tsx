@@ -16,7 +16,11 @@ const allocation = [
 ] as const;
 
 export async function Features() {
-  const t = await getTranslations("landing.features");
+  // The landing page is always English, regardless of the visitor's locale.
+  const t = await getTranslations({
+    locale: "en",
+    namespace: "landing.features",
+  });
   return (
     <section className="py-24 px-6">
       <div className="mx-auto max-w-6xl">

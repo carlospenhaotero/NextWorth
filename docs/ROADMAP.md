@@ -1,119 +1,145 @@
 # Roadmap de entrega — NextWorth (TFG)
 
-Documento de planificación para llevar NextWorth a estado de entrega del TFG.
+Plan de trabajo para llevar NextWorth a una versión que satisfaga la revisión del
+tutor (Martín) antes de la entrega del TFG. Documentación aparte, al final.
 
-- **Meta:** MVP prod-ready, defendible ante tribunal.
-- **Estado de partida:** el core está funcional y usa datos reales — AI Advisor (Gemini vía Vercel AI SDK), gráfica de patrimonio (reconstrucción real desde Yahoo Finance), market data (Yahoo/FX Frankfurter), CRUD de cartera y auth email+password.
-- **Frentes de trabajo:** limpieza → reset password → despliegue ML → i18n → documentación.
-- **Estado (2026-07-06):** Fases 0, 1, 2 y 3 completadas y verificadas end-to-end en local (puerto 3005). Pendientes que requieren cuentas/infra externa del autor: despliegue del servicio ML a un host de contenedores y `RESEND_API_KEY` con dominio verificado para envío real de emails. Fase 4 (documentación) pendiente.
+- **Meta:** versión desplegada, defendible ante tribunal, que responda punto por
+  punto al feedback del tutor.
+- **Restricción temporal:** el tutor no está disponible gran parte de agosto. La
+  ventana útil para que vea avances es corta, por eso el orden prioriza lo que
+  ya está construido y lo más visible.
 
-## Estado actual (resumen del análisis)
+---
 
-| Pieza | Estado | Notas |
+## Diagnóstico de partida
+
+La aplicación desplegada en producción es **anterior** al trabajo del working
+tree actual. Muchas de las peticiones del tutor ya están construidas en el código
+pero **no desplegadas**, así que él no las ha visto. Ver `docs/borrar.md` para el
+detalle de las features pendientes de commit.
+
+Además, el core previo ya está hecho y verificado: AI Advisor (Gemini vía Vercel
+AI SDK), gráfica de patrimonio por reconstrucción real, market data (Yahoo + FX
+Frankfurter), CRUD de cartera, auth email+password con reset, i18n ES/EN, y el
+servicio ML Chronos desplegado en Railway.
+
+### Feedback del tutor — estado real
+
+| # | Petición | Estado |
 |---|---|---|
-| AI Advisor (chat Gemini) | Funciona end-to-end | Requiere `GOOGLE_GENERATIVE_AI_API_KEY` en Vercel |
-| Métricas / insights advisor | Funciona, real y determinista | Calcula allocation, riesgo e insights desde datos reales |
-| Gráfica de patrimonio | Funciona end-to-end | Reconstrucción real con forward-fill, TAE compuesto y FX |
-| Market data (Yahoo / FX) | Funciona, sin mocks | Caché de 3 niveles robusta |
-| CRUD de cartera | Funciona | Server actions con `requireSession()` |
-| Auth email+password | Funciona, **con reset** | Reset password end-to-end (Resend + fallback consola en dev). Sin verificación, sin OAuth |
-| Predicciones ML (código Next) | Completo | Cliente + caché 3 niveles bien cableados |
-| Servicio ML Chronos (Python) | **Construye y corre en Docker** | Imagen reproducible; `/api/predict` devuelve predicciones reales. Falta desplegar a host externo |
-| i18n | **Completo (ES/EN)** | next-intl por cookie, catálogos completos, selector + persistencia, advisor multilingüe |
-| Tests / CI | 0% | Fuera de scope |
+| 1 | Qué IA para generación de texto (transparencia) | HECHO. Gemini 2.5 Flash; disclaimer visible "Google Gemini" en el asesor |
+| 2 | Qué modelo de predicción y con qué datos | HECHO, mejorable. Amazon Chronos T5-small; falta aclarar que es pre-entrenado zero-shot sobre histórico de Yahoo (quita el "parece random") |
+| 3 | Cuenta demo con activos | HECHO (sin desplegar). `demo@nextworth.app` / `demo1234`, 11 activos, botón "Probar demo". Discrepancia de credenciales con la guía de pruebas, a unificar |
+| 4 | Repositorio con el código | HECHO. GitHub |
+| 5 | Ver evolución pasada y futura al añadir un activo | FALTA. Punto más visible |
+| 6 | Sugerir qué activos añadir | PARCIAL. Catálogo estático de "populares", no personalizado |
+| 7 | Indicador de si un activo es aconsejable | FALTA. Se hará como señal educativa neutra (ver Fase 2) |
+| 8 | Cartera: invertido, variación hoy, 30d, próxima semana | PARCIAL. Hay valor + P/L por rango + proyección mensual; faltan KPIs fijos y granularidad semanal |
+| 9 | Panel de distribución también en cartera | PARCIAL. Está en Asesor y en /assets, no en /overview |
+| 10 | Iconos por tipo de activo en add-asset | HECHO (sin desplegar) |
+| 11 | Qué tests hay | FALTA. Cero tests |
+| 12 | Test de carga (1000 activos) | FALTA |
+| 13 | "Precios obtenidos de:" | HECHO parcial. Visible en detalle de activo; falta hacerlo global; FX no declarado |
+| 14 | Modificar datos de usuario (nombre, contraseña) | FALTA. Ajustes solo tiene divisa e idioma |
+| 15 | La predicción está muy escondida, debe estar siempre activa | HECHO parcial. Ya arranca activada en el detalle; falta subirla a cartera y a alta |
+| 16 | Más IA (consejos, indicador de qué comprar) | Solapa con 6 y 7 |
 
 ---
 
-## Fase 0 — Limpieza y coherencia — HECHA
+## Fase 0 — Consolidar lo que ya existe (en local) ✅ COMPLETADA
 
-Barato y de alto retorno: hace que el repo se perciba como ingeniería y no como prototipo.
+Sin código nuevo. Máximo retorno: adelanta o cierra los puntos 3, 10, 13, 15 y
+parte de 8 y 9 sin escribir una línea. Todo el trabajo se hace y se verifica en
+**local**; el despliegue a producción se pospone a una fase posterior.
 
-- [x] **Eliminar código muerto:** borrados `src/components/dashboard/allocation-chart.tsx` y `src/components/dashboard/portfolio-summary.tsx` (no se importaban en ningún sitio).
-- [x] **Arreglar middleware:** `/advisor` añadido a `protectedRoutes` y al `matcher` de `src/middleware.ts`.
-- [x] **Botón "Sign in with Google" (Coming soon):** no existía en el código actual (ni el enlace forgot deshabilitado que mencionaba el roadmap). Nada que quitar.
+- [x] Revisar y agrupar el working tree en commits limpios por feature
+  (Conventional Commits). Rama `feat/mvp-consolidation`, 10 commits temáticos.
+- [x] Unificar credenciales demo. Únicas: `demo-e2e@nextworth.app` /
+  `NextWorth2026!`, alineadas en seed + guía + botón "Probar demo".
+- [x] Levantar la app en local (`pnpm dev` + `docker compose up -d`), seedear la
+  demo y verificar la cuenta de extremo a extremo.
 
-**Criterio de hecho:** cumplido. Sin ficheros huérfanos, middleware coherente, sin botones deshabilitados visibles.
-
----
-
-## Fase 1 — Auth: recuperación de contraseña — HECHA
-
-Completa el flujo de auth.
-
-- [x] **Proveedor de email:** Resend integrado (`pnpm add resend`, `src/server/email.ts`). Con fallback dev: sin `RESEND_API_KEY` imprime la URL de reset en la consola del servidor. Validación en `src/lib/env.ts` (`RESEND_API_KEY`, `EMAIL_FROM` como `optionalStr`).
-- [x] **BetterAuth:** `sendResetPassword` + `resetPasswordTokenExpiresIn: 3600` en `emailAndPassword` (`src/server/auth.ts`).
-- [x] **UI:** `src/app/(auth)/forgot-password/page.tsx` (solicitud, con respuesta neutra anti-enumeración) + `reset-password/page.tsx` (con token vía `useSearchParams` + `Suspense`). Enlace "¿Has olvidado la contraseña?" añadido en login. Método cliente correcto: `authClient.requestPasswordReset` (no `forgetPassword` en BetterAuth 1.5.6).
-- [x] Reutiliza la tabla `Verification` del schema (sin migración nueva).
-
-**Criterio de hecho:** cumplido y verificado en 3005. Flujo completo probado: solicitud → URL en consola → verificación de token → nueva contraseña → login con la nueva.
-
-**Riesgo / decisión:** para envío real de emails en producción falta cuenta Resend + dominio verificado (`RESEND_API_KEY`, `EMAIL_FROM`). En local funciona por el fallback de consola.
+**Criterio de hecho:** en local, entrando con la demo se ven iconos, proyección,
+distribución en /assets y predicciones IA activas. El despliegue a producción
+queda pendiente para más adelante.
 
 ---
 
-## Fase 2 — Desplegar el servicio ML (Chronos) — HECHA (build+run local; despliegue externo pendiente)
+## Fase 1 — Huecos visibles que pidió explícitamente
 
-La pieza más técnica y la que más luce en demo.
+Lo que de verdad falta y es de cara al usuario.
 
-- [x] **Robustecer el build Docker:** `requirements.txt` fija `chronos-forecasting==1.5.3` (sin el extra `[training]` que arrastraba el `chronos2` roto), `pandas==2.2.3`, `typing_extensions==4.12.2`. Dockerfile con `torch==2.4.1` CPU, `HF_HOME` y modelo horneado en build (`RUN python -c "from chronos import ChronosPipeline; ..."`) **antes** de `COPY` para no reinvalidar la capa. Corregido `ml-service/models/chronos_model.py`: la API 1.5.x recibe `context` posicional (antes `inputs=`). Parches Windows (`patch_chronos.py`, `fix_pipeline.py`, `patch_typealias.py`, `run.bat`, `temp_chronos/`) eliminados. `.dockerignore` añadido. Verificado: imagen construye y arranca en contenedor limpio.
-- [ ] **Desplegar** `ml-service/` en un host de contenedores (Railway / Render / Fly / Cloud Run). **Pendiente: requiere cuenta del autor.** Vercel no puede alojar Python persistente.
-- [ ] **Conectar:** setear `ML_SERVICE_URL` en Vercel a la URL pública del servicio (pendiente del despliegue). En local apunta a `http://localhost:5001`.
-- [x] **Cold start:** modelo horneado en la imagen (no descarga en la primera petición). `checkHealth()` (`src/server/chronos.ts`) exportado y documentado para degradación proactiva del UI. Timeout de predicción de 30s intacto.
-- [ ] **Opcional (suma en defensa):** rellenar `confidenceLow` / `confidenceHigh` para dibujar banda de confianza. No implementado (opcional).
+- [ ] **Add-asset con histórico + proyección (punto 5).** Al seleccionar un
+  activo en el flujo de alta, mostrar su gráfica de evolución pasada y una
+  mini-proyección. Reutiliza `getAssetHistory` (Yahoo) y `getAssetPrediction`
+  (Chronos), ya existentes. Archivos: `src/components/dashboard/add-asset-flow.tsx`,
+  `src/components/shared/add-asset-modal.tsx`.
+- [ ] **Cartera (/overview) completa (puntos 8 y 9).**
+  - Fila de KPIs fijos: dinero invertido, variación de hoy, últimos 30 días.
+  - Añadir el panel de distribución (`StackedAllocation`) a /overview.
+  - Añadir granularidad corta a la proyección (horizonte semanal / próxima semana).
+  - Archivos: `src/app/(dashboard)/overview/page.tsx`,
+    `src/components/dashboard/dashboard-overview.tsx`,
+    `src/server/portfolio-projection.ts`.
+- [ ] **Ajustes de perfil (punto 14).** Cambiar nombre y contraseña estando
+  logueado. BetterAuth soporta `changePassword`. Archivos:
+  `src/actions/settings.ts`, `src/components/dashboard/settings-form.tsx`,
+  `src/server/auth.ts`.
+- [ ] **Reforzar transparencia (puntos 1, 2, 13).** Tarjeta "Cómo funciona la IA"
+  (Chronos pre-entrenado zero-shot, datos de Yahoo) y "Fuente de precios" visible
+  de forma global, no solo en el detalle. Declarar también FX (Frankfurter).
 
-**Criterio de hecho:** cumplido en local. `GET /api/predictions/[symbol]` devuelve predicciones reales (verificado en 3005: 200 OK + serie futura en la gráfica), con degradación a caché stale si el servicio cae. Falta el despliegue externo para que aplique también en producción Vercel.
-
----
-
-## Fase 3 — i18n completo — HECHA
-
-La tarea de mayor volumen.
-
-- [x] **Librería:** next-intl v4 con estrategia **por cookie (`NEXT_LOCALE`), sin segmento `[locale]`** en la ruta. Detección `NEXT_LOCALE` → `Accept-Language` → `en` en `src/i18n/request.ts`. `next.config.ts` envuelto con `createNextIntlPlugin`.
-- [x] **Extraer todos los strings** a catálogos `messages/en.json` y `messages/es.json` (paridad de claves): landing, auth (incl. forgot/reset), dashboard, modal de alta de activos, settings, advisor, errores/404, metadata. Corregido el literal suelto `"ETF (sin desglose)"`.
-- [x] **Selector de idioma** en Settings + detección por navegador. Preferencia persistida en `User.locale` (migración `add_user_locale`, `additionalFields` en auth, acción `updateLocale` que también fija la cookie). Formatters (`formatCurrency`, fechas) locale-aware vía `localeToIntl`.
-- [x] **Advisor multilingüe:** `ADVISOR_SYSTEM_PROMPT` → `buildAdvisorSystemPrompt(locale)` con instrucción explícita de idioma; la ruta de chat pasa `session.user.locale`. `getAdvisorMetrics(userId, locale)` localiza labels e insights en servidor.
-
-**Criterio de hecho:** cumplido y verificado en 3005. El cambio a Español propaga toda la UI (sidebar, settings, overview, formato `es-ES`), persiste, y el advisor responde en español usando datos reales.
-
-**Nota:** raw data de proveedores (sector "Technology", país "United States", símbolos) se deja sin traducir por ser datos, no etiquetas de UI.
-
----
-
-## Fase 4 — Documentación
-
-Se ejecutará aparte mediante un flujo `/goal` con directrices proporcionadas por Carlos.
-
-- [ ] README serio (quitar el estado "beta").
-- [ ] Diagrama de arquitectura.
-- [ ] Decisiones técnicas justificadas: por qué Chronos, la reconstrucción de patrimonio, la caché de 3 niveles, el modelo de datos (User cuid vs tablas de dominio Int).
-
-**Criterio de hecho:** el repo respalda directamente la memoria del TFG.
+**Criterio de hecho:** cada punto anterior comprobable en producción.
 
 ---
 
-## Fuera de scope (límites explícitos)
+## Fase 2 — IA diferenciadora
 
-- Tests y CI (decisión explícita).
-- OAuth Google y verificación de email.
-- Edición de perfil / borrado de cuenta / preferencias más allá de divisa + idioma.
-- Optimización de rendimiento de `getPortfolioForUser` (quote + FX secuencial por posición): margen de mejora conocido, no bloqueante. Anotado por si surge en la defensa.
+Lo que sube la nota y responde al "cuanta más IA, mejor".
+
+- [ ] **Señal educativa por activo (puntos 6, 7, 16).** Indicador neutro de
+  momentum, volatilidad y encaje con el perfil de riesgo del usuario. NO
+  recomendación explícita de comprar/vender: respeta el enfoque de copiloto
+  educativo y evita responsabilidad de asesoramiento financiero.
+- [ ] **Sugerencias personalizadas de diversificación.** A partir de la
+  distribución real de la cartera ("estás 80% en tecnología, considera
+  diversificar"). Reutiliza `getAdvisorMetrics`.
+
+**Decisión tomada:** el punto 7 se implementa como señal educativa neutra, no como
+rating de compra/venta.
+
+**Criterio de hecho:** el usuario ve, al valorar un activo, una lectura contextual
+no prescriptiva; y en cartera, avisos de concentración basados en datos reales.
+
+---
+
+## Fase 3 — Rigor de ingeniería
+
+Responde a los puntos 11 y 12 y da material para la defensa.
+
+- [ ] **Tests unitarios** de la lógica crítica: reconstrucción de patrimonio,
+  proyección por tipo de activo, cálculo de P/L, caché de 3 niveles.
+- [ ] **Tests e2e** (Playwright): login demo, alta de activo, ver predicción.
+- [ ] **Test de carga:** seed de 1000 activos, medir y documentar. Probablemente
+  aflore el N+1 conocido de `getPortfolioForUser` (quote + FX secuencial por
+  posición): documentarlo y, si compensa, optimizarlo. Buena historia técnica.
+
+**Criterio de hecho:** suite verde, un `pnpm test`, y una nota con los resultados
+del test de carga.
 
 ---
 
 ## Orden de ejecución
 
-**0 → 1 → 2 → 3 → 4**
+**0 → 1 → 2 → 3**
 
-- **Fase 0** — HECHA.
-- **Fase 1** — HECHA (falta solo cuenta Resend para emails reales en prod).
-- **Fase 2** — HECHA en local (falta desplegar el contenedor a host externo).
-- **Fase 3** — HECHA.
-- **Fase 4 (docs)** — pendiente, al final.
+La Fase 0 es urgente: sin desplegar, nada de lo nuevo lo verá el tutor. El resto
+en orden de visibilidad decreciente y esfuerzo creciente.
 
-### Cómo correr en local (verificado en puerto 3005)
+## Fuera de scope (límites explícitos)
 
-- `docker compose up -d db ml-service` (en esta máquina el 5436 lo ocupa otro proyecto: hay `docker-compose.override.yml` que mapea la DB a 5441).
-- `ML_SERVICE_URL=http://localhost:5001`, `BETTER_AUTH_URL`/`NEXT_PUBLIC_APP_URL=http://localhost:3005`.
-- `pnpm build && pnpm exec next start -p 3005`.
-- Reset password sin `RESEND_API_KEY`: la URL de reset se imprime en la consola del servidor.
+- Documentación / memoria del TFG: flujo aparte, al final.
+- OAuth Google y verificación de email.
+- Borrado de cuenta.
+- Trading real, órdenes o integración con brokers: NextWorth es copiloto, no
+  ejecuta operaciones.

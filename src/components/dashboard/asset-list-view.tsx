@@ -6,11 +6,13 @@ import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
 import { Trash, PencilSimple } from "@phosphor-icons/react/dist/ssr";
 import { formatCurrency, formatPercent } from "@/lib/utils";
+import { AssetTypeIcon } from "@/lib/asset-type-icons";
 import { localeToIntl } from "@/i18n/locale";
 import { deletePosition } from "@/actions/portfolio";
 import { AddAssetModal, type AssetSelection } from "@/components/shared/add-asset-modal";
 import { AssetLogo } from "@/components/shared/asset-logo";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { GlossaryTerm } from "@/components/ui/glossary-term";
 import { StatCard } from "@/components/ui/stat-card";
 import { Pill } from "@/components/ui/pill";
 import { Badge } from "@/components/ui/badge";
@@ -168,7 +170,9 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
               key={value}
               active={activeFilter === value}
               onClick={() => setActiveFilter(value)}
+              className="inline-flex items-center gap-1.5"
             >
+              {value !== "all" && <AssetTypeIcon type={value} />}
               {t(`filter.${value}`)}
               {value !== "all" && assetCounts[value] ? (
                 <span className="ml-1 opacity-70">{assetCounts[value]}</span>
@@ -252,7 +256,10 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                   <p className="font-medium text-white truncate">{pos.name || pos.symbol}</p>
                   <p className="text-xs text-neutral-500">{pos.symbol}</p>
                 </div>
-                <Badge>{t(`filter.${pos.assetType}`)}</Badge>
+                <Badge className="inline-flex items-center gap-1">
+                  <AssetTypeIcon type={pos.assetType} />
+                  {t(`filter.${pos.assetType}`)}
+                </Badge>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-sm mb-4">
@@ -280,7 +287,9 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
               {pos.assetType === "savings" && pos.projectedAnnualIncome != null && (
                 <div className="grid grid-cols-2 gap-3 text-sm mb-4 pt-3 border-t border-neutral-800/50">
                   <div>
-                    <p className="text-neutral-500 text-xs">{t("field.annualInterest")}</p>
+                    <p className="text-neutral-500 text-xs">
+                      <GlossaryTerm termId="tae">{t("field.annualInterest")}</GlossaryTerm>
+                    </p>
                     <p className="text-success">{formatCurrency(pos.projectedAnnualIncome, portfolio.baseCurrency, intlLocale)}</p>
                   </div>
                   <div>
@@ -293,13 +302,17 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                 <div className="grid grid-cols-2 gap-3 text-sm mb-4 pt-3 border-t border-neutral-800/50">
                   {pos.annualCouponIncome != null && (
                     <div>
-                      <p className="text-neutral-500 text-xs">{t("field.couponPerYear")}</p>
+                      <p className="text-neutral-500 text-xs">
+                        <GlossaryTerm termId="coupon">{t("field.couponPerYear")}</GlossaryTerm>
+                      </p>
                       <p className="text-success">{formatCurrency(pos.annualCouponIncome, portfolio.baseCurrency, intlLocale)}</p>
                     </div>
                   )}
                   {pos.currentYield != null && (
                     <div>
-                      <p className="text-neutral-500 text-xs">{t("field.currentYield")}</p>
+                      <p className="text-neutral-500 text-xs">
+                        <GlossaryTerm termId="bondYield">{t("field.currentYield")}</GlossaryTerm>
+                      </p>
                       <p className="text-white">{pos.currentYield.toFixed(2)}%</p>
                     </div>
                   )}
@@ -313,6 +326,22 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                     <div>
                       <p className="text-neutral-500 text-xs">{t("field.atMaturity")}</p>
                       <p className="text-white">{formatCurrency(pos.redemptionValue, portfolio.baseCurrency, intlLocale)}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              {(pos.assetType === "stock" || pos.assetType === "etf") && pos.annualDividendIncome != null && (
+                <div className="grid grid-cols-2 gap-3 text-sm mb-4 pt-3 border-t border-neutral-800/50">
+                  <div>
+                    <p className="text-neutral-500 text-xs">{t("field.annualDividend")}</p>
+                    <p className="text-success">{formatCurrency(pos.annualDividendIncome, portfolio.baseCurrency, intlLocale)}</p>
+                  </div>
+                  {pos.dividendYield != null && (
+                    <div>
+                      <p className="text-neutral-500 text-xs">
+                        <GlossaryTerm termId="dividendYield">{t("field.dividendYield")}</GlossaryTerm>
+                      </p>
+                      <p className="text-white">{pos.dividendYield.toFixed(2)}%</p>
                     </div>
                   )}
                 </div>
@@ -344,6 +373,10 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
             );
           })}
         </div>
+      )}
+
+      {portfolio.positions.length > 0 && (
+        <p className="text-xs text-neutral-500">{t("dataSource")}</p>
       )}
 
       <AddAssetModal

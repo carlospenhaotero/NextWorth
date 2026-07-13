@@ -130,7 +130,9 @@
       "errorGeneric": "An error occurred. Please try again.",
       "noAccount": "No account?",
       "createAccount": "Create an account",
-      "title": "Welcome back"
+      "title": "Welcome back",
+      "demoButton": "Try the demo account",
+      "demoHint": "Sign in with sample data, no signup"
     },
     "register": {
       "title": "Create your account",
@@ -189,12 +191,25 @@
     },
     "chartError": "Couldn't update the chart. Showing previous data."
   },
+  "onboarding": {
+    "title": "Welcome to NextWorth",
+    "subtitle": "Let's set up your portfolio so you can track your net worth and get AI-powered insights.",
+    "step1Title": "Add your first asset",
+    "step1Desc": "Stocks, ETFs, crypto, cash, savings or bonds. It only takes a minute.",
+    "step2Title": "Discover your projection and AI predictions",
+    "step2Desc": "See how your net worth evolves and where it could be headed.",
+    "step3Title": "Ask your advisor",
+    "step3Desc": "Get a breakdown of your portfolio and personalized insights.",
+    "cta": "Add your first asset",
+    "ctaSecondary": "Talk to your advisor"
+  },
   "portfolioChart": {
     "netWorth": "Net worth",
     "empty": "Add your first asset to see your net worth over time",
     "tooltip": {
       "value": "Value",
-      "invested": "Invested"
+      "invested": "Invested",
+      "projected": "Projection"
     },
     "range": {
       "1w": "1W",
@@ -203,11 +218,27 @@
       "6m": "6M",
       "1y": "1Y",
       "all": "All"
+    },
+    "projection": {
+      "toggle": "Projection",
+      "hide": "Hide projection",
+      "today": "Today",
+      "loading": "Loading projection...",
+      "error": "Couldn't load the projection.",
+      "disclaimer": "Projection estimated with Amazon Chronos. Not a guarantee of returns.",
+      "horizon": {
+        "3m": "3M",
+        "6m": "6M",
+        "1y": "1Y",
+        "2y": "2Y",
+        "5y": "5Y"
+      }
     }
   },
   "topMovers": {
     "title": "Top Movers",
-    "empty": "Add assets to see your top movers."
+    "empty": "Add assets to see your top movers.",
+    "viewForecast": "View AI forecast"
   },
   "allocation": {
     "title": "Allocation",
@@ -249,7 +280,9 @@
       "currentYield": "Current yield",
       "toMaturity": "To maturity",
       "atMaturity": "At maturity",
-      "days": "{days} days"
+      "days": "{days} days",
+      "annualDividend": "Annual dividend",
+      "dividendYield": "Dividend yield"
     },
     "searchPlaceholder": "Search assets...",
     "empty": {
@@ -269,7 +302,26 @@
     "toast": {
       "deleted": "Asset deleted",
       "deleteError": "Failed to delete asset"
-    }
+    },
+    "dataSource": "Market data from Yahoo Finance"
+  },
+  "exportData": {
+    "button": "Export",
+    "csv": "Download CSV",
+    "pdf": "Download PDF",
+    "title": "NextWorth Portfolio",
+    "generatedAt": "Generated on",
+    "colSymbol": "Symbol",
+    "colName": "Name",
+    "colType": "Type",
+    "colQuantity": "Quantity",
+    "colAvgPrice": "Avg buy price",
+    "colCurrentPrice": "Current price",
+    "colValue": "Current value",
+    "colPl": "P/L",
+    "colPlPct": "P/L %",
+    "colCurrency": "Currency",
+    "totalLabel": "Total"
   },
   "assetDetail": {
     "stat": {
@@ -279,9 +331,12 @@
       "low": "Low"
     },
     "aiPredictions": "AI Predictions",
+    "hidePredictions": "Hide prediction",
     "loadingPredictions": "Loading predictions...",
     "today": "Today",
     "noData": "No chart data available",
+    "dataSource": "Market data from Yahoo Finance",
+    "forecastSource": "Forecasts generated with Amazon Chronos",
     "range": {
       "6m": "6M",
       "12m": "1Y",
@@ -442,7 +497,15 @@
       "thinking": "Thinking…",
       "placeholder": "Ask about your portfolio…",
       "send": "Send message",
-      "disclaimer": "General educational information, not personalized financial advice."
+      "disclaimer": "General educational information, not personalized financial advice.",
+      "aiDisclaimer": "AI-generated responses (Google Gemini). May be inaccurate; not financial advice.",
+      "explainTitle": "Explain to me",
+      "explain": [
+        { "label": "My risk", "prompt": "Explain my risk profile and what determines it." },
+        { "label": "My diversification", "prompt": "Explain how diversified my portfolio is." },
+        { "label": "Income and dividends", "prompt": "Explain my income and dividends." },
+        { "label": "Interpret my portfolio", "prompt": "How should I interpret my portfolio overall?" }
+      ]
     },
     "kpi": {
       "bands": {
@@ -530,6 +593,37 @@
     "toast": {
       "saved": "Settings saved successfully",
       "error": "Error saving settings"
+    }
+  },
+  "glossary": {
+    "ariaLabel": "What does {term} mean?",
+    "tae": {
+      "term": "APY",
+      "definition": "Annual Percentage Yield: the yearly return of a savings account taking compound interest into account."
+    },
+    "coupon": {
+      "term": "Coupon",
+      "definition": "The periodic interest payment a bond pays you, usually expressed as a yearly amount."
+    },
+    "dividendYield": {
+      "term": "Dividend yield",
+      "definition": "The yearly dividends a stock pays, shown as a percentage of its current price."
+    },
+    "bondYield": {
+      "term": "Bond yield",
+      "definition": "The annual return a bond gives you right now, based on its coupon and current price."
+    },
+    "riskProfile": {
+      "term": "Risk profile",
+      "definition": "How much your portfolio's value can swing up or down, based on the assets you hold."
+    },
+    "diversification": {
+      "term": "Diversification",
+      "definition": "Spreading your money across different assets so that one bad investment doesn't hurt your whole portfolio."
+    },
+    "netWorth": {
+      "term": "Net worth",
+      "definition": "The total current value of everything in your portfolio, added together."
     }
   }
 }
