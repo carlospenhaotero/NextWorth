@@ -19,6 +19,9 @@ export async function GET(
 
   const range = searchParams.get("range") || "24m";
   const interval = searchParams.get("interval") || "1mo";
+  // Preview mode: fetch straight from Yahoo without creating the asset or
+  // caching its history (used by the add-asset flow for un-added assets).
+  const persist = searchParams.get("persist") !== "0";
 
   // Parse range to months
   const months = parseInt(range.replace("m", ""));
@@ -35,7 +38,8 @@ export async function GET(
       decodeURIComponent(symbol),
       months,
       interval as "1d" | "1wk" | "1mo",
-      3600 // 1 hour TTL
+      3600, // 1 hour TTL
+      { persist }
     );
     return NextResponse.json(data);
   } catch (error) {

@@ -90,35 +90,12 @@ async function fetchPredictionInternal(
     };
   }
 
-  // Fetch historical data for ML
-  const historyMonths = Math.max(24, parseHorizon(horizon) * 2);
-  let historicalData;
-  try {
-    historicalData = await getAssetHistory(symbol, historyMonths, "1mo", 3600);
-    if (!historicalData?.series || historicalData.series.length < 6) return null;
-  } catch {
-    return tryStaleCache(assetId, symbol, horizon);
-  }
-
-  const history = historicalData.series.map((p) => ({
-    date: p.date,
-    close: p.close,
-  }));
-
-  // Call ML service
-  let mlResult;
-  try {
-    mlResult = await chronos.getPrediction(symbol, history, horizon);
-    if (!mlResult?.predictions) {
-      return tryStaleCache(assetId, symbol, horizon);
-    }
-  } catch {
-    return tryStaleCache(assetId, symbol, horizon);
-  }
+  const computed = await predictFromHistory(symbol, horizon);
+  if (!computed) return tryStaleCache(assetId, symbol, horizon);
 
   // Store predictions in DB
   try {
-    for (const pred of mlResult.predictions) {
+    for (const pred of computed.predictions) {
       await prisma.assetPrediction.upsert({
         where: {
           assetId_predictionHorizon_predictionDate: {
@@ -129,7 +106,7 @@ async function fetchPredictionInternal(
         },
         update: {
           predictedClose: pred.predicted_close,
-          modelVersion: mlResult.model_version,
+          modelVersion: computed.modelVersion,
           fetchedAt: new Date(),
         },
         create: {
@@ -137,7 +114,7 @@ async function fetchPredictionInternal(
           predictionHorizon: horizon,
           predictionDate: new Date(pred.date),
           predictedClose: pred.predicted_close,
-          modelVersion: mlResult.model_version,
+          modelVersion: computed.modelVersion,
         },
       });
     }
@@ -149,16 +126,65 @@ async function fetchPredictionInternal(
     symbol,
     assetId,
     horizon,
+    predictions: computed.predictions,
+    source: "ml_service",
+    cachedAt: new Date().toISOString(),
+    ttl,
+    modelVersion: computed.modelVersion,
+    inferenceTimeMs: computed.inferenceTimeMs,
+    warning: null,
+  };
+}
+
+export interface PredictionComputation {
+  predictions: PredictionPoint[];
+  modelVersion: string;
+  inferenceTimeMs?: number;
+}
+
+/**
+ * Runs the Chronos forecast for a symbol straight from its Yahoo history.
+ * No DB access: it neither reads the prediction cache nor persists anything,
+ * so it works for symbols that are not (yet) in the `assets` table.
+ * Returns null on any failure or insufficient history.
+ */
+export async function predictFromHistory(
+  symbol: string,
+  horizon: string,
+  options: { persist?: boolean } = {}
+): Promise<PredictionComputation | null> {
+  const historyMonths = Math.max(24, parseHorizon(horizon) * 2);
+
+  let historicalData;
+  try {
+    historicalData = await getAssetHistory(symbol, historyMonths, "1mo", 3600, {
+      persist: options.persist ?? true,
+    });
+  } catch {
+    return null;
+  }
+  if (!historicalData?.series || historicalData.series.length < 6) return null;
+
+  const history = historicalData.series.map((p) => ({
+    date: p.date,
+    close: p.close,
+  }));
+
+  let mlResult;
+  try {
+    mlResult = await chronos.getPrediction(symbol, history, horizon);
+  } catch {
+    return null;
+  }
+  if (!mlResult?.predictions) return null;
+
+  return {
     predictions: mlResult.predictions.map((p) => ({
       date: p.date,
       predicted_close: p.predicted_close,
     })),
-    source: "ml_service",
-    cachedAt: new Date().toISOString(),
-    ttl,
     modelVersion: mlResult.model_version,
     inferenceTimeMs: mlResult.inference_time_ms,
-    warning: null,
   };
 }
 

@@ -76,19 +76,31 @@ function calculateExpectedPoints(months: number, interval: string): number {
   return months;
 }
 
+export interface AssetHistoryOptions {
+  /**
+   * When false, the history is fetched straight from Yahoo without upserting
+   * the asset or reading/writing the DB cache. Used by the add-asset preview,
+   * where merely browsing an asset must not create reference rows. Defaults to
+   * true (the cached path used by owned assets).
+   */
+  persist?: boolean;
+}
+
 export async function getAssetHistory(
   symbol: string,
   months: number,
   interval: "1d" | "1wk" | "1mo",
-  ttl: number
+  ttl: number,
+  options: AssetHistoryOptions = {}
 ): Promise<AssetHistoryResponse> {
-  const cacheKey = `${symbol.toUpperCase()}:${months}:${interval}`;
+  const persist = options.persist ?? true;
+  const cacheKey = `${symbol.toUpperCase()}:${months}:${interval}:${persist}`;
 
   if (inflightRequests.has(cacheKey)) {
     return inflightRequests.get(cacheKey)!;
   }
 
-  const promise = fetchAssetHistoryInternal(symbol, months, interval, ttl);
+  const promise = fetchAssetHistoryInternal(symbol, months, interval, ttl, persist);
   inflightRequests.set(cacheKey, promise);
 
   try {
@@ -102,10 +114,41 @@ async function fetchAssetHistoryInternal(
   symbol: string,
   months: number,
   interval: "1d" | "1wk" | "1mo",
-  ttl: number
+  ttl: number,
+  persist: boolean
 ): Promise<AssetHistoryResponse> {
   const symbolUpper = symbol.toUpperCase();
   const assetType = inferAssetType(symbolUpper);
+
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - months);
+
+  // Non-persisting path: go straight to Yahoo, touch no tables.
+  if (!persist) {
+    const yahooData = await getHistoricalData(symbolUpper, startDate, endDate, interval);
+    if (yahooData.length === 0) {
+      throw new Error("SYMBOL_NOT_FOUND");
+    }
+    const syntheticAsset = {
+      id: -1,
+      symbol: symbolUpper,
+      name: symbolUpper,
+      assetType,
+      currency: "USD",
+    };
+    const rows = yahooData.map((dp) => ({
+      month: new Date(dp.date),
+      open: dp.open,
+      high: dp.high,
+      low: dp.low,
+      close: dp.close,
+      volume: dp.volume,
+      currency: dp.currency,
+      fetchedAt: endDate,
+    }));
+    return formatResponse(syntheticAsset, rows, months, interval, "yahoo", ttl);
+  }
 
   // Upsert asset
   const asset = await prisma.asset.upsert({
@@ -113,10 +156,6 @@ async function fetchAssetHistoryInternal(
     update: {},
     create: { symbol: symbolUpper, name: symbolUpper, assetType, currency: "USD" },
   });
-
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setMonth(startDate.getMonth() - months);
 
   // Check DB cache with TTL
   const ttlDate = new Date(Date.now() - ttl * 1000);
@@ -213,7 +252,7 @@ function formatResponse(
     high: unknown;
     low: unknown;
     close: unknown;
-    volume: bigint;
+    volume: bigint | number;
     currency: string;
     fetchedAt: Date;
   }>,
