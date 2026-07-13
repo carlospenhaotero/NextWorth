@@ -47,3 +47,9 @@ ml-service/temp_chronos/
 # Local docker overrides (machine-specific ports)
 docker-compose.override.yml
 .vercel
+
+# playwright
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
