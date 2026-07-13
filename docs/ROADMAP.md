@@ -32,8 +32,8 @@ servicio ML Chronos desplegado en Railway.
 | 3 | Cuenta demo con activos | HECHO (sin desplegar). `demo@nextworth.app` / `demo1234`, 11 activos, botón "Probar demo". Discrepancia de credenciales con la guía de pruebas, a unificar |
 | 4 | Repositorio con el código | HECHO. GitHub |
 | 5 | Ver evolución pasada y futura al añadir un activo | HECHO (sin desplegar). Modal de alta ancho a 2 columnas con histórico ~24m + proyección Chronos 1y siempre activa |
-| 6 | Sugerir qué activos añadir | PARCIAL. Catálogo estático de "populares", no personalizado |
-| 7 | Indicador de si un activo es aconsejable | FALTA. Se hará como señal educativa neutra (ver Fase 2) |
+| 6 | Sugerir qué activos añadir | HECHO como avisos de diversificación neutros (concentración por posición/sector/país) en /advisor. El catálogo de "populares" sigue siendo estático |
+| 7 | Indicador de si un activo es aconsejable | HECHO. Señal educativa neutra por activo (momentum, volatilidad, riesgo, encaje con la cartera) en el detalle. No recomienda comprar/vender |
 | 8 | Cartera: invertido, variación hoy, 30d, próxima semana | HECHO (sin desplegar). Fila de KPIs fijos en /overview: invertido + variación hoy + 30d. Proyección semanal descartada por criterio (Chronos proyecta a meses/años; 7d sería ruido); la proyección mensual/anual sigue en la gráfica |
 | 9 | Panel de distribución también en cartera | HECHO (sin desplegar). StackedAllocation añadido a /overview (por tipo, sector, país) |
 | 10 | Iconos por tipo de activo en add-asset | HECHO (sin desplegar) |
@@ -42,7 +42,7 @@ servicio ML Chronos desplegado en Railway.
 | 13 | "Precios obtenidos de:" | HECHO. Global: tarjeta de fuentes en /settings + línea precios+FX al pie de /overview; FX (Frankfurter) declarado |
 | 14 | Modificar datos de usuario (nombre, contraseña) | HECHO (sin desplegar). Ajustes permite cambiar nombre y contraseña; el cambio de contraseña exige la actual y revoca las demás sesiones |
 | 15 | La predicción está muy escondida, debe estar siempre activa | HECHO parcial. Activada por defecto en el detalle y en el alta; falta subirla a cartera |
-| 16 | Más IA (consejos, indicador de qué comprar) | Solapa con 6 y 7 |
+| 16 | Más IA (consejos, indicador de qué comprar) | HECHO vía 6 y 7 (señal por activo + avisos de diversificación) |
 
 ---
 
@@ -116,13 +116,21 @@ Lo que de verdad falta y es de cara al usuario.
 
 Lo que sube la nota y responde al "cuanta más IA, mejor".
 
-- [ ] **Señal educativa por activo (puntos 6, 7, 16).** Indicador neutro de
-  momentum, volatilidad y encaje con el perfil de riesgo del usuario. NO
-  recomendación explícita de comprar/vender: respeta el enfoque de copiloto
-  educativo y evita responsabilidad de asesoramiento financiero.
-- [ ] **Sugerencias personalizadas de diversificación.** A partir de la
-  distribución real de la cartera ("estás 80% en tecnología, considera
-  diversificar"). Reutiliza `getAdvisorMetrics`.
+- [x] **Señal educativa por activo (puntos 6, 7, 16).** Panel `AssetSignalPanel`
+  en el detalle: momentum (retorno de arrastre 3m/6m/12m por fecha real),
+  volatilidad (desviación anualizada según el espaciado inferido de la serie) y
+  clase de riesgo por tipo, más el encaje con la banda de riesgo derivada de la
+  cartera. Descriptivo, nunca recomienda comprar/vender. El tipo se lee del
+  activo que el usuario POSEE (no del histórico), lo que además acota el cálculo
+  a activos propios. Lógica pura y testeable en `src/server/asset-signal.ts`.
+  Archivos: `src/server/asset-signal.ts`,
+  `src/app/api/assets/[symbol]/signal/route.ts`,
+  `src/components/dashboard/asset-signal.tsx`.
+- [x] **Sugerencias personalizadas de diversificación.** Ya estaban construidas:
+  `getAdvisorMetrics` → `buildInsights` genera avisos deterministas y neutros
+  (concentración por posición ≥40%, por sector ≥60%, por país ≥70%, falta de
+  defensivos, exceso de liquidez), mostrados en /advisor (`InsightsPanel`) junto
+  al perfil de riesgo de la cartera. Describe, no recomienda operar.
 
 **Decisión tomada:** el punto 7 se implementa como señal educativa neutra, no como
 rating de compra/venta.
