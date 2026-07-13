@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { MagnifyingGlass, Plus, Bank, Wallet, PencilSimple, Spinner } from "@phosphor-icons/react/dist/ssr";
 import { getAllAssets, type CatalogAsset } from "@/lib/assets-catalog";
+import { AssetTypeIcon } from "@/lib/asset-type-icons";
 import { AddAssetModal, type AssetSelection, type ListedAsset } from "@/components/shared/add-asset-modal";
 import { AssetLogo } from "@/components/shared/asset-logo";
 import { Input } from "@/components/ui/input";
@@ -93,7 +94,10 @@ export function AddAssetFlow({ baseCurrency, existingPositions }: AddAssetFlowPr
           <p className="font-medium text-white text-sm truncate">{asset.displaySymbol || asset.symbol}</p>
           <p className="text-xs text-neutral-400 truncate">{asset.name}</p>
         </div>
-        <Badge className="ml-1 shrink-0 capitalize">{asset.assetType}</Badge>
+        <Badge className="ml-1 inline-flex shrink-0 items-center gap-1 capitalize">
+          <AssetTypeIcon type={asset.assetType} />
+          {asset.assetType}
+        </Badge>
       </div>
       {asset.exchange && <p className="text-xs text-neutral-600 mb-3 truncate">{asset.exchange}</p>}
       <button
@@ -172,7 +176,9 @@ export function AddAssetFlow({ baseCurrency, existingPositions }: AddAssetFlowPr
                 size="md"
                 active={category === value}
                 onClick={() => setCategory(value)}
+                className="inline-flex items-center gap-1.5"
               >
+                {value !== "all" && <AssetTypeIcon type={value} />}
                 {t(`categories.${value}`)}
               </Pill>
             ))}
