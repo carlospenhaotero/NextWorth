@@ -6,8 +6,13 @@ import { X, CheckCircle, Warning, Spinner } from "@phosphor-icons/react/dist/ssr
 import { localeToIntl } from "@/i18n/locale";
 import { upsertPosition, addToPosition, editPosition } from "@/actions/portfolio";
 import { Button } from "@/components/ui/button";
+import { AssetPreviewChart } from "@/components/shared/asset-preview-chart";
 
 const ASSET_TYPE_VALUES = ["stock", "etf", "fund", "crypto", "commodity", "bond", "other"] as const;
+
+// Asset types with a Yahoo history + Chronos forecast (mirrors the projection
+// engine). These get the history + projection preview in the add flow.
+const MARKET_TYPES = new Set(["stock", "etf", "fund", "crypto", "commodity"]);
 
 const CURRENCIES = ["USD", "EUR", "GBP", "CHF", "JPY", "CAD", "AUD", "CNY"];
 
@@ -107,6 +112,11 @@ export function AddAssetModal({
   // Listed assets (catalog/search) and edited listed assets have a Yahoo price.
   const editingListed = editPos != null && !["cash", "savings", "other"].includes(editPos.assetType);
   const hasMarketPrice = isListed || editingListed;
+  // Show the history + projection preview only for market assets with a symbol.
+  const showChart =
+    (isListed || editingListed) &&
+    MARKET_TYPES.has(form.assetType) &&
+    form.symbol.trim() !== "";
 
   const fetchQuote = useCallback(async (symbol: string): Promise<QuoteState> => {
     const clean = symbol.trim().toUpperCase();
@@ -437,7 +447,12 @@ export function AddAssetModal({
         aria-modal="true"
         aria-labelledby="add-asset-title"
         tabIndex={-1}
-        className="relative glass-card !p-0 flex flex-col w-full max-w-md mx-4 max-h-[90vh] overflow-hidden focus:outline-none"
+        className={`relative glass-card !p-0 flex flex-col w-full mx-4 max-h-[90vh] overflow-hidden focus:outline-none ${
+          showChart ? "max-w-3xl" : "max-w-md"
+        }`}
+        // The wide (chart) layout leaves empty space in the short form column;
+        // a near-opaque surface stops the page bleeding through the glass there.
+        style={showChart ? { backgroundColor: "rgba(23, 23, 23, 0.94)" } : undefined}
       >
         <button onClick={onClose} aria-label={t("button.close")} className="absolute top-4 right-4 z-10 text-neutral-400 hover:text-white">
           <X size={20} />
@@ -449,7 +464,14 @@ export function AddAssetModal({
         </div>
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-4">
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4">
+          <div className={showChart ? "md:grid md:grid-cols-2 md:gap-6" : ""}>
+          {showChart && (
+            <div className="mb-4 md:order-2 md:mb-0">
+              <AssetPreviewChart symbol={form.symbol} />
+            </div>
+          )}
+          <div className="space-y-4 md:order-1">
           {error && <div className="text-danger text-sm bg-danger/10 py-2 px-3 rounded-lg">{error}</div>}
           {success && <div className="text-success text-sm bg-success/10 py-2 px-3 rounded-lg">{success}</div>}
 
@@ -607,7 +629,9 @@ export function AddAssetModal({
             </div>
           )}
 
-          </div>
+          </div>{/* form fields */}
+          </div>{/* grid */}
+          </div>{/* scroll body */}
 
           <div className="flex shrink-0 gap-3 border-t border-border bg-neutral-900/90 px-6 py-4 backdrop-blur-md">
             <Button type="button" variant="secondary" className="flex-1" onClick={onClose}>

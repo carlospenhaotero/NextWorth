@@ -386,6 +386,15 @@
       "popularAssets": "Activos populares"
     },
     "modal": {
+      "chart": {
+        "title": "Pasado y proyección",
+        "today": "Hoy",
+        "loadingForecast": "Cargando proyección...",
+        "noData": "No hay datos para la gráfica",
+        "priceSource": "Precios de Yahoo Finance",
+        "disclaimer": "Proyección estimada con Amazon Chronos. No garantiza rentabilidades.",
+        "forecastUnavailable": "Proyección no disponible ahora mismo."
+      },
       "assetType": {
         "stock": "Acción",
         "etf": "ETF",

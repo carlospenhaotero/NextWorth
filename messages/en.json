@@ -386,6 +386,15 @@
       "popularAssets": "Popular assets"
     },
     "modal": {
+      "chart": {
+        "title": "Past & projected",
+        "today": "Today",
+        "loadingForecast": "Loading forecast...",
+        "noData": "No chart data available",
+        "priceSource": "Prices from Yahoo Finance",
+        "disclaimer": "Projection estimated with Amazon Chronos. Not a guarantee of returns.",
+        "forecastUnavailable": "Forecast unavailable right now."
+      },
       "assetType": {
         "stock": "Stock",
         "etf": "ETF",
