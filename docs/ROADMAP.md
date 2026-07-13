@@ -27,8 +27,8 @@ servicio ML Chronos desplegado en Railway.
 
 | # | Petición | Estado |
 |---|---|---|
-| 1 | Qué IA para generación de texto (transparencia) | HECHO. Gemini 2.5 Flash; disclaimer visible "Google Gemini" en el asesor |
-| 2 | Qué modelo de predicción y con qué datos | HECHO, mejorable. Amazon Chronos T5-small; falta aclarar que es pre-entrenado zero-shot sobre histórico de Yahoo (quita el "parece random") |
+| 1 | Qué IA para generación de texto (transparencia) | HECHO. Gemini 2.5 Flash; disclaimer en el asesor + tarjeta global "Cómo funciona la IA" en /settings |
+| 2 | Qué modelo de predicción y con qué datos | HECHO. Amazon Chronos T5-small, declarado como pre-entrenado zero-shot sobre histórico de Yahoo en la tarjeta de fuentes |
 | 3 | Cuenta demo con activos | HECHO (sin desplegar). `demo@nextworth.app` / `demo1234`, 11 activos, botón "Probar demo". Discrepancia de credenciales con la guía de pruebas, a unificar |
 | 4 | Repositorio con el código | HECHO. GitHub |
 | 5 | Ver evolución pasada y futura al añadir un activo | HECHO (sin desplegar). Modal de alta ancho a 2 columnas con histórico ~24m + proyección Chronos 1y siempre activa |
@@ -39,7 +39,7 @@ servicio ML Chronos desplegado en Railway.
 | 10 | Iconos por tipo de activo en add-asset | HECHO (sin desplegar) |
 | 11 | Qué tests hay | FALTA. Cero tests |
 | 12 | Test de carga (1000 activos) | FALTA |
-| 13 | "Precios obtenidos de:" | HECHO parcial. Visible en detalle de activo; falta hacerlo global; FX no declarado |
+| 13 | "Precios obtenidos de:" | HECHO. Global: tarjeta de fuentes en /settings + línea precios+FX al pie de /overview; FX (Frankfurter) declarado |
 | 14 | Modificar datos de usuario (nombre, contraseña) | HECHO (sin desplegar). Ajustes permite cambiar nombre y contraseña; el cambio de contraseña exige la actual y revoca las demás sesiones |
 | 15 | La predicción está muy escondida, debe estar siempre activa | HECHO parcial. Activada por defecto en el detalle y en el alta; falta subirla a cartera |
 | 16 | Más IA (consejos, indicador de qué comprar) | Solapa con 6 y 7 |
@@ -99,9 +99,14 @@ Lo que de verdad falta y es de cara al usuario.
   via `/api/auth/session-expired`. Archivos: `src/actions/settings.ts`,
   `src/components/dashboard/settings-form.tsx`, `src/server/require-session.ts`,
   `src/app/api/auth/session-expired/route.ts`.
-- [ ] **Reforzar transparencia (puntos 1, 2, 13).** Tarjeta "Cómo funciona la IA"
-  (Chronos pre-entrenado zero-shot, datos de Yahoo) y "Fuente de precios" visible
-  de forma global, no solo en el detalle. Declarar también FX (Frankfurter).
+- [x] **Reforzar transparencia (puntos 1, 2, 13).** Tarjeta canónica
+  `DataSourcesCard` en /settings ("Cómo funciona la IA y de dónde vienen los
+  datos"): precios (Yahoo), FX (Frankfurter), texto del asesor (Gemini) y
+  predicciones (Amazon Chronos, pre-entrenado zero-shot sobre histórico de Yahoo,
+  quita el "parece random"). Línea de fuente global precios+FX al pie de /overview,
+  ya no vive solo en el detalle. Los microcopys del detalle/lista/asesor se
+  mantienen. Archivos: `src/components/dashboard/data-sources-card.tsx`,
+  `src/app/(dashboard)/settings/page.tsx`, `src/app/(dashboard)/overview/page.tsx`.
 
 **Criterio de hecho:** cada punto anterior comprobable en producción.
 
