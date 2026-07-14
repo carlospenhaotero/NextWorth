@@ -21,7 +21,7 @@ export function SectionHeader({ title, hint, actions, className }: SectionHeader
     <div className={cn("mb-4 flex flex-wrap items-center justify-between gap-3", className)}>
       <div className="flex items-baseline gap-2">
         <h3 className="text-sm font-semibold text-neutral-200">{title}</h3>
-        {hint != null && <span className="text-xs text-neutral-500">{hint}</span>}
+        {hint != null && <span className="text-xs text-muted">{hint}</span>}
       </div>
       {actions != null && <div className="flex items-center gap-2">{actions}</div>}
     </div>

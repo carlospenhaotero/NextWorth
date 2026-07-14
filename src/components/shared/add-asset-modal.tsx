@@ -471,7 +471,12 @@ export function AddAssetModal({
               <AssetPreviewChart symbol={form.symbol} />
             </div>
           )}
-          <div className="space-y-4 md:order-1">
+          <div className={`space-y-4 md:order-1 ${showChart ? "md:flex md:flex-col md:justify-center" : ""}`}>
+          {showChart && (
+            <p className="text-xs font-medium uppercase tracking-wider text-muted">
+              {t("formTitle")}
+            </p>
+          )}
           {error && <div className="text-danger text-sm bg-danger/10 py-2 px-3 rounded-lg">{error}</div>}
           {success && <div className="text-success text-sm bg-success/10 py-2 px-3 rounded-lg">{success}</div>}
 
@@ -619,8 +624,9 @@ export function AddAssetModal({
             </div>
           )}
 
-          {/* Investment summary */}
-          {!isCashLike && investmentTotal > 0 && (
+          {/* Investment summary — always shown in the wide (chart) layout so the
+              form column keeps an anchored block instead of trailing off empty. */}
+          {!isCashLike && (investmentTotal > 0 || showChart) && (
             <div className="flex justify-between items-center py-3 px-4 bg-neutral-800/50 rounded-xl">
               <span className="text-sm text-neutral-400">{isManual ? t("total.value") : t("total.invested")}</span>
               <span className="font-bold text-white">

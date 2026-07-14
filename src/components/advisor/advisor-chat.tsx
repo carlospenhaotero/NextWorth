@@ -55,10 +55,10 @@ export function AdvisorChat() {
         <Sparkle size={18} weight="fill" className="text-accent-hover" />
         <h3 className="text-neutral-200 font-semibold">{t("header")}</h3>
       </div>
-      <p className="mb-3 text-xs text-neutral-500 shrink-0">{t("aiDisclaimer")}</p>
+      <p className="mb-3 text-xs text-muted shrink-0">{t("aiDisclaimer")}</p>
 
       <div className="mb-4 flex flex-wrap items-center gap-1.5 shrink-0">
-        <span className="text-[11px] text-neutral-500">{t("explainTitle")}</span>
+        <span className="text-[11px] text-muted">{t("explainTitle")}</span>
         {explainChips.map((chip) => (
           <button
             key={chip.label}
@@ -152,7 +152,7 @@ export function AdvisorChat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={t("placeholder")}
-          className="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-500 outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent-ring"
+          className="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-muted outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent-ring"
         />
         <button
           type="submit"

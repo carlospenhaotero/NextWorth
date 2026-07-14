@@ -52,7 +52,7 @@ export default async function LandingPage() {
         <ContainerScroll
           titleComponent={
             <div className="mb-8">
-              <h2 className="text-4xl sm:text-6xl md:text-7xl font-bold font-[family-name:var(--font-display)] tracking-tighter leading-[1.15] pb-2 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60">
+              <h2 className="text-4xl sm:text-6xl md:text-7xl font-bold font-[family-name:var(--font-display)] tracking-tighter leading-[1.15] pb-2 text-white">
                 {t("scroll.title")}
               </h2>
               <p className="mt-6 text-lg sm:text-xl text-neutral-400 max-w-2xl mx-auto leading-relaxed">
@@ -71,19 +71,19 @@ export default async function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-border py-8 px-6">
         <div className="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-sm text-neutral-500">
+          <span className="text-sm text-muted">
             {t("footer.rights", { year: String(new Date().getFullYear()) })}
           </span>
           <div className="flex items-center gap-6">
             <Link
               href="/login"
-              className="text-sm text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
+              className="text-sm text-muted hover:text-neutral-300 transition-colors cursor-pointer"
             >
               {t("nav.login")}
             </Link>
             <Link
               href="/register"
-              className="text-sm text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
+              className="text-sm text-muted hover:text-neutral-300 transition-colors cursor-pointer"
             >
               {t("footer.register")}
             </Link>

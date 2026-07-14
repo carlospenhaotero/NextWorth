@@ -24,7 +24,7 @@ export function PasswordInput({ showLabel, hideLabel, ...props }: PasswordInputP
           onClick={() => setShow((v) => !v)}
           aria-label={show ? hideLabel : showLabel}
           aria-pressed={show}
-          className="pointer-events-auto text-neutral-500 transition-colors hover:text-neutral-300 outline-none focus-visible:text-neutral-200"
+          className="pointer-events-auto text-muted transition-colors hover:text-neutral-300 outline-none focus-visible:text-neutral-200"
         >
           {show ? <EyeSlash size={18} /> : <Eye size={18} />}
         </button>

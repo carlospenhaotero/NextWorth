@@ -25,7 +25,7 @@ export async function Features() {
     <section className="py-24 px-6">
       <div className="mx-auto max-w-6xl">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold font-[family-name:var(--font-display)] tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold font-[family-name:var(--font-display)] tracking-tighter text-white mb-4">
             {t("title")}
           </h2>
           <p className="text-neutral-400 max-w-xl mx-auto">

@@ -47,17 +47,17 @@ export function PortfolioPreview() {
       {/* Stats row */}
       <div className="mt-4 grid grid-cols-3 gap-3 md:gap-4">
         <div className="rounded-xl bg-neutral-800/60 p-3">
-          <p className="text-[10px] md:text-xs text-neutral-500">{t("invested")}</p>
+          <p className="text-[10px] md:text-xs text-muted">{t("invested")}</p>
           <p className="text-sm md:text-lg font-semibold text-white">$99,840</p>
         </div>
         <div className="rounded-xl bg-neutral-800/60 p-3">
-          <p className="text-[10px] md:text-xs text-neutral-500">{t("profit")}</p>
+          <p className="text-[10px] md:text-xs text-muted">{t("profit")}</p>
           <p className="text-sm md:text-lg font-semibold text-green-400">
             +$24,740
           </p>
         </div>
         <div className="rounded-xl bg-neutral-800/60 p-3">
-          <p className="text-[10px] md:text-xs text-neutral-500">{t("assets")}</p>
+          <p className="text-[10px] md:text-xs text-muted">{t("assets")}</p>
           <p className="text-sm md:text-lg font-semibold text-white">14</p>
         </div>
       </div>

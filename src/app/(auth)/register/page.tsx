@@ -122,7 +122,7 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-neutral-500">
+      <p className="text-center text-sm text-muted">
         {t("register.haveAccount")}{" "}
         <Link href="/login" className="font-medium text-accent-hover hover:underline">
           {t("register.signIn")}

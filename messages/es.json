@@ -269,6 +269,7 @@
   "topMovers": {
     "title": "Mayores movimientos",
     "empty": "Añade activos para ver tus mayores movimientos.",
+    "value": "Valor",
     "viewForecast": "Ver predicción IA"
   },
   "allocation": {
@@ -417,6 +418,7 @@
       "popularAssets": "Activos populares"
     },
     "modal": {
+      "formTitle": "Tu inversión",
       "chart": {
         "title": "Pasado y proyección",
         "today": "Hoy",
@@ -610,6 +612,10 @@
     "goHome": "Ir al inicio"
   },
   "settings": {
+    "sections": {
+      "account": "Cuenta",
+      "preferences": "Preferencias"
+    },
     "profile": {
       "title": "Perfil",
       "desc": "Cambia el nombre que se muestra en la aplicación.",

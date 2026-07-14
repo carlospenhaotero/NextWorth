@@ -38,7 +38,7 @@ export async function KpiHeader({
   return (
     <div className="glass-card shrink-0 flex flex-wrap items-center justify-between gap-4">
       <div>
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted">
           <GlossaryTerm termId="netWorth">{t("netWorth")}</GlossaryTerm>
         </p>
         <p className="text-2xl font-bold text-white tabular-nums">
@@ -47,7 +47,7 @@ export async function KpiHeader({
       </div>
 
       <div>
-        <p className="text-xs text-neutral-500">{t("totalPL")}</p>
+        <p className="text-xs text-muted">{t("totalPL")}</p>
         <p
           className={`text-lg font-semibold tabular-nums ${
             positive ? "text-success" : "text-danger"
@@ -65,7 +65,7 @@ export async function KpiHeader({
 
       <div className="min-w-[160px]">
         <div className="flex items-center justify-between">
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-muted">
             <GlossaryTerm termId="riskProfile">{t("riskProfile")}</GlossaryTerm>
           </p>
           <p className="text-xs text-neutral-300">

@@ -132,7 +132,7 @@ function ResetPasswordForm() {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-neutral-500">
+      <p className="text-center text-sm text-muted">
         <Link href="/login" className="text-neutral-400 transition-colors hover:text-accent-hover">
           {t("resetPassword.backToLogin")}
         </Link>

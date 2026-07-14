@@ -7,10 +7,10 @@ export default async function NotFound() {
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-6">
       <div className="relative z-10 mx-auto max-w-lg text-center">
-        <p className="text-sm font-medium text-neutral-500 tracking-tight">
+        <p className="text-sm font-medium text-muted tracking-tight">
           {t("notFoundCode")}
         </p>
-        <h1 className="mt-4 text-4xl sm:text-5xl font-bold font-[family-name:var(--font-display)] tracking-tighter leading-[1.15] pb-2 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70">
+        <h1 className="mt-4 text-4xl sm:text-5xl font-bold font-[family-name:var(--font-display)] tracking-tighter leading-[1.15] pb-2 text-white">
           {t("notFoundTitle")}
         </h1>
         <p className="mt-6 text-lg text-neutral-400 leading-relaxed">

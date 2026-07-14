@@ -72,14 +72,14 @@ export function Sidebar({ userName, userEmail }: SidebarProps) {
           type="button"
           onClick={() => setOpen(true)}
           aria-label={t("openMenu")}
-          className="p-2 -ml-2 rounded-lg text-neutral-300 transition-colors hover:text-white hover:bg-neutral-800 outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+          className="p-2 -ml-2 rounded-lg text-neutral-300 transition-colors hover:text-white hover:bg-neutral-800 outline-none focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
         >
           <List size={24} />
         </button>
         <Link
           href="/overview"
           aria-label={t("brandHome")}
-          className="rounded-lg outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 active:scale-[0.98]"
+          className="rounded-lg outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 active:scale-[0.98]"
         >
           <span className="text-lg font-bold text-white tracking-wide font-[family-name:var(--font-display)] select-none">
             NextWorth
@@ -111,7 +111,7 @@ export function Sidebar({ userName, userEmail }: SidebarProps) {
             href="/overview"
             aria-label={t("brandHome")}
             onClick={() => setOpen(false)}
-            className="rounded-lg outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 active:scale-[0.98]"
+            className="rounded-lg outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 active:scale-[0.98]"
           >
             <h1 className="text-xl font-bold text-white tracking-wide font-[family-name:var(--font-display)] select-none">
               NextWorth
@@ -122,7 +122,7 @@ export function Sidebar({ userName, userEmail }: SidebarProps) {
             type="button"
             onClick={() => setOpen(false)}
             aria-label={t("closeMenu")}
-            className="lg:hidden p-2 -mr-2 rounded-lg text-neutral-400 transition-colors hover:text-white hover:bg-neutral-800 outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+            className="lg:hidden p-2 -mr-2 rounded-lg text-neutral-400 transition-colors hover:text-white hover:bg-neutral-800 outline-none focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
           >
             <X size={20} />
           </button>

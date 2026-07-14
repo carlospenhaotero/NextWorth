@@ -25,7 +25,7 @@ export async function PortfolioKpis({ kpis }: PortfolioKpisProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div className="glass-card">
-        <p className="text-xs text-neutral-500">{t("invested")}</p>
+        <p className="text-xs text-muted">{t("invested")}</p>
         <p className="mt-1 text-2xl font-bold text-white tabular-nums">
           {formatCurrency(kpis.invested, baseCurrency, intlLocale)}
         </p>
@@ -35,7 +35,7 @@ export async function PortfolioKpis({ kpis }: PortfolioKpisProps) {
         const positive = d.value >= 0;
         return (
           <div key={d.key} className="glass-card">
-            <p className="text-xs text-neutral-500">{t(d.key)}</p>
+            <p className="text-xs text-muted">{t(d.key)}</p>
             <p
               className={`mt-1 text-2xl font-bold tabular-nums ${
                 positive ? "text-success" : "text-danger"

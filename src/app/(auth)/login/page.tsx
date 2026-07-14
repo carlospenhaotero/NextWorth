@@ -132,10 +132,10 @@ export default function LoginPage() {
           {!demoLoading && <Sparkle size={18} weight="bold" />}
           {t("login.demoButton")}
         </Button>
-        <p className="text-center text-xs text-neutral-500">{t("login.demoHint")}</p>
+        <p className="text-center text-xs text-muted">{t("login.demoHint")}</p>
       </div>
 
-      <p className="text-center text-sm text-neutral-500">
+      <p className="text-center text-sm text-muted">
         {t("login.noAccount")}{" "}
         <Link href="/register" className="font-medium text-accent-hover hover:underline">
           {t("login.createAccount")}

@@ -11,7 +11,6 @@ import { AssetChart } from "@/components/shared/asset-chart";
 import { AssetSignalPanel } from "@/components/dashboard/asset-signal";
 import { StatCard } from "@/components/ui/stat-card";
 import { Pill } from "@/components/ui/pill";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const RANGE_VALUES = ["6m", "12m", "24m", "60m"] as const;
@@ -186,7 +185,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
           <h1 className="text-xl font-bold text-white truncate">
             {historyData?.name || symbol}
           </h1>
-          <p className="text-sm text-neutral-500">{historyData?.symbol || symbol}</p>
+          <p className="text-sm text-muted">{historyData?.symbol || symbol}</p>
         </div>
       </div>
 
@@ -234,53 +233,34 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 ml-auto">
-          {showPredictions ? (
-            <>
-              <Badge
-                variant="accent"
-                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold"
+          {showPredictions &&
+            HORIZON_VALUES.map((value) => (
+              <Pill
+                key={value}
+                active={predictionHorizon === value}
+                onClick={() => setPredictionHorizon(value)}
+                className="px-2.5"
               >
-                <Sparkle size={13} weight="fill" />
-                {t("aiPredictions")}
-              </Badge>
-
-              <div className="flex flex-wrap gap-1">
-                {HORIZON_VALUES.map((value) => (
-                  <Pill
-                    key={value}
-                    active={predictionHorizon === value}
-                    onClick={() => setPredictionHorizon(value)}
-                    className="px-2.5"
-                  >
-                    {t(`horizon.${value}`)}
-                  </Pill>
-                ))}
-              </div>
-
-              <Pill onClick={() => setShowPredictions(false)} className="text-neutral-500">
-                {t("hidePredictions")}
+                {t(`horizon.${value}`)}
               </Pill>
-            </>
-          ) : (
-            <Pill
-              onClick={() => setShowPredictions(true)}
-              className="flex items-center gap-1.5"
-            >
-              <Sparkle size={14} />
-              {t("aiPredictions")}
-            </Pill>
-          )}
+            ))}
+          <Pill
+            active={showPredictions}
+            onClick={() => setShowPredictions((v) => !v)}
+            className="flex items-center gap-1.5"
+          >
+            {predictionLoading && showPredictions ? (
+              <ArrowsClockwise className="animate-spin" size={14} />
+            ) : (
+              <Sparkle size={14} weight={showPredictions ? "fill" : "regular"} />
+            )}
+            {t("aiPredictions")}
+          </Pill>
         </div>
       </div>
 
       {/* Chart */}
       <div className="glass-card h-[400px]">
-        {predictionLoading && showPredictions && (
-          <div className="flex items-center gap-2 text-neutral-300 text-sm mb-2">
-            <ArrowsClockwise className="animate-spin" size={14} />
-            {t("loadingPredictions")}
-          </div>
-        )}
         <AssetChart
           data={combinedChartData}
           showPredictions={showPredictions}
@@ -291,7 +271,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
       </div>
 
       {/* Data sources */}
-      <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
+      <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
         <span>{t("dataSource")}</span>
         {showPredictions && (
           <>

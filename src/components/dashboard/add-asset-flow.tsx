@@ -137,7 +137,7 @@ export function AddAssetFlow({ baseCurrency, existingPositions }: AddAssetFlowPr
         autoFocus
         icon={<MagnifyingGlass size={18} />}
         trailing={
-          searching ? <Spinner size={18} className="animate-spin text-neutral-500" /> : undefined
+          searching ? <Spinner size={18} className="animate-spin text-muted" /> : undefined
         }
       />
 
@@ -145,7 +145,7 @@ export function AddAssetFlow({ baseCurrency, existingPositions }: AddAssetFlowPr
         /* Remote search results */
         <>
           {!searching && (
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-muted">
               {results.length > 0
                 ? t("found", { count: results.length, query: searchQuery.trim() })
                 : t("noResults", { query: searchQuery.trim() })}
@@ -157,7 +157,7 @@ export function AddAssetFlow({ baseCurrency, existingPositions }: AddAssetFlowPr
             </div>
           ) : (
             !searching && (
-              <div className="text-center py-10 text-neutral-500 space-y-3">
+              <div className="text-center py-10 text-muted space-y-3">
                 <p>{t("cantFind")}</p>
                 <button onClick={() => openWith({ kind: "manual" })} className="text-sm text-accent-hover hover:underline">
                   {t("addManuallyInstead")}
@@ -183,7 +183,7 @@ export function AddAssetFlow({ baseCurrency, existingPositions }: AddAssetFlowPr
               </Pill>
             ))}
           </div>
-          <p className="text-xs text-neutral-500 uppercase tracking-wider">{t("popularAssets")}</p>
+          <p className="text-xs text-muted uppercase tracking-wider">{t("popularAssets")}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {suggested.map((a: CatalogAsset & { assetType: string }, i) =>
               card({ symbol: a.symbol, name: a.name, assetType: a.assetType, exchange: a.exchange, currency: a.currency, displaySymbol: a.displaySymbol }, `${a.symbol}-${i}`)

@@ -59,6 +59,30 @@ function OptionButton({ code, label, active, pending, disabled, onClick }: Optio
   );
 }
 
+/**
+ * One settings entry: label + description on the left, the control on the
+ * right. Fills the card width and keeps every row visually consistent.
+ */
+function SettingRow({
+  title,
+  desc,
+  children,
+}: {
+  title: string;
+  desc: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-8">
+      <div className="md:max-w-xs md:shrink-0">
+        <h3 className="font-medium text-white">{title}</h3>
+        <p className="mt-1 text-sm text-neutral-400">{desc}</p>
+      </div>
+      <div className="w-full md:max-w-md">{children}</div>
+    </div>
+  );
+}
+
 export function SettingsForm({ currentCurrency, currentName }: SettingsFormProps) {
   const t = useTranslations("settings");
   const router = useRouter();
@@ -172,124 +196,125 @@ export function SettingsForm({ currentCurrency, currentName }: SettingsFormProps
   const passwordFilled =
     currentPassword.length > 0 && newPassword.length > 0 && confirmPassword.length > 0;
 
+  const rowGroupClass =
+    "mt-6 divide-y divide-neutral-800/60 [&>*]:py-6 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0";
+
   return (
-    <div className="grid grid-cols-1 gap-6">
-      {/* Profile */}
+    <div className="flex flex-col gap-6">
+      {/* Account */}
       <section className="glass-card">
-        <h2 className="text-lg font-semibold text-white">{t("profile.title")}</h2>
-        <p className="mt-1 text-sm text-neutral-400">{t("profile.desc")}</p>
-        <div className="mt-4 flex flex-col gap-4 sm:max-w-sm">
-          <Field htmlFor="displayName" label={t("profile.nameLabel")}>
-            <Input
-              id="displayName"
-              value={name}
-              maxLength={64}
-              disabled={savingName}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </Field>
-          <div>
-            <Button
-              variant="primary"
-              size="sm"
-              loading={savingName}
-              disabled={!nameDirty || savingName}
-              onClick={handleName}
-            >
-              {t("profile.save")}
-            </Button>
-          </div>
+        <h2 className="text-lg font-semibold text-white">{t("sections.account")}</h2>
+        <div className={rowGroupClass}>
+          <SettingRow title={t("profile.title")} desc={t("profile.desc")}>
+            <div className="flex flex-col gap-3">
+              <Field htmlFor="displayName" label={t("profile.nameLabel")}>
+                <Input
+                  id="displayName"
+                  value={name}
+                  maxLength={64}
+                  disabled={savingName}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </Field>
+              <Button
+                variant="primary"
+                size="sm"
+                className="self-start"
+                loading={savingName}
+                disabled={!nameDirty || savingName}
+                onClick={handleName}
+              >
+                {t("profile.save")}
+              </Button>
+            </div>
+          </SettingRow>
+
+          <SettingRow title={t("password.title")} desc={t("password.desc")}>
+            <div className="flex flex-col gap-3">
+              <Field htmlFor="currentPassword" label={t("password.current")}>
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  autoComplete="current-password"
+                  value={currentPassword}
+                  disabled={savingPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                />
+              </Field>
+              <Field htmlFor="newPassword" label={t("password.new")}>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  value={newPassword}
+                  disabled={savingPassword}
+                  aria-invalid={passwordError != null}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </Field>
+              <Field htmlFor="confirmPassword" label={t("password.confirm")}>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  disabled={savingPassword}
+                  aria-invalid={passwordError != null}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </Field>
+              <p className="text-xs text-muted">{t("password.hint")}</p>
+              {passwordError && <p className="text-sm text-danger">{passwordError}</p>}
+              <Button
+                variant="primary"
+                size="sm"
+                className="self-start"
+                loading={savingPassword}
+                disabled={!passwordFilled || savingPassword}
+                onClick={handlePassword}
+              >
+                {t("password.save")}
+              </Button>
+            </div>
+          </SettingRow>
         </div>
       </section>
 
-      {/* Password */}
+      {/* Preferences */}
       <section className="glass-card">
-        <h2 className="text-lg font-semibold text-white">{t("password.title")}</h2>
-        <p className="mt-1 text-sm text-neutral-400">{t("password.desc")}</p>
-        <div className="mt-4 flex flex-col gap-4 sm:max-w-sm">
-          <Field htmlFor="currentPassword" label={t("password.current")}>
-            <Input
-              id="currentPassword"
-              type="password"
-              autoComplete="current-password"
-              value={currentPassword}
-              disabled={savingPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
-          </Field>
-          <Field htmlFor="newPassword" label={t("password.new")}>
-            <Input
-              id="newPassword"
-              type="password"
-              autoComplete="new-password"
-              value={newPassword}
-              disabled={savingPassword}
-              aria-invalid={passwordError != null}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-          </Field>
-          <Field htmlFor="confirmPassword" label={t("password.confirm")}>
-            <Input
-              id="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              value={confirmPassword}
-              disabled={savingPassword}
-              aria-invalid={passwordError != null}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-          </Field>
-          <p className="text-xs text-neutral-500">{t("password.hint")}</p>
-          {passwordError && <p className="text-sm text-danger">{passwordError}</p>}
-          <div>
-            <Button
-              variant="primary"
-              size="sm"
-              loading={savingPassword}
-              disabled={!passwordFilled || savingPassword}
-              onClick={handlePassword}
-            >
-              {t("password.save")}
-            </Button>
-          </div>
-        </div>
-      </section>
+        <h2 className="text-lg font-semibold text-white">{t("sections.preferences")}</h2>
+        <div className={rowGroupClass}>
+          <SettingRow title={t("currency.title")} desc={t("currency.desc")}>
+            <div className="flex flex-wrap gap-3">
+              {CURRENCIES.map((code) => (
+                <OptionButton
+                  key={code}
+                  code={code}
+                  label={t(`currency.options.${code}`)}
+                  active={currency === code}
+                  pending={savingCurrency === code}
+                  disabled={isPending}
+                  onClick={() => handleCurrency(code)}
+                />
+              ))}
+            </div>
+          </SettingRow>
 
-      {/* Currency */}
-      <section className="glass-card">
-        <h2 className="text-lg font-semibold text-white">{t("currency.title")}</h2>
-        <p className="mt-1 text-sm text-neutral-400">{t("currency.desc")}</p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          {CURRENCIES.map((code) => (
-            <OptionButton
-              key={code}
-              code={code}
-              label={t(`currency.options.${code}`)}
-              active={currency === code}
-              pending={savingCurrency === code}
-              disabled={isPending}
-              onClick={() => handleCurrency(code)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Language */}
-      <section className="glass-card">
-        <h2 className="text-lg font-semibold text-white">{t("language.title")}</h2>
-        <p className="mt-1 text-sm text-neutral-400">{t("language.desc")}</p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          {LOCALES.map((code) => (
-            <OptionButton
-              key={code}
-              code={code}
-              label={t(`language.options.${code}`)}
-              active={locale === code}
-              pending={savingLocale === code}
-              disabled={isLocalePending}
-              onClick={() => handleLocale(code)}
-            />
-          ))}
+          <SettingRow title={t("language.title")} desc={t("language.desc")}>
+            <div className="flex flex-wrap gap-3">
+              {LOCALES.map((code) => (
+                <OptionButton
+                  key={code}
+                  code={code}
+                  label={t(`language.options.${code}`)}
+                  active={locale === code}
+                  pending={savingLocale === code}
+                  disabled={isLocalePending}
+                  onClick={() => handleLocale(code)}
+                />
+              ))}
+            </div>
+          </SettingRow>
         </div>
       </section>
     </div>

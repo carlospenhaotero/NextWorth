@@ -269,6 +269,7 @@
   "topMovers": {
     "title": "Top Movers",
     "empty": "Add assets to see your top movers.",
+    "value": "Value",
     "viewForecast": "View AI forecast"
   },
   "allocation": {
@@ -417,6 +418,7 @@
       "popularAssets": "Popular assets"
     },
     "modal": {
+      "formTitle": "Your investment",
       "chart": {
         "title": "Past & projected",
         "today": "Today",
@@ -610,6 +612,10 @@
     "goHome": "Go home"
   },
   "settings": {
+    "sections": {
+      "account": "Account",
+      "preferences": "Preferences"
+    },
     "profile": {
       "title": "Profile",
       "desc": "Update the name shown across the app.",

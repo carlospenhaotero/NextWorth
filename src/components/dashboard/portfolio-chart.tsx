@@ -23,7 +23,6 @@ import { formatCurrency, formatPercent } from "@/lib/utils";
 import { localeToIntl } from "@/i18n/locale";
 import { chartTheme } from "@/lib/chart-theme";
 import { Pill } from "@/components/ui/pill";
-import { Badge } from "@/components/ui/badge";
 import type { PortfolioHistoryData, PortfolioRange } from "@/server/portfolio-history";
 import type { PortfolioProjectionData, ProjectionHorizon } from "@/server/portfolio-projection";
 
@@ -124,37 +123,28 @@ export function PortfolioChart({
             <span className={`text-sm font-medium ${isProfit ? "text-green-400" : "text-red-400"}`}>
               {formatPercent(data.profitLossPct)}
             </span>
-            <span className="text-neutral-500 text-sm">{periodLabel}</span>
+            <span className="text-muted text-sm">{periodLabel}</span>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {RANGE_VALUES.map((value) => (
-            <Pill
-              key={value}
-              active={range === value}
-              onClick={() => onRangeChange(value)}
-              disabled={loading}
-            >
-              {t(`range.${value}`)}
-            </Pill>
-          ))}
-        </div>
-      </div>
+        {/* Chart controls */}
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
+            {RANGE_VALUES.map((value) => (
+              <Pill
+                key={value}
+                active={range === value}
+                onClick={() => onRangeChange(value)}
+                disabled={loading}
+              >
+                {t(`range.${value}`)}
+              </Pill>
+            ))}
+          </div>
 
-      {/* Projection controls */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        {projectionEnabled ? (
-          <>
-            <Badge
-              variant="accent"
-              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold"
-            >
-              <Sparkle size={13} weight="fill" />
-              {t("projection.toggle")}
-            </Badge>
-            <div className="flex flex-wrap gap-1">
-              {HORIZON_VALUES.map((value) => (
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {projectionEnabled &&
+              HORIZON_VALUES.map((value) => (
                 <Pill
                   key={value}
                   active={projectionHorizon === value}
@@ -164,23 +154,20 @@ export function PortfolioChart({
                   {t(`projection.horizon.${value}`)}
                 </Pill>
               ))}
-            </div>
-            <Pill onClick={onToggleProjection} className="text-neutral-500">
-              {t("projection.hide")}
+            <Pill
+              active={projectionEnabled}
+              onClick={onToggleProjection}
+              className="flex items-center gap-1.5"
+            >
+              {projectionLoading ? (
+                <ArrowsClockwise className="animate-spin" size={14} />
+              ) : (
+                <Sparkle size={14} weight={projectionEnabled ? "fill" : "regular"} />
+              )}
+              {t("projection.toggle")}
             </Pill>
-            {projectionLoading && (
-              <span className="flex items-center gap-1.5 text-xs text-neutral-500">
-                <ArrowsClockwise className="animate-spin" size={12} />
-                {t("projection.loading")}
-              </span>
-            )}
-          </>
-        ) : (
-          <Pill onClick={onToggleProjection} className="flex items-center gap-1.5">
-            <Sparkle size={14} />
-            {t("projection.toggle")}
-          </Pill>
-        )}
+          </div>
+        </div>
       </div>
 
       {/* Chart */}
@@ -276,13 +263,13 @@ export function PortfolioChart({
           </ResponsiveContainer>
           </div>
         ) : (
-          <div className="flex h-full items-center justify-center text-neutral-500 text-sm">
+          <div className="flex h-full items-center justify-center text-muted text-sm">
             {t("empty")}
           </div>
         )}
       </div>
       {projectionEnabled && (
-        <p className="mt-3 text-xs text-neutral-500">{t("projection.disclaimer")}</p>
+        <p className="mt-3 text-xs text-muted">{t("projection.disclaimer")}</p>
       )}
     </div>
   );

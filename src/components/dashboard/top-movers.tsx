@@ -50,49 +50,60 @@ export function TopMovers({ movers, baseCurrency, periodLabel }: TopMoversProps)
                       }
                     : undefined
                 }
-                className={`flex flex-col gap-2 p-3 bg-neutral-800/30 rounded-xl transition-colors border border-neutral-800/50 ${
+                className={`flex flex-col gap-3 p-4 bg-neutral-800/30 rounded-xl transition-colors border border-neutral-800/50 ${
                   forecastable
                     ? "cursor-pointer hover:bg-neutral-800/50 outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
                     : ""
                 }`}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <AssetLogo
-                      symbol={m.symbol}
-                      assetType={m.assetType}
-                      name={m.name}
-                      fallbackLabel={m.symbol.substring(0, 3)}
-                      className="w-9 h-9 rounded-lg"
-                    />
-                    <div className="min-w-0">
-                      <p className="font-medium text-white leading-tight">{m.name}</p>
-                      <p className="text-xs text-neutral-500">
-                        {m.symbol} · {formatCurrency(m.value, baseCurrency, intlLocale)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className={`font-bold ${up ? "text-green-400" : "text-red-400"}`}>
-                      {formatPercent(m.pnlPct)}
-                    </div>
-                    <div className={`text-xs ${up ? "text-green-500/70" : "text-red-500/70"}`}>
-                      {formatCurrency(m.pnl, baseCurrency, intlLocale)}
-                    </div>
+                {/* Header */}
+                <div className="flex items-center gap-3 min-w-0">
+                  <AssetLogo
+                    symbol={m.symbol}
+                    assetType={m.assetType}
+                    name={m.name}
+                    fallbackLabel={m.symbol.substring(0, 3)}
+                    className="w-10 h-10 rounded-lg shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <p className="font-medium text-white leading-tight truncate">{m.name}</p>
+                    <p className="text-xs text-muted truncate">{m.symbol}</p>
                   </div>
                 </div>
-                {forecastable && (
-                  <div className="flex items-center gap-1 text-xs text-accent-hover">
-                    <Sparkle size={12} weight="fill" />
-                    {t("viewForecast")}
+
+                {/* Metrics */}
+                <div className="flex items-end justify-between gap-3 pt-3 border-t border-neutral-800/50">
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted">{t("value")}</p>
+                    <p className="font-semibold text-white truncate">
+                      {formatCurrency(m.value, baseCurrency, intlLocale)}
+                    </p>
                   </div>
-                )}
+                  <div className="text-right shrink-0">
+                    <p className={`font-bold leading-tight ${up ? "text-success" : "text-danger"}`}>
+                      {formatPercent(m.pnlPct)}
+                    </p>
+                    <p className={`text-xs ${up ? "text-success/70" : "text-danger/70"}`}>
+                      {formatCurrency(m.pnl, baseCurrency, intlLocale)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Forecast CTA — reserved on every card so heights stay uniform */}
+                <div className="flex min-h-5 items-center gap-1 text-xs text-accent-hover">
+                  {forecastable && (
+                    <>
+                      <Sparkle size={12} weight="fill" />
+                      {t("viewForecast")}
+                    </>
+                  )}
+                </div>
               </div>
             );
           })}
         </div>
       ) : (
-        <p className="text-neutral-500 text-sm">
+        <p className="text-muted text-sm">
           {t("empty")}
         </p>
       )}

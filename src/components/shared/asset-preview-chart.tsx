@@ -116,7 +116,7 @@ export function AssetPreviewChart({ symbol }: AssetPreviewChartProps) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">
+        <p className="text-xs font-medium uppercase tracking-wider text-muted">
           {t("title")}
         </p>
         {predictionLoading && (
@@ -141,7 +141,7 @@ export function AssetPreviewChart({ symbol }: AssetPreviewChartProps) {
         )}
       </div>
 
-      <div className="space-y-0.5 text-xs text-neutral-500">
+      <div className="space-y-0.5 text-xs text-muted">
         <p>{t("priceSource")}</p>
         {showPredictions && <p>{t("disclaimer")}</p>}
         {predictionFailed && (

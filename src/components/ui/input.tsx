@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 const inputBase =
   "w-full rounded-xl bg-neutral-900/50 border border-neutral-700 text-neutral-100 text-sm " +
-  "placeholder:text-neutral-500 transition-colors outline-none " +
+  "placeholder:text-muted transition-colors outline-none " +
   "focus:border-accent focus:ring-2 focus:ring-accent-ring " +
   "disabled:opacity-50 disabled:cursor-not-allowed " +
   "aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger/40";
@@ -27,7 +27,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="relative">
         {icon && (
-          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500">
+          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">
             {icon}
           </span>
         )}
@@ -43,7 +43,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {trailing && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted">
             {trailing}
           </span>
         )}

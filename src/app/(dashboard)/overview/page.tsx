@@ -55,7 +55,7 @@ export default async function OverviewPage() {
             ]}
           />
         )}
-        <p className="text-xs text-neutral-500">{tOverview("sourceFooter")}</p>
+        <p className="text-xs text-muted">{tOverview("sourceFooter")}</p>
       </div>
     </>
   );

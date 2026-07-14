@@ -68,11 +68,11 @@ function StackedRow({ title, slices, byAssetClass = false }: Dimension) {
               style={{ backgroundColor: colorFor(s, i, byAssetClass) }}
             />
             <span className="text-neutral-400">{s.label}</span>
-            <span className="text-neutral-500 tabular-nums">{s.pct.toFixed(0)}%</span>
+            <span className="text-muted tabular-nums">{s.pct.toFixed(0)}%</span>
           </span>
         ))}
         {hiddenCount > 0 && (
-          <span className="text-xs text-neutral-500">+{hiddenCount}</span>
+          <span className="text-xs text-muted">+{hiddenCount}</span>
         )}
       </div>
     </div>

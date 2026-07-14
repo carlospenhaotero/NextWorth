@@ -147,11 +147,11 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
           value={
             <>
               <span className="text-success">{stats.gainers}</span>
-              <span className="text-neutral-500">{" / "}</span>
+              <span className="text-muted">{" / "}</span>
               <span className="text-danger">{stats.losers}</span>
             </>
           }
-          sub={<span className="text-neutral-500">{t("stat.gainersLosers")}</span>}
+          sub={<span className="text-muted">{t("stat.gainersLosers")}</span>}
         />
       </div>
 
@@ -212,7 +212,7 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                     }
                   : undefined
               }
-              className={`glass-card relative group ${
+              className={`glass-card relative group flex flex-col h-full ${
                 navigable
                   ? "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
                   : "cursor-default opacity-75"
@@ -244,41 +244,43 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                 </button>
               </div>
 
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-start gap-3 mb-4 pr-16">
                 <AssetLogo
                   symbol={pos.symbol}
                   assetType={pos.assetType}
                   name={pos.name}
                   fallbackLabel={ASSET_ICONS[pos.assetType] || "?"}
-                  className="w-10 h-10 rounded-lg"
+                  className="w-10 h-10 rounded-lg shrink-0"
                 />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-white truncate">{pos.name || pos.symbol}</p>
-                  <p className="text-xs text-neutral-500">{pos.symbol}</p>
+                  <div className="flex items-center gap-2 mt-1 min-w-0">
+                    <span className="text-xs text-muted shrink-0">{pos.symbol}</span>
+                    <Badge className="inline-flex items-center gap-1">
+                      <AssetTypeIcon type={pos.assetType} />
+                      {t(`filter.${pos.assetType}`)}
+                    </Badge>
+                  </div>
                 </div>
-                <Badge className="inline-flex items-center gap-1">
-                  <AssetTypeIcon type={pos.assetType} />
-                  {t(`filter.${pos.assetType}`)}
-                </Badge>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                 <div>
-                  <p className="text-neutral-500 text-xs">{t("field.quantity")}</p>
+                  <p className="text-muted text-xs">{t("field.quantity")}</p>
                   <p className="text-white">{pos.quantity.toLocaleString(intlLocale, { maximumFractionDigits: 4 })}</p>
                 </div>
                 <div>
-                  <p className="text-neutral-500 text-xs">{t("field.avgPrice")}</p>
+                  <p className="text-muted text-xs">{t("field.avgPrice")}</p>
                   <p className="text-white">
                     {pos.avgBuyPrice != null ? formatCurrency(pos.avgBuyPrice, portfolio.baseCurrency, intlLocale) : "—"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-neutral-500 text-xs">{t("field.currentPrice")}</p>
+                  <p className="text-muted text-xs">{t("field.currentPrice")}</p>
                   <p className="text-white">{formatCurrency(pos.currentPrice, portfolio.baseCurrency, intlLocale)}</p>
                 </div>
                 <div>
-                  <p className="text-neutral-500 text-xs">{t("field.currency")}</p>
+                  <p className="text-muted text-xs">{t("field.currency")}</p>
                   <p className="text-white">{pos.assetCurrency}</p>
                 </div>
               </div>
@@ -287,13 +289,13 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
               {pos.assetType === "savings" && pos.projectedAnnualIncome != null && (
                 <div className="grid grid-cols-2 gap-3 text-sm mb-4 pt-3 border-t border-neutral-800/50">
                   <div>
-                    <p className="text-neutral-500 text-xs">
+                    <p className="text-muted text-xs">
                       <GlossaryTerm termId="tae">{t("field.annualInterest")}</GlossaryTerm>
                     </p>
                     <p className="text-success">{formatCurrency(pos.projectedAnnualIncome, portfolio.baseCurrency, intlLocale)}</p>
                   </div>
                   <div>
-                    <p className="text-neutral-500 text-xs">{t("field.valueIn1y")}</p>
+                    <p className="text-muted text-xs">{t("field.valueIn1y")}</p>
                     <p className="text-white">{formatCurrency(pos.projectedValue1y, portfolio.baseCurrency, intlLocale)}</p>
                   </div>
                 </div>
@@ -302,7 +304,7 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                 <div className="grid grid-cols-2 gap-3 text-sm mb-4 pt-3 border-t border-neutral-800/50">
                   {pos.annualCouponIncome != null && (
                     <div>
-                      <p className="text-neutral-500 text-xs">
+                      <p className="text-muted text-xs">
                         <GlossaryTerm termId="coupon">{t("field.couponPerYear")}</GlossaryTerm>
                       </p>
                       <p className="text-success">{formatCurrency(pos.annualCouponIncome, portfolio.baseCurrency, intlLocale)}</p>
@@ -310,7 +312,7 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                   )}
                   {pos.currentYield != null && (
                     <div>
-                      <p className="text-neutral-500 text-xs">
+                      <p className="text-muted text-xs">
                         <GlossaryTerm termId="bondYield">{t("field.currentYield")}</GlossaryTerm>
                       </p>
                       <p className="text-white">{pos.currentYield.toFixed(2)}%</p>
@@ -318,13 +320,13 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                   )}
                   {pos.daysToMaturity != null && (
                     <div>
-                      <p className="text-neutral-500 text-xs">{t("field.toMaturity")}</p>
+                      <p className="text-muted text-xs">{t("field.toMaturity")}</p>
                       <p className="text-white">{t("field.days", { days: pos.daysToMaturity })}</p>
                     </div>
                   )}
                   {pos.redemptionValue != null && (
                     <div>
-                      <p className="text-neutral-500 text-xs">{t("field.atMaturity")}</p>
+                      <p className="text-muted text-xs">{t("field.atMaturity")}</p>
                       <p className="text-white">{formatCurrency(pos.redemptionValue, portfolio.baseCurrency, intlLocale)}</p>
                     </div>
                   )}
@@ -333,12 +335,12 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
               {(pos.assetType === "stock" || pos.assetType === "etf") && pos.annualDividendIncome != null && (
                 <div className="grid grid-cols-2 gap-3 text-sm mb-4 pt-3 border-t border-neutral-800/50">
                   <div>
-                    <p className="text-neutral-500 text-xs">{t("field.annualDividend")}</p>
+                    <p className="text-muted text-xs">{t("field.annualDividend")}</p>
                     <p className="text-success">{formatCurrency(pos.annualDividendIncome, portfolio.baseCurrency, intlLocale)}</p>
                   </div>
                   {pos.dividendYield != null && (
                     <div>
-                      <p className="text-neutral-500 text-xs">
+                      <p className="text-muted text-xs">
                         <GlossaryTerm termId="dividendYield">{t("field.dividendYield")}</GlossaryTerm>
                       </p>
                       <p className="text-white">{pos.dividendYield.toFixed(2)}%</p>
@@ -347,9 +349,9 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                 </div>
               )}
 
-              <div className="flex items-center justify-between pt-3 border-t border-neutral-800/50">
+              <div className="flex items-center justify-between mt-auto pt-3 border-t border-neutral-800/50">
                 <div>
-                  <p className="text-xs text-neutral-500">{t("field.value")}</p>
+                  <p className="text-xs text-muted">{t("field.value")}</p>
                   <p className="font-semibold text-white">
                     {formatCurrency(pos.currentValue, portfolio.baseCurrency, intlLocale)}
                   </p>
@@ -365,7 +367,7 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                   </div>
                 ) : (
                   <div className="text-right">
-                    <p className="text-xs text-neutral-500">{t("field.noCostSet")}</p>
+                    <p className="text-xs text-muted">{t("field.noCostSet")}</p>
                   </div>
                 )}
               </div>
@@ -376,7 +378,7 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
       )}
 
       {portfolio.positions.length > 0 && (
-        <p className="text-xs text-neutral-500">{t("dataSource")}</p>
+        <p className="text-xs text-muted">{t("dataSource")}</p>
       )}
 
       <AddAssetModal

@@ -21,7 +21,7 @@ const tones = {
 
 /**
  * Compact metric tile. Replaces the repeated `glass-card !p-4` +
- * `text-xs text-neutral-500` label + `text-lg font-bold` value pattern.
+ * `text-xs text-muted` label + `text-lg font-bold` value pattern.
  */
 export function StatCard({ label, value, sub, tone = "default", className }: StatCardProps) {
   return (
@@ -32,7 +32,7 @@ export function StatCard({ label, value, sub, tone = "default", className }: Sta
         className,
       )}
     >
-      <p className="text-xs font-medium text-neutral-500">{label}</p>
+      <p className="text-xs font-medium text-muted">{label}</p>
       <p className={cn("mt-1 text-lg font-bold tracking-tight", tones[tone])}>{value}</p>
       {sub != null && <div className="mt-0.5 text-xs">{sub}</div>}
     </div>

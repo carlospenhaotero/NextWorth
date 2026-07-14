@@ -63,7 +63,7 @@ export function GlossaryTerm({ termId, children, className }: GlossaryTermProps)
         type="button"
         aria-label={t("ariaLabel", { term })}
         aria-describedby={tooltipId}
-        className="inline-flex items-center justify-center rounded-full text-neutral-500 hover:text-neutral-300 outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
+        className="inline-flex items-center justify-center rounded-full text-muted hover:text-neutral-300 outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
       >
         <Info size={13} weight="bold" />
       </button>

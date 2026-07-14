@@ -6,6 +6,9 @@
   --color-foreground: #fafafa;
   --color-primary: #fafafa;
   --color-secondary: #a3a3a3;
+  /* Muted text — AA-safe on the dark surfaces, faintly tinted toward the
+     brand hue. Use instead of neutral-500 for labels and secondary copy. */
+  --color-muted: #9d9aa8;
   --color-surface: rgba(23, 23, 23, 0.7);
   --color-surface-light: rgba(38, 38, 38, 0.7);
   --color-border: rgba(255, 255, 255, 0.1);
@@ -16,11 +19,11 @@
   /* Brand accent — the single hue in an otherwise neutral theme.
      Reserved for primary CTAs, active nav/pills and key figures.
      Swap this one value to re-brand. Green/red stay for P/L only. */
-  --color-accent: #6366f1;
-  --color-accent-hover: #818cf8;
+  --color-accent: #8b5cf6;
+  --color-accent-hover: #a78bfa;
   --color-accent-foreground: #ffffff;
-  --color-accent-soft: rgba(99, 102, 241, 0.14);
-  --color-accent-ring: rgba(99, 102, 241, 0.55);
+  --color-accent-soft: rgba(139, 92, 246, 0.14);
+  --color-accent-ring: rgba(139, 92, 246, 0.55);
 
   /* Focus ring — visible indigo instead of an invisible white ring. */
   --color-ring: var(--color-accent-ring);

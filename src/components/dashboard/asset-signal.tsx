@@ -145,7 +145,7 @@ export function AssetSignalPanel({ symbol }: AssetSignalPanelProps) {
             <p className={cn("mt-2 text-base font-semibold", TONE_CLASS[tone])}>
               {value}
             </p>
-            <p className="mt-1 text-xs text-neutral-500 tabular-nums">{detail}</p>
+            <p className="mt-1 text-xs text-muted tabular-nums">{detail}</p>
           </div>
         ))}
       </div>
@@ -158,7 +158,7 @@ export function AssetSignalPanel({ symbol }: AssetSignalPanelProps) {
         </p>
       )}
 
-      <p className="mt-4 text-xs text-neutral-500">{t("disclaimer")}</p>
+      <p className="mt-4 text-xs text-muted">{t("disclaimer")}</p>
     </section>
   );
 }

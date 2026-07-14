@@ -50,7 +50,7 @@ export async function DataSourcesCard() {
         ))}
       </ul>
 
-      <p className="mt-4 text-xs text-neutral-500">{t("disclaimer")}</p>
+      <p className="mt-4 text-xs text-muted">{t("disclaimer")}</p>
     </section>
   );
 }

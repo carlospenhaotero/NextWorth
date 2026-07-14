@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-neutral-500">
+      <p className="text-center text-sm text-muted">
         <Link
           href="/login"
           className="inline-flex items-center gap-1.5 text-neutral-400 transition-colors hover:text-accent-hover"
