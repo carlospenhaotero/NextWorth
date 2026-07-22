@@ -17,19 +17,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const HORIZON_VALUES = ["3m", "6m", "1y", "2y", "5y"] as const;
 
-// The history window is derived from the forecast horizon (~2x) so the prediction
-// always takes up about a third of the chart width instead of a thin sliver on the
-// right. Capped at 120 months (the market-data API limit). Same monthly interval on
-// both sides keeps the point density — and therefore the width ratio — consistent.
-const HORIZON_TO_MONTHS: Record<string, number> = {
-  "3m": 3,
+// History window is chosen independently from the forecast horizon (like the
+// overview chart): the range selector on the left drives how much past is shown,
+// the horizon pills on the right drive how far the forecast goes. Monthly candles
+// on both sides keep the point density — and the two sides' width ratio — sane.
+const HISTORY_RANGE_VALUES = ["6m", "12m", "24m", "60m", "all"] as const;
+const HISTORY_RANGE_TO_MONTHS: Record<string, number> = {
   "6m": 6,
-  "1y": 12,
-  "2y": 24,
-  "5y": 60,
+  "12m": 12,
+  "24m": 24,
+  "60m": 60,
+  all: 120, // market-data API cap
 };
-const historyMonthsFor = (horizon: string) =>
-  Math.min((HORIZON_TO_MONTHS[horizon] ?? 6) * 2, 120);
 
 // The non-persisting history path only knows the symbol, so resolve a friendly
 // name from the catalog for the header (falls back to the symbol when unknown).
@@ -79,6 +78,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
   const [error, setError] = useState<string | null>(null);
 
   const [showPredictions, setShowPredictions] = useState(true);
+  const [historyRange, setHistoryRange] = useState("24m");
   const [predictionHorizon, setPredictionHorizon] = useState("6m");
   const [predictionData, setPredictionData] = useState<PredictionData | null>(null);
   const [predictionLoading, setPredictionLoading] = useState(false);
@@ -93,7 +93,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
       // over-densifies the history and starves long horizons. Same source the
       // add-asset preview already uses.
       const res = await fetch(
-        `/api/market/history/${encodeURIComponent(symbol)}?range=${historyMonthsFor(predictionHorizon)}m&interval=1mo&persist=0`
+        `/api/market/history/${encodeURIComponent(symbol)}?range=${HISTORY_RANGE_TO_MONTHS[historyRange] ?? 24}m&interval=1mo&persist=0`
       );
       if (!res.ok) throw new Error(t("loadFailed"));
       const data = await res.json();
@@ -103,7 +103,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
     } finally {
       setLoading(false);
     }
-  }, [symbol, predictionHorizon, t]);
+  }, [symbol, historyRange, t]);
 
   useEffect(() => {
     fetchHistory();
@@ -148,7 +148,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
   }, [historyData, intlLocale]);
 
   const combinedChartData = useMemo(() => {
-    if (!showPredictions || !predictionData?.predictions) return chartData;
+    if (!showPredictions || !predictionData?.predictions?.length) return chartData;
     const predictions = predictionData.predictions.map((p) => ({
       date: new Date(p.date).toLocaleDateString(intlLocale, { month: "short", year: "2-digit" }),
       close: null as number | null,
@@ -160,7 +160,24 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
           ? ([p.confidence_low, p.confidence_high] as [number, number])
           : null,
     }));
-    return [...chartData, ...predictions];
+    if (chartData.length === 0) return predictions;
+    // Bridge history and forecast: seed the last real point with the forecast
+    // series too (predicted = close, band pinched to zero) so the dashed line and
+    // the p10-p90 band start exactly where the solid history ends. Without this the
+    // two series share no point and `connectNulls={false}` leaves a one-month gap.
+    const anchorIdx = chartData.length - 1;
+    const bridged = chartData.map((p, i) =>
+      i === anchorIdx
+        ? {
+            ...p,
+            predicted: p.close,
+            predLow: p.close,
+            predHigh: p.close,
+            predBand: [p.close, p.close] as [number, number],
+          }
+        : p
+    );
+    return [...bridged, ...predictions];
   }, [chartData, predictionData, showPredictions, intlLocale]);
 
   const priceStats = useMemo(() => {
@@ -262,23 +279,34 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
         </div>
       )}
 
-      {/* Controls: the horizon pills set both the forecast length and the history
-          window (~2x), so the two sides of the chart stay proportional. */}
+      {/* Controls: history range on the left (how much past to show) and, on the
+          right, the forecast horizon + the AI toggle — mirrors the overview chart. */}
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex flex-wrap gap-2">
-          {HORIZON_VALUES.map((value) => (
+          {HISTORY_RANGE_VALUES.map((value) => (
             <Pill
               key={value}
-              active={predictionHorizon === value}
-              onClick={() => setPredictionHorizon(value)}
+              active={historyRange === value}
+              onClick={() => setHistoryRange(value)}
               className="px-2.5"
             >
-              {t(`horizon.${value}`)}
+              {t(`range.${value}`)}
             </Pill>
           ))}
         </div>
 
-        <div className="ml-auto">
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          {showPredictions &&
+            HORIZON_VALUES.map((value) => (
+              <Pill
+                key={value}
+                active={predictionHorizon === value}
+                onClick={() => setPredictionHorizon(value)}
+                className="px-2.5"
+              >
+                {t(`horizon.${value}`)}
+              </Pill>
+            ))}
           <Pill
             active={showPredictions}
             onClick={() => setShowPredictions((v) => !v)}
