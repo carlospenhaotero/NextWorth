@@ -1,9 +1,47 @@
 import "server-only";
-import { getYahooQuote, getHistoricalData } from "./yahoo-finance";
+import { getYahooQuote, getYahooQuotes, getHistoricalData, type QuoteResult } from "./yahoo-finance";
 import { prisma } from "./db";
 
 export async function getQuote(symbol: string) {
   return getYahooQuote(symbol);
+}
+
+// Short-lived in-memory quote cache. Quotes (unlike history) had no cache, so a
+// 1000-position portfolio hit Yahoo on every load. A 60s TTL makes repeat loads
+// and concurrent users over the same symbols near-instant without going stale.
+const QUOTE_TTL_MS = 60_000;
+const quoteCache = new Map<string, { expires: number; quote: QuoteResult }>();
+
+/**
+ * Batch quotes with an in-memory TTL cache. Serves cached symbols directly and
+ * fetches only the misses from Yahoo in one batched call. Returns a Map keyed by
+ * UPPERCASED symbol; symbols with no price are absent (caller falls back to cost).
+ */
+export async function getQuotes(symbols: string[]): Promise<Map<string, QuoteResult>> {
+  const now = Date.now();
+  const result = new Map<string, QuoteResult>();
+  const misses: string[] = [];
+
+  for (const raw of symbols) {
+    const sym = raw.toUpperCase();
+    if (result.has(sym)) continue;
+    const hit = quoteCache.get(sym);
+    if (hit && hit.expires > now) {
+      result.set(sym, hit.quote);
+    } else {
+      misses.push(sym);
+    }
+  }
+
+  if (misses.length > 0) {
+    const fetched = await getYahooQuotes(misses);
+    for (const [sym, quote] of fetched) {
+      quoteCache.set(sym, { expires: now + QUOTE_TTL_MS, quote });
+      result.set(sym, quote);
+    }
+  }
+
+  return result;
 }
 
 export async function getFxRate(

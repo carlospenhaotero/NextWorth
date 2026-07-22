@@ -4,14 +4,18 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { MagnifyingGlass, Plus, Bank, Wallet, PencilSimple, Spinner } from "@phosphor-icons/react/dist/ssr";
+import { MagnifyingGlass, Plus, Bank, Wallet, PencilSimple, Spinner, Sparkle, X } from "@phosphor-icons/react/dist/ssr";
 import { getAllAssets, type CatalogAsset } from "@/lib/assets-catalog";
-import { AssetTypeIcon } from "@/lib/asset-type-icons";
+import { AssetTypeIcon, assetTypeChipClasses } from "@/lib/asset-type-icons";
 import { AddAssetModal, type AssetSelection, type ListedAsset } from "@/components/shared/add-asset-modal";
 import { AssetLogo } from "@/components/shared/asset-logo";
+import { VarPill } from "@/components/shared/var-pill";
 import { Input } from "@/components/ui/input";
 import { Pill } from "@/components/ui/pill";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { AssetVariation } from "@/lib/variation";
+import type { AssetSuggestionsResult } from "@/lib/diversification";
 
 const CATEGORY_VALUES = ["all", "stock", "etf", "crypto", "commodity"] as const;
 
@@ -29,6 +33,10 @@ export function AddAssetFlow({ baseCurrency, existingPositions }: AddAssetFlowPr
   const [searching, setSearching] = useState(false);
   const [selection, setSelection] = useState<AssetSelection | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [variations, setVariations] = useState<Record<string, AssetVariation | null>>({});
+  const [suggestions, setSuggestions] = useState<AssetSuggestionsResult | null>(null);
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const [suggestError, setSuggestError] = useState(false);
 
   const catalog = useMemo(() => getAllAssets(), []);
   const hasQuery = searchQuery.trim().length >= 2;
@@ -68,6 +76,34 @@ export function AddAssetFlow({ baseCurrency, existingPositions }: AddAssetFlowPr
     return catalog.filter((a) => a.assetType === category);
   }, [catalog, category]);
 
+  // Load today/7d variation for the visible catalog symbols in one batch call.
+  // Symbols already fetched (value or null) are skipped, so switching tabs only
+  // fetches the newly-shown ones.
+  const suggestedSymbols = useMemo(() => suggested.map((a) => a.symbol), [suggested]);
+  useEffect(() => {
+    if (hasQuery) return;
+    const missing = suggestedSymbols.filter((s) => !(s in variations));
+    if (missing.length === 0) return;
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        const res = await fetch(`/api/market/quotes?symbols=${encodeURIComponent(missing.join(","))}`, {
+          signal: ctrl.signal,
+        });
+        const data = await res.json();
+        const next: Record<string, AssetVariation | null> = {};
+        for (const s of missing) next[s] = null; // Mark attempted so we don't refetch.
+        for (const q of data.quotes ?? []) {
+          next[q.symbol] = { price: q.price, todayPct: q.todayPct, weekPct: q.weekPct };
+        }
+        setVariations((prev) => ({ ...prev, ...next }));
+      } catch {
+        // Network/abort: leave symbols unmarked so a later view can retry.
+      }
+    })();
+    return () => ctrl.abort();
+  }, [hasQuery, suggestedSymbols, variations]);
+
   const openWith = useCallback((sel: AssetSelection) => {
     setSelection(sel);
     setModalOpen(true);
@@ -80,7 +116,42 @@ export function AddAssetFlow({ baseCurrency, existingPositions }: AddAssetFlowPr
     router.refresh();
   }, [router, t]);
 
-  const card = (asset: ListedAsset & { displaySymbol?: string }, key: string) => (
+  const loadSuggestions = useCallback(async () => {
+    setSuggestLoading(true);
+    setSuggestError(false);
+    try {
+      const res = await fetch("/api/assets/suggestions");
+      if (!res.ok) throw new Error("request failed");
+      const data: AssetSuggestionsResult = await res.json();
+      setSuggestions(data);
+      // Make sure the suggested cards can show variation even from a filtered tab.
+      const symbols = data.picks.map((p) => p.symbol);
+      if (symbols.length > 0) {
+        try {
+          const vRes = await fetch(`/api/market/quotes?symbols=${encodeURIComponent(symbols.join(","))}`);
+          const vData = await vRes.json();
+          const next: Record<string, AssetVariation | null> = {};
+          for (const s of symbols) next[s] = null;
+          for (const q of vData.quotes ?? []) {
+            next[q.symbol] = { price: q.price, todayPct: q.todayPct, weekPct: q.weekPct };
+          }
+          setVariations((prev) => ({ ...prev, ...next }));
+        } catch {
+          // Variation is optional; the suggestion still renders.
+        }
+      }
+    } catch {
+      setSuggestError(true);
+    } finally {
+      setSuggestLoading(false);
+    }
+  }, []);
+
+  const card = (
+    asset: ListedAsset & { displaySymbol?: string },
+    key: string,
+    showVariation = false
+  ) => (
     <div key={key} className="glass-card group !p-4 flex flex-col">
       <div className="flex items-start gap-3 mb-3">
         <AssetLogo
@@ -94,11 +165,25 @@ export function AddAssetFlow({ baseCurrency, existingPositions }: AddAssetFlowPr
           <p className="font-medium text-white text-sm truncate">{asset.displaySymbol || asset.symbol}</p>
           <p className="text-xs text-neutral-400 truncate">{asset.name}</p>
         </div>
-        <Badge className="ml-1 inline-flex shrink-0 items-center gap-1 capitalize">
+        <Badge className={cn("ml-1 inline-flex shrink-0 items-center gap-1 capitalize", assetTypeChipClasses(asset.assetType))}>
           <AssetTypeIcon type={asset.assetType} />
           {asset.assetType}
         </Badge>
       </div>
+      {showVariation && (
+        <div className="mb-3 flex items-center gap-4 text-xs">
+          <VarPill
+            label={t("variation.today")}
+            pct={variations[asset.symbol]?.todayPct}
+            loading={!(asset.symbol in variations)}
+          />
+          <VarPill
+            label={t("variation.week")}
+            pct={variations[asset.symbol]?.weekPct}
+            loading={!(asset.symbol in variations)}
+          />
+        </div>
+      )}
       {asset.exchange && <p className="text-xs text-neutral-600 mb-3 truncate">{asset.exchange}</p>}
       <button
         onClick={() => openWith({ kind: "listed", asset })}
@@ -183,10 +268,64 @@ export function AddAssetFlow({ baseCurrency, existingPositions }: AddAssetFlowPr
               </Pill>
             ))}
           </div>
-          <p className="text-xs text-muted uppercase tracking-wider">{t("popularAssets")}</p>
+          {(suggestLoading || suggestError || suggestions) && (
+            <div className="glass-card space-y-4 border border-accent/30 !bg-accent-soft">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Sparkle size={18} weight="fill" className="text-accent-hover" />
+                  <h3 className="text-sm font-semibold text-white">{t("suggest.title")}</h3>
+                </div>
+                <button
+                  onClick={() => { setSuggestions(null); setSuggestError(false); }}
+                  aria-label={t("suggest.dismiss")}
+                  className="text-neutral-500 transition-colors hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              {suggestLoading ? (
+                <p className="flex items-center gap-2 text-sm text-muted">
+                  <Spinner size={14} className="animate-spin" />
+                  {t("suggest.loading")}
+                </p>
+              ) : suggestError ? (
+                <p className="text-sm text-danger">{t("suggest.error")}</p>
+              ) : suggestions ? (
+                <>
+                  <p className="text-sm leading-relaxed text-neutral-300">{suggestions.explanation}</p>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                    {suggestions.picks.map((a, i) =>
+                      card(
+                        { symbol: a.symbol, name: a.name, assetType: a.assetType, exchange: a.exchange, currency: a.currency, displaySymbol: a.displaySymbol },
+                        `sug-${a.symbol}-${i}`,
+                        true
+                      )
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-3 pt-1">
+                    <p className="text-xs text-muted">{t("suggest.disclaimer")}</p>
+                    {suggestions.source === "ai" && (
+                      <span className="shrink-0 text-xs text-accent-hover">{t("suggest.aiTag")}</span>
+                    )}
+                  </div>
+                </>
+              ) : null}
+            </div>
+          )}
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs text-muted uppercase tracking-wider">{t("popularAssets")}</p>
+            <button
+              onClick={loadSuggestions}
+              disabled={suggestLoading}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-soft px-3 py-1.5 text-xs font-medium text-accent-hover transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
+            >
+              {suggestLoading ? <Spinner size={14} className="animate-spin" /> : <Sparkle size={14} weight="fill" />}
+              {t("suggest.button")}
+            </button>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {suggested.map((a: CatalogAsset & { assetType: string }, i) =>
-              card({ symbol: a.symbol, name: a.name, assetType: a.assetType, exchange: a.exchange, currency: a.currency, displaySymbol: a.displaySymbol }, `${a.symbol}-${i}`)
+              card({ symbol: a.symbol, name: a.name, assetType: a.assetType, exchange: a.exchange, currency: a.currency, displaySymbol: a.displaySymbol }, `${a.symbol}-${i}`, true)
             )}
           </div>
         </>

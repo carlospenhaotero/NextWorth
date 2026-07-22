@@ -15,6 +15,8 @@ import { predictFromHistory } from "./prediction";
 interface PreviewPoint {
   date: string;
   predicted_close: number;
+  confidence_low: number | null;
+  confidence_high: number | null;
 }
 
 export interface PreviewPredictionResponse {

@@ -85,7 +85,11 @@ export async function getPortfolioProjection(
 
   const contributions = await Promise.all(
     portfolio.positions.map(async (pos): Promise<number[]> => {
-      const currentValue = pos.currentValue ?? 0;
+      // Anchor to the live current value, but fall back to cost basis when no
+      // live quote is available -- the same fallback the history reconstruction
+      // uses -- so the projection starts from the net worth shown in the chart
+      // instead of collapsing to 0 for assets Yahoo can't price.
+      const currentValue = pos.currentValue ?? pos.invested ?? 0;
       if (currentValue <= 0) return flatSeries(0, months);
 
       if (MARKET_ASSET_TYPES.includes(pos.assetType)) {

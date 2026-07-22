@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getTranslations, getLocale } from "next-intl/server";
-import { Plus } from "@phosphor-icons/react/dist/ssr";
+import { getTranslations } from "next-intl/server";
+import { Plus, ChartPie } from "@phosphor-icons/react/dist/ssr";
 import { requireSession } from "@/server/require-session";
 import { getPortfolioForUser } from "@/queries/portfolio";
-import { getAdvisorMetrics } from "@/server/advisor/metrics";
 import { AssetListView } from "@/components/dashboard/asset-list-view";
-import { StackedAllocation } from "@/components/advisor/stacked-allocation";
 import { ExportPortfolio } from "@/components/dashboard/export-portfolio";
 import { PageHeader } from "@/components/ui/page-header";
 import { buttonClasses } from "@/components/ui/button";
@@ -24,9 +22,7 @@ export default async function AssetsPage() {
   const portfolio = await getPortfolioForUser(session.user.id);
   const t = await getTranslations("metadata.assets");
   const nav = await getTranslations("nav");
-  const locale = await getLocale();
-  const metrics = await getAdvisorMetrics(session.user.id, locale);
-  const tAllocation = await getTranslations("allocation");
+  const tList = await getTranslations("assetList");
 
   return (
     <>
@@ -44,14 +40,14 @@ export default async function AssetsPage() {
         }
       />
       <AssetListView portfolio={portfolio} />
-      {metrics.totalValue > 0 && (
-        <StackedAllocation
-          dimensions={[
-            { title: tAllocation("byAssetType"), slices: metrics.byAssetType, byAssetClass: true },
-            { title: tAllocation("bySector"), slices: metrics.bySector },
-            { title: tAllocation("byCountry"), slices: metrics.byCountry },
-          ]}
-        />
+      {portfolio.positions.length > 0 && (
+        <Link
+          href="/overview"
+          className="inline-flex items-center gap-1.5 text-sm text-accent transition-colors hover:text-accent-hover outline-none focus-visible:ring-2 focus-visible:ring-accent-ring rounded"
+        >
+          <ChartPie size={16} weight="bold" />
+          {tList("viewBreakdown")}
+        </Link>
       )}
     </>
   );

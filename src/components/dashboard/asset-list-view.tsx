@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useMemo, useTransition } from "react";
+import { useState, useMemo, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
 import { Trash, PencilSimple } from "@phosphor-icons/react/dist/ssr";
-import { formatCurrency, formatPercent } from "@/lib/utils";
-import { AssetTypeIcon } from "@/lib/asset-type-icons";
+import { cn, formatCurrency, formatPercent } from "@/lib/utils";
+import { AssetTypeIcon, assetTypeChipClasses } from "@/lib/asset-type-icons";
 import { localeToIntl } from "@/i18n/locale";
 import { deletePosition } from "@/actions/portfolio";
 import { AddAssetModal, type AssetSelection } from "@/components/shared/add-asset-modal";
 import { AssetLogo } from "@/components/shared/asset-logo";
+import { VarPill } from "@/components/shared/var-pill";
+import type { AssetVariation } from "@/lib/variation";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { GlossaryTerm } from "@/components/ui/glossary-term";
 import { StatCard } from "@/components/ui/stat-card";
@@ -28,6 +30,10 @@ const FILTER_VALUES = [
   "all", "stock", "etf", "fund", "crypto", "commodity", "bond", "cash", "savings",
 ] as const;
 
+// Render in pages so a large portfolio (1000+) doesn't mount every heavy card at
+// once. Search/filter still run over the full list; only the DOM is capped.
+const PAGE_SIZE = 30;
+
 function canShowPriceHistory(assetType: string) {
   return !["cash", "savings", "bond"].includes(assetType);
 }
@@ -42,9 +48,11 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
   const intlLocale = localeToIntl(useLocale());
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [isPending, startTransition] = useTransition();
   const [editSelection, setEditSelection] = useState<AssetSelection | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ id: number; name: string } | null>(null);
+  const [variations, setVariations] = useState<Record<string, AssetVariation | null>>({});
 
   const handleEdit = (pos: (typeof portfolio.positions)[number]) => {
     setEditSelection({
@@ -89,6 +97,55 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
       return matchesSearch && matchesFilter;
     });
   }, [portfolio.positions, searchTerm, activeFilter]);
+
+  // Collapse back to the first page whenever the result set changes, so a filter
+  // never leaves a stale "showing 120 of 4" count from the previous view.
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchTerm, activeFilter]);
+
+  const visible = filtered.slice(0, visibleCount);
+
+  // Today/7d variation for the market-priced cards currently in the DOM. Cash,
+  // savings and bonds have no quote, so they're excluded. Only newly-shown
+  // symbols are fetched, so each "load more" pulls one page's worth (<= 30),
+  // well under the endpoint's 80-symbol cap even for a 1000-position portfolio.
+  const quoteSymbols = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          filtered
+            .slice(0, visibleCount)
+            .filter((p) => canShowPriceHistory(p.assetType))
+            .map((p) => p.symbol)
+        )
+      ),
+    [filtered, visibleCount]
+  );
+
+  useEffect(() => {
+    const missing = quoteSymbols.filter((s) => !(s in variations));
+    if (missing.length === 0) return;
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/market/quotes?symbols=${encodeURIComponent(missing.join(","))}`,
+          { signal: ctrl.signal }
+        );
+        const data = await res.json();
+        const next: Record<string, AssetVariation | null> = {};
+        for (const s of missing) next[s] = null; // Mark attempted so we don't refetch.
+        for (const q of data.quotes ?? []) {
+          next[q.symbol] = { price: q.price, todayPct: q.todayPct, weekPct: q.weekPct };
+        }
+        setVariations((prev) => ({ ...prev, ...next }));
+      } catch {
+        // Network/abort: leave symbols unmarked so a later render can retry.
+      }
+    })();
+    return () => ctrl.abort();
+  }, [quoteSymbols, variations]);
 
   const handleNavigate = (pos: (typeof portfolio.positions)[number]) => {
     if (!canShowPriceHistory(pos.assetType)) return;
@@ -194,7 +251,7 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((pos) => {
+          {visible.map((pos) => {
             const navigable = canShowPriceHistory(pos.assetType);
             return (
             <div
@@ -256,13 +313,28 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
                   <p className="font-medium text-white truncate">{pos.name || pos.symbol}</p>
                   <div className="flex items-center gap-2 mt-1 min-w-0">
                     <span className="text-xs text-muted shrink-0">{pos.symbol}</span>
-                    <Badge className="inline-flex items-center gap-1">
+                    <Badge className={cn("inline-flex items-center gap-1", assetTypeChipClasses(pos.assetType))}>
                       <AssetTypeIcon type={pos.assetType} />
                       {t(`filter.${pos.assetType}`)}
                     </Badge>
                   </div>
                 </div>
               </div>
+
+              {navigable && (
+                <div className="mb-4 flex items-center gap-4 text-xs">
+                  <VarPill
+                    label={t("variation.today")}
+                    pct={variations[pos.symbol]?.todayPct}
+                    loading={!(pos.symbol in variations)}
+                  />
+                  <VarPill
+                    label={t("variation.week")}
+                    pct={variations[pos.symbol]?.weekPct}
+                    loading={!(pos.symbol in variations)}
+                  />
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                 <div>
@@ -374,6 +446,20 @@ export function AssetListView({ portfolio }: AssetListViewProps) {
             </div>
             );
           })}
+        </div>
+      )}
+
+      {filtered.length > visibleCount && (
+        <div className="flex flex-col items-center gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+          >
+            {t("loadMore")}
+          </Button>
+          <p className="text-xs text-muted">
+            {t("showing", { shown: visible.length, total: filtered.length })}
+          </p>
         </div>
       )}
 

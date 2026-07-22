@@ -46,9 +46,14 @@ class ChronosModel:
             logger.error(f"Failed to load model: {e}")
             raise
 
-    def predict(self, historical_prices, horizon_months, num_samples=10):
+    def predict(self, historical_prices, horizon_months, num_samples=30):
         """
-        Generate price predictions for the specified horizon
+        Generate price predictions for the specified horizon.
+
+        Chronos samples several possible trajectories; we keep the median as the
+        central estimate and the p10/p90 quantiles as an 80% confidence band that
+        widens with the horizon. 30 samples keeps the deciles stable (10 is noisy)
+        at negligible CPU cost for chronos-t5-small over short horizons.
 
         Args:
             historical_prices (list): List of historical close prices [p1, p2, ..., pn]
@@ -56,7 +61,8 @@ class ChronosModel:
             num_samples (int): Number of sample trajectories to generate
 
         Returns:
-            list: Predicted prices for each month in the horizon
+            dict: {"median": [...], "low": [...], "high": [...]} — one value per
+            month in the horizon.
         """
         try:
             logger.info(f"Generating predictions for {horizon_months} months")
@@ -72,19 +78,27 @@ class ChronosModel:
                 num_samples=num_samples,
             )
 
-            # forecast shape: (batch_size, num_samples, prediction_length)
-            # We aggregate over samples (dim=1) to get the median prediction
-            predictions = torch.median(forecast, dim=1).values
+            # forecast shape: (batch_size, num_samples, prediction_length).
+            # Cast to float32 first: torch.quantile does not support bfloat16
+            # (the GPU dtype). Aggregate over the samples dim (1): median as the
+            # central estimate, p10/p90 as the confidence band.
+            forecast = forecast.float().cpu()
+            median = torch.median(forecast, dim=1).values[0].numpy()
+            low = torch.quantile(forecast, 0.1, dim=1)[0].numpy()
+            high = torch.quantile(forecast, 0.9, dim=1)[0].numpy()
 
-            # Take the first (and only) batch item and convert to numpy
-            predictions = predictions[0].numpy()
+            # Ensure no negative prices
+            median = np.maximum(median, 0.01)
+            low = np.maximum(low, 0.01)
+            high = np.maximum(high, 0.01)
 
-            # Ensure no negative predictions
-            predictions = np.maximum(predictions, 0.01)
+            logger.info(f"Generated {len(median)} predictions with confidence band")
 
-            logger.info(f"Generated {len(predictions)} predictions")
-
-            return predictions.tolist()
+            return {
+                "median": median.tolist(),
+                "low": low.tolist(),
+                "high": high.tolist(),
+            }
 
         except Exception as e:
             logger.error(f"Prediction failed: {e}")
