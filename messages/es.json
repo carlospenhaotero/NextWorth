@@ -3,7 +3,7 @@
     "appDescription": "Gestión de carteras con IA",
     "overview": {
       "title": "Resumen",
-      "description": "Sigue tu patrimonio neto total y la evolución de tu cartera en el tiempo."
+      "description": "Sigue tu patrimonio neto, la evolución de tu cartera y el desglose por tipo, sector y país."
     },
     "assets": {
       "title": "Activos",
@@ -218,7 +218,7 @@
     "forecast": {
       "title": "Predicciones",
       "source": "Amazon Chronos",
-      "desc": "Modelo de series temporales pre-entrenado (zero-shot): proyecta a partir del histórico de precios de Yahoo, no de datos inventados."
+      "desc": "Modelo de series temporales pre-entrenado (zero-shot): proyecta a partir del histórico de precios de Yahoo."
     },
     "disclaimer": "La información es orientativa y no constituye asesoramiento financiero."
   },
@@ -281,6 +281,10 @@
     "total": "Total"
   },
   "assetList": {
+    "variation": {
+      "today": "Hoy",
+      "week": "7d"
+    },
     "filter": {
       "all": "Todos",
       "stock": "Acciones",
@@ -335,7 +339,10 @@
       "deleted": "Activo eliminado",
       "deleteError": "No se ha podido eliminar el activo"
     },
-    "dataSource": "Precios obtenidos de Yahoo Finance"
+    "dataSource": "Precios obtenidos de Yahoo Finance",
+    "loadMore": "Cargar más",
+    "showing": "Mostrando {shown} de {total}",
+    "viewBreakdown": "Ver desglose de la cartera"
   },
   "exportData": {
     "button": "Exportar",
@@ -369,6 +376,10 @@
     "noData": "No hay datos de gráfica disponibles",
     "dataSource": "Precios obtenidos de Yahoo Finance",
     "forecastSource": "Predicciones generadas con Amazon Chronos",
+    "bandLabel": "Banda de confianza 80% (p10-p90)",
+    "tooltipClose": "Cierre",
+    "tooltipPrediction": "Predicción",
+    "tooltipRange": "Rango p10-p90",
     "range": {
       "6m": "6M",
       "12m": "1A",
@@ -385,7 +396,12 @@
     "loadFailed": "No se ha podido cargar el histórico",
     "loadFailedShort": "No se ha podido cargar",
     "predictionsToast": "No se han podido cargar las predicciones IA.",
-    "back": "Volver"
+    "back": "Volver",
+    "news": {
+      "title": "Noticias recientes",
+      "aiTag": "Resumen generado con IA · Gemini",
+      "disclaimer": "Titulares de terceros vía Yahoo Finance. Solo informativo, no es asesoramiento financiero."
+    }
   },
   "addAsset": {
     "flow": {
@@ -415,7 +431,20 @@
       "addToPortfolio": "Añadir a la cartera",
       "cantFind": "¿No lo encuentras? Puede que no cotice públicamente.",
       "addManuallyInstead": "Añádelo manualmente",
-      "popularAssets": "Activos populares"
+      "popularAssets": "Activos populares",
+      "variation": {
+        "today": "Hoy",
+        "week": "7d"
+      },
+      "suggest": {
+        "button": "Sugerir con IA",
+        "title": "Sugerencias para diversificar",
+        "loading": "Analizando tu cartera...",
+        "error": "No se pudieron generar sugerencias. Inténtalo de nuevo.",
+        "disclaimer": "Ejemplos educativos para diversificar, no una recomendación de compra ni asesoramiento financiero.",
+        "aiTag": "Texto generado con IA · Gemini",
+        "dismiss": "Cerrar"
+      }
     },
     "modal": {
       "formTitle": "Tu inversión",
@@ -426,7 +455,10 @@
         "noData": "No hay datos para la gráfica",
         "priceSource": "Precios de Yahoo Finance",
         "disclaimer": "Proyección estimada con Amazon Chronos. No garantiza rentabilidades.",
-        "forecastUnavailable": "Proyección no disponible ahora mismo."
+        "forecastUnavailable": "Proyección no disponible ahora mismo.",
+        "tooltipClose": "Cierre",
+        "tooltipPrediction": "Predicción",
+        "tooltipRange": "Rango p10-p90"
       },
       "assetType": {
         "stock": "Acción",

@@ -3,7 +3,7 @@
     "appDescription": "AI-Powered Portfolio Management",
     "overview": {
       "title": "Overview",
-      "description": "Track your total net worth and portfolio performance over time."
+      "description": "Track your net worth, portfolio performance and the breakdown by type, sector and country."
     },
     "assets": {
       "title": "Assets",
@@ -218,7 +218,7 @@
     "forecast": {
       "title": "Forecasts",
       "source": "Amazon Chronos",
-      "desc": "A pre-trained (zero-shot) time-series model: it projects from Yahoo's real price history, not made-up data."
+      "desc": "A pre-trained (zero-shot) time-series model: it projects from Yahoo's real price history."
     },
     "disclaimer": "This information is for guidance only and is not financial advice."
   },
@@ -281,6 +281,10 @@
     "total": "Total"
   },
   "assetList": {
+    "variation": {
+      "today": "Today",
+      "week": "7d"
+    },
     "filter": {
       "all": "All",
       "stock": "Stocks",
@@ -335,7 +339,10 @@
       "deleted": "Asset deleted",
       "deleteError": "Failed to delete asset"
     },
-    "dataSource": "Market data from Yahoo Finance"
+    "dataSource": "Market data from Yahoo Finance",
+    "loadMore": "Load more",
+    "showing": "Showing {shown} of {total}",
+    "viewBreakdown": "View portfolio breakdown"
   },
   "exportData": {
     "button": "Export",
@@ -369,6 +376,10 @@
     "noData": "No chart data available",
     "dataSource": "Market data from Yahoo Finance",
     "forecastSource": "Forecasts generated with Amazon Chronos",
+    "bandLabel": "80% confidence band (p10-p90)",
+    "tooltipClose": "Close",
+    "tooltipPrediction": "Forecast",
+    "tooltipRange": "p10-p90 range",
     "range": {
       "6m": "6M",
       "12m": "1Y",
@@ -385,7 +396,12 @@
     "loadFailed": "Failed to load history",
     "loadFailedShort": "Failed to load",
     "predictionsToast": "Couldn't load AI predictions.",
-    "back": "Back"
+    "back": "Back",
+    "news": {
+      "title": "Recent news",
+      "aiTag": "Summary generated with AI · Gemini",
+      "disclaimer": "Third-party headlines via Yahoo Finance. Informational only, not financial advice."
+    }
   },
   "addAsset": {
     "flow": {
@@ -415,7 +431,20 @@
       "addToPortfolio": "Add to portfolio",
       "cantFind": "Can't find it? It may not be publicly listed.",
       "addManuallyInstead": "Add it manually instead",
-      "popularAssets": "Popular assets"
+      "popularAssets": "Popular assets",
+      "variation": {
+        "today": "Today",
+        "week": "7d"
+      },
+      "suggest": {
+        "button": "Suggest with AI",
+        "title": "Ideas to diversify",
+        "loading": "Analyzing your portfolio...",
+        "error": "Couldn't generate suggestions. Please try again.",
+        "disclaimer": "Educational diversification examples, not a buy recommendation or financial advice.",
+        "aiTag": "Text generated with AI · Gemini",
+        "dismiss": "Close"
+      }
     },
     "modal": {
       "formTitle": "Your investment",
@@ -426,7 +455,10 @@
         "noData": "No chart data available",
         "priceSource": "Prices from Yahoo Finance",
         "disclaimer": "Projection estimated with Amazon Chronos. Not a guarantee of returns.",
-        "forecastUnavailable": "Forecast unavailable right now."
+        "forecastUnavailable": "Forecast unavailable right now.",
+        "tooltipClose": "Close",
+        "tooltipPrediction": "Forecast",
+        "tooltipRange": "p10-p90 range"
       },
       "assetType": {
         "stock": "Stock",
