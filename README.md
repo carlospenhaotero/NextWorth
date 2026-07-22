@@ -6,6 +6,14 @@ Full-stack portfolio management app with AI-powered price predictions using Amaz
 
 > The app is currently in **beta**. Create an account, add assets to your portfolio, and explore AI predictions — no credit card required.
 
+## Screenshots
+
+| Portfolio overview | Asset detail with AI forecast |
+| :---: | :---: |
+| ![Portfolio overview: net worth chart with projection, top movers and allocation breakdown](docs/screenshots/01-overview.png) | ![Asset detail: price history with the Amazon Chronos forecast and its p10–p90 confidence band, plus an AI news summary](docs/screenshots/02-asset-prediction.png) |
+| **Add asset with AI diversification suggestions** | **Asset list with per-category color and variation** |
+| ![Add asset: AI-generated diversification ideas and a searchable catalog with per-category icons and daily/weekly variation](docs/screenshots/03-add-asset-ai-suggestions.png) | ![Asset list: holdings colored by category with today and 7-day variation and profit/loss](docs/screenshots/04-assets-list.png) |
+
 ## What it does
 
 NextWorth lets you track a multi-asset portfolio (stocks, ETFs, crypto, commodities, bonds, cash, savings) with real-time prices, multi-currency conversion, and profit/loss calculations. The key differentiator is the integrated ML service that generates price forecasts directly in the app.
@@ -129,6 +137,29 @@ pnpm db:studio        # Open Prisma Studio
 pnpm db:reset         # Reset database
 docker compose up -d  # Start PostgreSQL + ML service
 ```
+
+## AI usage
+
+NextWorth uses AI in two clearly separated ways: **inside the product** (features shipped to users) and **during development** (as an engineering assistant). Both are documented openly for transparency.
+
+### AI in the product
+
+| Use point | Provider / model | Purpose |
+|-----------|------------------|---------|
+| Price forecasting | Amazon Chronos (`chronos-t5-small`), self-hosted, zero-shot | Probabilistic time-series prediction with a p10–p90 confidence band |
+| Advisor text, news summaries, diversification suggestions | Google Gemini (`gemini-2.5-flash`) | Neutral, educational text generation — never buy/sell recommendations |
+
+All AI outputs are labeled in the UI, degrade gracefully to deterministic fallbacks when a provider is unavailable, and are explained in the in-app "Cómo funciona la IA y de dónde vienen los datos" settings card. See [docs/RESPONSIBLE-AI.md](docs/RESPONSIBLE-AI.md) for the full responsible-use policy (data privacy, limitations, degradation).
+
+### AI in development
+
+This project was built with AI coding assistants (Claude / Claude Code) used as a pair-programming tool. AI assistance was applied at the following levels:
+
+- **Programming:** scaffolding components and server modules, refactoring, writing unit and end-to-end tests, and debugging. Every AI-generated change was reviewed, adjusted, and integrated by the author.
+- **Design:** iterating on UI layout, component styling, and theming decisions (Tailwind + shadcn/ui), and reviewing visual consistency across views.
+- **Documentation:** drafting and structuring parts of the technical docs.
+
+The architecture, product decisions, data model, and final responsibility for the codebase are the author's. AI was a productivity tool, not an autonomous author: no code was merged without human review and testing.
 
 ## License
 
