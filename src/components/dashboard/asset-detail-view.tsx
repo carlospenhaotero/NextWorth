@@ -7,15 +7,35 @@ import { ArrowLeft, ArrowsClockwise, Sparkle } from "@phosphor-icons/react/dist/
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
 import { localeToIntl } from "@/i18n/locale";
+import { getAllAssets } from "@/lib/assets-catalog";
 import { AssetChart } from "@/components/shared/asset-chart";
 import { AssetSignalPanel } from "@/components/dashboard/asset-signal";
+import { AssetNewsPanel } from "@/components/dashboard/asset-news";
 import { StatCard } from "@/components/ui/stat-card";
 import { Pill } from "@/components/ui/pill";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const RANGE_VALUES = ["6m", "12m", "24m", "60m"] as const;
-
 const HORIZON_VALUES = ["3m", "6m", "1y", "2y", "5y"] as const;
+
+// The history window is derived from the forecast horizon (~2x) so the prediction
+// always takes up about a third of the chart width instead of a thin sliver on the
+// right. Capped at 120 months (the market-data API limit). Same monthly interval on
+// both sides keeps the point density — and therefore the width ratio — consistent.
+const HORIZON_TO_MONTHS: Record<string, number> = {
+  "3m": 3,
+  "6m": 6,
+  "1y": 12,
+  "2y": 24,
+  "5y": 60,
+};
+const historyMonthsFor = (horizon: string) =>
+  Math.min((HORIZON_TO_MONTHS[horizon] ?? 6) * 2, 120);
+
+// The non-persisting history path only knows the symbol, so resolve a friendly
+// name from the catalog for the header (falls back to the symbol when unknown).
+const CATALOG_NAMES = new Map(
+  getAllAssets().map((a) => [a.symbol.toUpperCase(), a.name])
+);
 
 interface SeriesPoint {
   date: string;
@@ -35,7 +55,12 @@ interface HistoryData {
 }
 
 interface PredictionData {
-  predictions: Array<{ date: string; predicted_close: number }>;
+  predictions: Array<{
+    date: string;
+    predicted_close: number;
+    confidence_low: number | null;
+    confidence_high: number | null;
+  }>;
   source: string;
   modelVersion: string;
   warning: string | null;
@@ -52,7 +77,6 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
   const [historyData, setHistoryData] = useState<HistoryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedRange, setSelectedRange] = useState("24m");
 
   const [showPredictions, setShowPredictions] = useState(true);
   const [predictionHorizon, setPredictionHorizon] = useState("6m");
@@ -63,8 +87,13 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
     setLoading(true);
     setError(null);
     try {
+      // persist=0 goes straight to Yahoo, which honours interval=1mo (monthly
+      // candles, full history). The cached path serves whatever granularity sits
+      // in asset_price_history — currently daily and only ~1y deep — which both
+      // over-densifies the history and starves long horizons. Same source the
+      // add-asset preview already uses.
       const res = await fetch(
-        `/api/market/history/${encodeURIComponent(symbol)}?range=${selectedRange}&interval=1mo`
+        `/api/market/history/${encodeURIComponent(symbol)}?range=${historyMonthsFor(predictionHorizon)}m&interval=1mo&persist=0`
       );
       if (!res.ok) throw new Error(t("loadFailed"));
       const data = await res.json();
@@ -74,7 +103,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
     } finally {
       setLoading(false);
     }
-  }, [symbol, selectedRange, t]);
+  }, [symbol, predictionHorizon, t]);
 
   useEffect(() => {
     fetchHistory();
@@ -102,7 +131,16 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
 
   const chartData = useMemo(() => {
     if (!historyData?.series) return [];
-    return historyData.series.map((p) => ({
+    // The history can come back daily (hundreds of points) while the forecast is
+    // monthly. On a categorical axis, width is proportional to point count, so a
+    // dense history squeezes the forecast into a thin sliver. Collapse to one point
+    // per calendar month (last close wins, series is sorted ascending) so both sides
+    // share the same monthly cadence and the prediction keeps a proportional share.
+    const byMonth = new Map<string, SeriesPoint>();
+    for (const p of historyData.series) {
+      byMonth.set(p.date.slice(0, 7), p);
+    }
+    return [...byMonth.values()].map((p) => ({
       date: new Date(p.date).toLocaleDateString(intlLocale, { month: "short", year: "2-digit" }),
       close: p.close,
       predicted: null as number | null,
@@ -115,6 +153,12 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
       date: new Date(p.date).toLocaleDateString(intlLocale, { month: "short", year: "2-digit" }),
       close: null as number | null,
       predicted: p.predicted_close,
+      predLow: p.confidence_low,
+      predHigh: p.confidence_high,
+      predBand:
+        p.confidence_low != null && p.confidence_high != null
+          ? ([p.confidence_low, p.confidence_high] as [number, number])
+          : null,
     }));
     return [...chartData, ...predictions];
   }, [chartData, predictionData, showPredictions, intlLocale]);
@@ -183,7 +227,7 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
         {backButton}
         <div className="min-w-0">
           <h1 className="text-xl font-bold text-white truncate">
-            {historyData?.name || symbol}
+            {CATALOG_NAMES.get(symbol.toUpperCase()) || historyData?.name || symbol}
           </h1>
           <p className="text-sm text-muted">{historyData?.symbol || symbol}</p>
         </div>
@@ -218,32 +262,23 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
         </div>
       )}
 
-      {/* Controls */}
+      {/* Controls: the horizon pills set both the forecast length and the history
+          window (~2x), so the two sides of the chart stay proportional. */}
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex flex-wrap gap-2">
-          {RANGE_VALUES.map((value) => (
+          {HORIZON_VALUES.map((value) => (
             <Pill
               key={value}
-              active={selectedRange === value}
-              onClick={() => setSelectedRange(value)}
+              active={predictionHorizon === value}
+              onClick={() => setPredictionHorizon(value)}
+              className="px-2.5"
             >
-              {t(`range.${value}`)}
+              {t(`horizon.${value}`)}
             </Pill>
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 ml-auto">
-          {showPredictions &&
-            HORIZON_VALUES.map((value) => (
-              <Pill
-                key={value}
-                active={predictionHorizon === value}
-                onClick={() => setPredictionHorizon(value)}
-                className="px-2.5"
-              >
-                {t(`horizon.${value}`)}
-              </Pill>
-            ))}
+        <div className="ml-auto">
           <Pill
             active={showPredictions}
             onClick={() => setShowPredictions((v) => !v)}
@@ -267,6 +302,13 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
           todayLabel={todayLabel}
           todayText={t("today")}
           noDataText={t("noData")}
+          bandStyle="full"
+          bandLabel={t("bandLabel")}
+          tooltipLabels={{
+            close: t("tooltipClose"),
+            predicted: t("tooltipPrediction"),
+            range: t("tooltipRange"),
+          }}
         />
       </div>
 
@@ -295,6 +337,9 @@ export function AssetDetailView({ symbol }: AssetDetailViewProps) {
 
       {/* Educational per-asset signal (momentum, volatility, risk fit) */}
       <AssetSignalPanel symbol={symbol} />
+
+      {/* Recent news headlines + optional AI overview */}
+      <AssetNewsPanel symbol={symbol} />
     </div>
   );
 }
