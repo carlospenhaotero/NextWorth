@@ -8,17 +8,17 @@ vi.mock("@/server/db", () => ({
 }));
 
 vi.mock("@/server/market-data", () => ({
-  getQuote: vi.fn(),
+  getQuotes: vi.fn(),
   getFxRate: vi.fn(),
 }));
 
 import { prisma } from "@/server/db";
-import { getQuote, getFxRate } from "@/server/market-data";
+import { getQuotes, getFxRate } from "@/server/market-data";
 import { getPortfolioForUser } from "@/queries/portfolio";
 
 const findUnique = prisma.user.findUnique as unknown as Mock;
 const findMany = prisma.userPortfolio.findMany as unknown as Mock;
-const mockQuote = getQuote as unknown as Mock;
+const mockQuotes = getQuotes as unknown as Mock;
 const mockFx = getFxRate as unknown as Mock;
 
 function row(o: {
@@ -52,10 +52,25 @@ function row(o: {
   };
 }
 
+/** Build the Map<UPPER symbol, quote> that the batched getQuotes now returns. */
+function quotes(
+  entries: Record<
+    string,
+    { currentPrice: number; dividendRate?: number | null; dividendYield?: number | null }
+  >
+) {
+  const m = new Map<string, unknown>();
+  for (const [sym, q] of Object.entries(entries)) {
+    m.set(sym.toUpperCase(), { dividendRate: null, dividendYield: null, ...q });
+  }
+  return m;
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   findUnique.mockResolvedValue({ baseCurrency: "USD" });
   mockFx.mockResolvedValue(1);
+  mockQuotes.mockResolvedValue(new Map()); // default: no live prices
 });
 
 describe("getPortfolioForUser — empty", () => {
@@ -72,7 +87,7 @@ describe("getPortfolioForUser — stock P/L", () => {
     findMany.mockResolvedValue([
       row({ symbol: "AAPL", assetType: "stock", quantity: 10, avgBuyPrice: 100 }),
     ]);
-    mockQuote.mockResolvedValue({ currentPrice: 120 });
+    mockQuotes.mockResolvedValue(quotes({ AAPL: { currentPrice: 120 } }));
     const p = await getPortfolioForUser("u1");
     const pos = p.positions[0];
     expect(pos.invested).toBe(1000);
@@ -87,7 +102,7 @@ describe("getPortfolioForUser — stock P/L", () => {
     findMany.mockResolvedValue([
       row({ symbol: "SAP.DE", assetType: "stock", currency: "EUR", quantity: 10, avgBuyPrice: 100 }),
     ]);
-    mockQuote.mockResolvedValue({ currentPrice: 110 });
+    mockQuotes.mockResolvedValue(quotes({ "SAP.DE": { currentPrice: 110 } }));
     const p = await getPortfolioForUser("u1");
     const pos = p.positions[0];
     // invested 1000 EUR * 1.1 = 1100; value 10*110*1.1 = 1210.
@@ -97,12 +112,12 @@ describe("getPortfolioForUser — stock P/L", () => {
   });
 });
 
-describe("getPortfolioForUser — quote failure falls back to cost", () => {
+describe("getPortfolioForUser — missing quote falls back to cost", () => {
   it("marks the price estimated and reports an error", async () => {
     findMany.mockResolvedValue([
       row({ symbol: "AAPL", assetType: "stock", quantity: 10, avgBuyPrice: 100 }),
     ]);
-    mockQuote.mockRejectedValue(new Error("quote down"));
+    mockQuotes.mockResolvedValue(new Map()); // symbol absent from the batch result
     const p = await getPortfolioForUser("u1");
     const pos = p.positions[0];
     expect(pos.priceEstimated).toBe(true);
@@ -112,13 +127,15 @@ describe("getPortfolioForUser — quote failure falls back to cost", () => {
 });
 
 describe("getPortfolioForUser — cash", () => {
-  it("prices cash at 1 without a quote call", async () => {
+  it("prices cash at 1 and never requests a quote for it", async () => {
     findMany.mockResolvedValue([
       row({ symbol: "CASH", assetType: "cash", quantity: 5000, avgBuyPrice: 1 }),
     ]);
     const p = await getPortfolioForUser("u1");
     expect(p.positions[0].currentValue).toBe(5000);
-    expect(mockQuote).not.toHaveBeenCalled();
+    // getQuotes is still called once, but cash must not be among the symbols.
+    const requested = mockQuotes.mock.calls[0][0] as string[];
+    expect(requested).not.toContain("CASH");
   });
 });
 
@@ -148,7 +165,7 @@ describe("getPortfolioForUser — bond derived metrics", () => {
         maturityDate: maturity,
       }),
     ]);
-    mockQuote.mockResolvedValue({ currentPrice: 980 });
+    mockQuotes.mockResolvedValue(quotes({ BUND: { currentPrice: 980 } }));
     const p = await getPortfolioForUser("u1");
     const pos = p.positions[0];
     expect(pos.annualCouponIncome).toBeCloseTo(400, 5); // 10 * 1000 * 4%
@@ -164,10 +181,45 @@ describe("getPortfolioForUser — dividend metrics", () => {
     findMany.mockResolvedValue([
       row({ symbol: "KO", assetType: "stock", quantity: 100, avgBuyPrice: 50 }),
     ]);
-    mockQuote.mockResolvedValue({ currentPrice: 60, dividendRate: 1.9, dividendYield: 0.031 });
+    mockQuotes.mockResolvedValue(
+      quotes({ KO: { currentPrice: 60, dividendRate: 1.9, dividendYield: 0.031 } })
+    );
     const p = await getPortfolioForUser("u1");
     const pos = p.positions[0];
     expect(pos.annualDividendIncome).toBeCloseTo(190, 5); // 100 * 1.9
     expect(pos.dividendYield).toBeCloseTo(3.1, 5); // 0.031 * 100
+  });
+});
+
+describe("getPortfolioForUser — batches quotes (no N+1)", () => {
+  it("requests every market symbol in a single getQuotes call", async () => {
+    const rows = Array.from({ length: 50 }, (_, i) =>
+      row({ id: i + 1, symbol: `SYM${i}`, assetType: "stock", quantity: 1, avgBuyPrice: 10 })
+    );
+    findMany.mockResolvedValue(rows);
+    const p = await getPortfolioForUser("u1");
+
+    // One batched call, not one per position.
+    expect(mockQuotes).toHaveBeenCalledTimes(1);
+    const requested = mockQuotes.mock.calls[0][0] as string[];
+    expect(requested).toHaveLength(50);
+    expect(requested).toContain("SYM0");
+    expect(requested).toContain("SYM49");
+    expect(p.positions).toHaveLength(50);
+  });
+
+  it("mixes cached and missing symbols: priced ones use the quote, the rest fall back", async () => {
+    findMany.mockResolvedValue([
+      row({ symbol: "AAPL", assetType: "stock", quantity: 10, avgBuyPrice: 100 }),
+      row({ id: 2, symbol: "MSFT", assetType: "stock", quantity: 5, avgBuyPrice: 200 }),
+    ]);
+    // Only AAPL comes back priced; MSFT is absent from the batch.
+    mockQuotes.mockResolvedValue(quotes({ AAPL: { currentPrice: 150 } }));
+    const p = await getPortfolioForUser("u1");
+    const bySymbol = Object.fromEntries(p.positions.map((x) => [x.symbol, x]));
+    expect(bySymbol.AAPL.currentValue).toBe(1500); // 10 * 150 live
+    expect(bySymbol.AAPL.priceEstimated).toBe(false);
+    expect(bySymbol.MSFT.currentValue).toBe(1000); // 5 * 200 cost fallback
+    expect(bySymbol.MSFT.priceEstimated).toBe(true);
   });
 });
