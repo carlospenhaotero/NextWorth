@@ -6,7 +6,12 @@ const TIMEOUT_MS = 30000;
 interface PredictionResult {
   symbol: string;
   horizon: string;
-  predictions: Array<{ date: string; predicted_close: number }>;
+  predictions: Array<{
+    date: string;
+    predicted_close: number;
+    confidence_low?: number;
+    confidence_high?: number;
+  }>;
   model_version: string;
   inference_time_ms: number;
   input_data_points: number;

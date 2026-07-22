@@ -85,10 +85,10 @@ def predict():
         start_time = time.time()
 
         try:
-            predicted_prices = model.predict(
+            forecast = model.predict(
                 historical_prices=prices,
                 horizon_months=horizon_months,
-                num_samples=10
+                num_samples=30
             )
         except Exception as e:
             logger.error(f"Model prediction failed: {e}")
@@ -108,13 +108,20 @@ def predict():
 
         future_dates = model.generate_future_dates(last_date, horizon_months)
 
-        # Format predictions
+        # Format predictions: median as the central estimate + p10/p90 band
         predictions = [
             {
                 'date': date,
-                'predicted_close': round(price, 2)
+                'predicted_close': round(median, 2),
+                'confidence_low': round(low, 2),
+                'confidence_high': round(high, 2)
             }
-            for date, price in zip(future_dates, predicted_prices)
+            for date, median, low, high in zip(
+                future_dates,
+                forecast['median'],
+                forecast['low'],
+                forecast['high']
+            )
         ]
 
         # Build response

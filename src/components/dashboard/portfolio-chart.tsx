@@ -78,7 +78,7 @@ export function PortfolioChart({
   }, [data.series, range, intlLocale]);
 
   const projectedData = useMemo(() => {
-    if (!projectionEnabled || !projectionData) return [];
+    if (!projectionEnabled || !projectionData || projectionData.series.length === 0) return [];
     return projectionData.series.map((p) => {
       const d = new Date(p.date);
       return {
@@ -90,10 +90,17 @@ export function PortfolioChart({
     });
   }, [projectionEnabled, projectionData, intlLocale]);
 
-  const chartData = useMemo(
-    () => [...historicalData, ...projectedData],
-    [historicalData, projectedData]
-  );
+  const chartData = useMemo(() => {
+    const historical = historicalData.map((p) => ({ ...p }));
+    // Bridge the seam: give the last historical point a `projected` value equal
+    // to its own value so the dashed projection line starts exactly where the
+    // solid net-worth line ends, with no visual gap.
+    if (projectionEnabled && projectedData.length > 0 && historical.length > 0) {
+      const last = historical[historical.length - 1];
+      last.projected = last.value;
+    }
+    return [...historical, ...projectedData];
+  }, [historicalData, projectedData, projectionEnabled]);
 
   const todayLabel =
     projectionEnabled && historicalData.length > 0

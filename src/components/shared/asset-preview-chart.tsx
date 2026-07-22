@@ -19,7 +19,12 @@ interface HistoryData {
   series: HistorySeriesPoint[];
 }
 interface PreviewPrediction {
-  predictions: Array<{ date: string; predicted_close: number }>;
+  predictions: Array<{
+    date: string;
+    predicted_close: number;
+    confidence_low: number | null;
+    confidence_high: number | null;
+  }>;
 }
 
 interface AssetPreviewChartProps {
@@ -105,6 +110,10 @@ export function AssetPreviewChart({ symbol }: AssetPreviewChartProps) {
       date: new Date(p.date).toLocaleDateString(intlLocale, { month: "short", year: "2-digit" }),
       close: null,
       predicted: p.predicted_close,
+      predBand:
+        p.confidence_low != null && p.confidence_high != null
+          ? ([p.confidence_low, p.confidence_high] as [number, number])
+          : null,
     }));
     return [...chartData, ...preds];
   }, [chartData, prediction, intlLocale]);
@@ -137,6 +146,12 @@ export function AssetPreviewChart({ symbol }: AssetPreviewChartProps) {
             todayLabel={todayLabel}
             todayText={t("today")}
             noDataText={t("noData")}
+            bandStyle="shaded"
+            tooltipLabels={{
+              close: t("tooltipClose"),
+              predicted: t("tooltipPrediction"),
+              range: t("tooltipRange"),
+            }}
           />
         )}
       </div>

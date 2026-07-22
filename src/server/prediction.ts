@@ -8,6 +8,8 @@ const inflightRequests = new Map<string, Promise<PredictionResponse | null>>();
 interface PredictionPoint {
   date: string;
   predicted_close: number;
+  confidence_low: number | null;
+  confidence_high: number | null;
 }
 
 interface PredictionResponse {
@@ -81,6 +83,9 @@ async function fetchPredictionInternal(
       predictions: cached.map((r) => ({
         date: r.predictionDate.toISOString().split("T")[0],
         predicted_close: Number(r.predictedClose),
+        confidence_low: r.confidenceLow != null ? Number(r.confidenceLow) : null,
+        confidence_high:
+          r.confidenceHigh != null ? Number(r.confidenceHigh) : null,
       })),
       source: "cache",
       cachedAt: cached[0].fetchedAt.toISOString(),
@@ -106,6 +111,8 @@ async function fetchPredictionInternal(
         },
         update: {
           predictedClose: pred.predicted_close,
+          confidenceLow: pred.confidence_low,
+          confidenceHigh: pred.confidence_high,
           modelVersion: computed.modelVersion,
           fetchedAt: new Date(),
         },
@@ -114,6 +121,8 @@ async function fetchPredictionInternal(
           predictionHorizon: horizon,
           predictionDate: new Date(pred.date),
           predictedClose: pred.predicted_close,
+          confidenceLow: pred.confidence_low,
+          confidenceHigh: pred.confidence_high,
           modelVersion: computed.modelVersion,
         },
       });
@@ -182,6 +191,8 @@ export async function predictFromHistory(
     predictions: mlResult.predictions.map((p) => ({
       date: p.date,
       predicted_close: p.predicted_close,
+      confidence_low: p.confidence_low ?? null,
+      confidence_high: p.confidence_high ?? null,
     })),
     modelVersion: mlResult.model_version,
     inferenceTimeMs: mlResult.inference_time_ms,
@@ -210,6 +221,9 @@ async function tryStaleCache(
       predictions: stale.map((r) => ({
         date: r.predictionDate.toISOString().split("T")[0],
         predicted_close: Number(r.predictedClose),
+        confidence_low: r.confidenceLow != null ? Number(r.confidenceLow) : null,
+        confidence_high:
+          r.confidenceHigh != null ? Number(r.confidenceHigh) : null,
       })),
       source: "stale_cache",
       cachedAt: stale[0].fetchedAt.toISOString(),
