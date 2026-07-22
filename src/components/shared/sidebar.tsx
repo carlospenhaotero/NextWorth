@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   SquaresFour,
-  ChartPie,
+  Wallet,
   PlusCircle,
   Gear,
   Sparkle,
@@ -18,7 +18,7 @@ import { signOut } from "@/lib/auth-client";
 
 const menuItems = [
   { icon: SquaresFour, key: "portfolio", path: "/overview" },
-  { icon: ChartPie, key: "assets", path: "/assets" },
+  { icon: Wallet, key: "assets", path: "/assets" },
   { icon: Sparkle, key: "advisor", path: "/advisor" },
   { icon: PlusCircle, key: "addAsset", path: "/add-asset" },
   { icon: Gear, key: "settings", path: "/settings" },
