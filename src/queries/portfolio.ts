@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/server/db";
-import { getQuote, getFxRate } from "@/server/market-data";
+import { getQuotes, getFxRate } from "@/server/market-data";
+import type { QuoteResult } from "@/server/yahoo-finance";
 
 interface Position {
   id: number;
@@ -89,6 +90,27 @@ export async function getPortfolioForUser(
     return rate;
   }
 
+  // Prefetch everything the loop needs, in parallel, so the per-position body
+  // below does no sequential network I/O. This is the fix for the N+1: ~1000
+  // sequential quote calls collapse into one batched call, plus a handful of
+  // parallel FX lookups (one per distinct currency, then cached).
+  const quoteSymbols = rows
+    .filter((r) => !["cash", "savings"].includes(r.asset.assetType))
+    .map((r) => r.asset.symbol);
+  const distinctCurrencies = Array.from(
+    new Set(rows.map((r) => r.asset.currency.toUpperCase()))
+  );
+
+  const [quoteMap] = await Promise.all([
+    getQuotes(quoteSymbols),
+    // Warm the FX cache; per-currency failures are handled per-position below.
+    Promise.all(
+      distinctCurrencies.map((cur) =>
+        getRateCached(cur, baseCurrency).catch(() => undefined)
+      )
+    ),
+  ]);
+
   const positions: Position[] = [];
 
   for (const row of rows) {
@@ -102,20 +124,20 @@ export async function getPortfolioForUser(
     let currentPriceNative: number | null = null;
     let errorMsg: string | null = null;
     let priceEstimated = false;
-    let quote: Awaited<ReturnType<typeof getQuote>> | null = null;
+    let quote: QuoteResult | null = null;
 
-    try {
-      if (["cash", "savings"].includes(row.asset.assetType)) {
-        currentPriceNative = 1;
-      } else {
-        quote = await getQuote(row.asset.symbol);
+    if (["cash", "savings"].includes(row.asset.assetType)) {
+      currentPriceNative = 1;
+    } else {
+      quote = quoteMap.get(row.asset.symbol.toUpperCase()) ?? null;
+      if (quote) {
         currentPriceNative = quote.currentPrice ?? null;
+      } else {
+        // No live price: fall back to cost, then to par (bonds), if known.
+        currentPriceNative = avgBuyPrice ?? faceValue ?? null;
+        priceEstimated = currentPriceNative != null;
+        errorMsg = "Price unavailable, using cost";
       }
-    } catch {
-      // No live price: fall back to cost, then to par (bonds), if known.
-      currentPriceNative = avgBuyPrice ?? faceValue ?? null;
-      priceEstimated = currentPriceNative != null;
-      errorMsg = "Price unavailable, using cost";
     }
 
     let fxRate: number | null = 1;

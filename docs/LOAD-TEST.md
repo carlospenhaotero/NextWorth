@@ -19,14 +19,22 @@ grande y dónde está el cuello de botella.
 
 ## Resultados
 
-| Ruta | Frío | Caliente |
-|---|---|---|
-| `getPortfolioForUser` (1000 pos.) | **78 312 ms** | **62 215 ms** |
-| `getPortfolioHistory("all")` (1000 pos.) | 13 637 ms | 11 096 ms |
+Baseline (código secuencial original) frente al estado actual (batch + caché de
+cotizaciones + prefetch de FX en paralelo), misma cuenta de 1000 posiciones:
 
-- Posiciones de mercado: 300, cada una con quote + FX secuencial.
-- Latencia por posición de mercado (frío): **~261 ms**. 300 × 261 ms ≈ los 78 s
-  observados: el tiempo es casi todo espera de red secuencial.
+| Ruta | Frío (antes → ahora) | Caliente (antes → ahora) |
+|---|---|---|
+| `getPortfolioForUser` (1000 pos.) | 78 312 ms → **3 803 ms** (~20×) | 62 215 ms → **338 ms** (~184×) |
+| `getPortfolioHistory("all")` (1000 pos.) | ~13 600 ms (sin cambios) | ~6 900 ms (sin cambios) |
+
+- Posiciones de mercado: 300. En el baseline cada una hacía quote + FX
+  **secuencial**: ~261 ms/posición × 300 ≈ los 78 s observados (casi todo espera
+  de red en serie).
+- Con el batch, la latencia efectiva por posición de mercado cae a **~13 ms** en
+  frío. El run en caliente (~338 ms) refleja la nueva caché de cotizaciones (TTL
+  60 s): apenas queda trabajo que repetir.
+- `getPortfolioHistory` no se tocó en esta fase; su variación entra dentro del
+  ruido de red.
 
 ## Diagnóstico: el N+1 de `getPortfolioForUser`
 
@@ -51,23 +59,28 @@ El multiplicador real es `getQuote`, y son dos problemas sumados:
 justamente porque su histórico por activo pasa por esa caché y por dedup de
 peticiones en vuelo.
 
-## Recomendación (no aplicada aún)
+## Solución aplicada
 
-Ordenadas por retorno/esfuerzo. No se implementan en esta fase para no tocar
-lógica de negocio crítica sin acordarlo; quedan como trabajo propuesto.
+Las tres recomendaciones del análisis original, ya implementadas:
 
-1. **Paralelizar las cotizaciones con un pool acotado** (p. ej. 8-10 en vuelo).
-   Convierte 300 viajes secuenciales en ~30 tandas: proyección ~78 s -> ~8-10 s
-   sin cambiar el resultado, solo el orden de espera. Pool acotado (no
-   `Promise.all` a pelo) para no disparar el rate-limit de Yahoo.
-2. **Cachear `getQuote`** con el mismo patrón que `getAssetHistory` (memoria + BD
-   con TTL corto, p. ej. 60 s). Elimina el coste en cargas repetidas y en varios
-   usuarios sobre los mismos símbolos.
-3. **Batch de quotes.** `yahoo-finance2` acepta varios símbolos por llamada:
-   una petición para todos los tickers en vez de una por posición.
+1. **Batch de quotes.** `getYahooQuotes(symbols[])` (`src/server/yahoo-finance.ts`)
+   pide los tickers en tandas de 50 por llamada, con las tandas en paralelo. Las
+   ~300 peticiones secuenciales pasan a ~6 llamadas concurrentes.
+2. **Caché de cotizaciones.** `getQuotes(symbols[])` (`src/server/market-data.ts`)
+   añade una caché in-memory con TTL de 60 s: las recargas y los usuarios que
+   comparten símbolos ya no vuelven a Yahoo. Es lo que lleva el run caliente de
+   ~62 s a ~0,3 s.
+3. **Prefetch de FX en paralelo.** `getPortfolioForUser`
+   (`src/queries/portfolio.ts`) resuelve el batch de quotes y los tipos de cambio
+   distintos antes del bucle; el bucle pasa a ser cómputo puro sin `await`.
 
-Con (1)+(2) la cartera de 1000 activos bajaría de ~78 s a segundos, y las cargas
-recurrentes serían casi instantáneas.
+El resultado no cambia (mismos valores por posición y mismos totales); solo cambia
+el orden de espera. En cliente, `AssetListView` pagina el render (30 por página,
+botón "cargar más") para no montar 1000 tarjetas de golpe.
+
+Regresión cubierta por `tests/unit/portfolio.test.ts`: se verifica que
+`getPortfolioForUser` pide todos los símbolos en **una sola** llamada a
+`getQuotes` (no vuelve al N+1) y que un símbolo sin precio cae al coste.
 
 ## Cómo reproducir
 

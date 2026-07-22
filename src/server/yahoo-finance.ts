@@ -3,29 +3,94 @@ import YahooFinance from "yahoo-finance2";
 
 const yahooFinance = new YahooFinance();
 
-export async function getYahooQuote(symbol: string) {
+export interface QuoteResult {
+  symbol: string;
+  yahooSymbol: string;
+  currentPrice: number;
+  open?: number;
+  high?: number;
+  low?: number;
+  previousClose?: number;
+  volume?: number;
+  marketCap?: number;
+  currency?: string;
+  dividendRate: number | null;
+  dividendYield: number | null;
+  source: "yahoo";
+}
+
+// Shared mapper so the single and batch quote paths return the exact same shape.
+// `requested` is the caller's original symbol (preserves case/aliasing).
+function mapQuote(requested: string, quote: Record<string, unknown>): QuoteResult {
+  return {
+    symbol: requested,
+    yahooSymbol: requested.toUpperCase(),
+    currentPrice: quote.regularMarketPrice as number,
+    open: quote.regularMarketOpen as number | undefined,
+    high: quote.regularMarketDayHigh as number | undefined,
+    low: quote.regularMarketDayLow as number | undefined,
+    previousClose: quote.regularMarketPreviousClose as number | undefined,
+    volume: quote.regularMarketVolume as number | undefined,
+    marketCap: quote.marketCap as number | undefined,
+    currency: quote.currency as string | undefined,
+    dividendRate: (quote.trailingAnnualDividendRate as number | undefined) ?? null,
+    dividendYield: (quote.trailingAnnualDividendYield as number | undefined) ?? null,
+    source: "yahoo",
+  };
+}
+
+export async function getYahooQuote(symbol: string): Promise<QuoteResult> {
   const yahooSymbol = symbol.toUpperCase();
-  const quote = await yahooFinance.quote(yahooSymbol, {}, { validateResult: false });
+  const quote = (await yahooFinance.quote(
+    yahooSymbol,
+    {},
+    { validateResult: false }
+  )) as Record<string, unknown> | undefined;
 
   if (!quote || quote.regularMarketPrice === undefined) {
     throw new Error(`Yahoo Finance returned no price for ${yahooSymbol}`);
   }
 
-  return {
-    symbol,
-    yahooSymbol,
-    currentPrice: quote.regularMarketPrice,
-    open: quote.regularMarketOpen,
-    high: quote.regularMarketDayHigh,
-    low: quote.regularMarketDayLow,
-    previousClose: quote.regularMarketPreviousClose,
-    volume: quote.regularMarketVolume,
-    marketCap: quote.marketCap,
-    currency: quote.currency,
-    dividendRate: quote.trailingAnnualDividendRate ?? null,
-    dividendYield: quote.trailingAnnualDividendYield ?? null,
-    source: "yahoo" as const,
-  };
+  return mapQuote(symbol, quote);
+}
+
+// Yahoo's quote endpoint accepts many symbols per call; keep chunks modest so a
+// single failing/oversized request can't sink the whole batch.
+const QUOTE_CHUNK_SIZE = 50;
+
+/**
+ * Batch quotes: one Yahoo call per chunk of ~50 symbols, chunks fetched in
+ * parallel. Returns a Map keyed by UPPERCASED symbol. Symbols that error or come
+ * back without a price are simply absent from the map (the caller falls back to
+ * cost). A whole chunk failing is swallowed so it can't sink the others.
+ */
+export async function getYahooQuotes(symbols: string[]): Promise<Map<string, QuoteResult>> {
+  const unique = Array.from(new Set(symbols.map((s) => s.toUpperCase())));
+  const out = new Map<string, QuoteResult>();
+  if (unique.length === 0) return out;
+
+  const chunks: string[][] = [];
+  for (let i = 0; i < unique.length; i += QUOTE_CHUNK_SIZE) {
+    chunks.push(unique.slice(i, i + QUOTE_CHUNK_SIZE));
+  }
+
+  await Promise.all(
+    chunks.map(async (chunk) => {
+      try {
+        const res = (await yahooFinance.quote(chunk, {}, { validateResult: false })) as unknown;
+        const arr = (Array.isArray(res) ? res : [res]) as Array<Record<string, unknown>>;
+        for (const q of arr) {
+          const sym = typeof q?.symbol === "string" ? q.symbol.toUpperCase() : "";
+          if (!sym || q.regularMarketPrice === undefined) continue;
+          out.set(sym, mapQuote(sym, q));
+        }
+      } catch {
+        // Chunk failed entirely: leave its symbols out so they fall back to cost.
+      }
+    })
+  );
+
+  return out;
 }
 
 export async function validateSymbol(symbol: string): Promise<boolean> {
@@ -125,6 +190,56 @@ export async function searchSymbols(query: string): Promise<SymbolSearchResult[]
       // Name resolution is best-effort: keep the cryptic symbol rather than
       // failing the whole search.
     }
+  }
+
+  return out;
+}
+
+export interface YahooNewsItem {
+  title: string;
+  publisher: string | null;
+  link: string;
+  /** ISO-8601 publish time, or null when Yahoo omits it. */
+  publishedAt: string | null;
+}
+
+/**
+ * Recent news headlines for a symbol, via Yahoo Finance search (news channel).
+ * Best-effort and metadata-only: title, publisher, link and publish time. The
+ * article bodies are never fetched — we only surface headlines that link out.
+ */
+export async function getYahooNews(symbol: string, count = 8): Promise<YahooNewsItem[]> {
+  const yahooSymbol = symbol.toUpperCase();
+
+  const result = (await yahooFinance.search(
+    yahooSymbol,
+    { quotesCount: 0, newsCount: count },
+    { validateResult: false }
+  )) as { news?: Array<Record<string, unknown>> };
+  const news = result.news ?? [];
+
+  const out: YahooNewsItem[] = [];
+  const seen = new Set<string>();
+
+  for (const item of news) {
+    const link = typeof item.link === "string" ? item.link : "";
+    const title = typeof item.title === "string" ? item.title : "";
+    if (!link || !title || seen.has(link)) continue;
+    seen.add(link);
+
+    const publisher = typeof item.publisher === "string" ? item.publisher : null;
+
+    // providerPublishTime comes back as a Date in yahoo-finance2, but older
+    // shapes use unix seconds. Handle both, drop anything unparseable.
+    let publishedAt: string | null = null;
+    const raw = item.providerPublishTime;
+    if (raw instanceof Date && !isNaN(raw.getTime())) {
+      publishedAt = raw.toISOString();
+    } else if (typeof raw === "number" && raw > 0) {
+      publishedAt = new Date(raw * 1000).toISOString();
+    }
+
+    out.push({ title, publisher, link, publishedAt });
   }
 
   return out;
